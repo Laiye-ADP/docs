@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Laiye ADP 文档中心",
+  "name": "Laiye ADP Documentation",
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
@@ -16,7 +16,7 @@
       "index",
       "quickstart",
       {
-        "group": "产品文档",
+        "group": "Products",
         "icon": "book",
         "pages": [
           "products/adp-skills",
@@ -25,21 +25,7 @@
           "products/n8n-nodes-adp"
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "/images/logo.8f73202.svg",
@@ -50,7 +36,7 @@
     "links": [
       {
         "href": "https://laiye-tech.feishu.cn/share/base/form/shrcnqALO4a52Q15i2BebtYktzb",
-        "label": "使用反馈"
+        "label": "Usage Feedback"
       }
     ],
     "primary": {
@@ -77,7 +63,7 @@
       "website": "https://adp.laiye.com/"
     }
   },
-  "description": "Laiye ADP 文档中心",
+  "description": "Laiye ADP Documentation",
   "api": {
     "examples": {
       "languages": [
