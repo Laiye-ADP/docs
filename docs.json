@@ -8,7 +8,7 @@
     "dark": "#15803D"
   },
   "favicon": {
-    "light": "/favicon.svg",
+    "light": "/images/img_v3_02up_fe3d1af4-0716-4d31-ac7d-92529975b35g.png",
     "dark": "/images/259055827.png"
   },
   "navigation": {
@@ -42,15 +42,15 @@
     }
   },
   "logo": {
-    "light": "/images/259055827.png",
-    "dark": "/images/259055827.png",
+    "light": "/images/logo-white.9acd912.svg",
+    "dark": "/images/logo.8f73202.svg",
     "href": "https://adp.laiye.com/"
   },
   "navbar": {
     "links": [
       {
-        "label": "Support",
-        "href": "mailto:global_product@laiye.com"
+        "href": "https://laiye-tech.feishu.cn/share/base/form/shrcnqALO4a52Q15i2BebtYktzb",
+        "label": "使用反馈"
       }
     ],
     "primary": {
@@ -73,7 +73,8 @@
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/Laiye-ADP"
+      "github": "https://github.com/Laiye-ADP",
+      "website": "https://adp.laiye.com/"
     }
   },
   "description": "Laiye ADP 文档中心",
@@ -86,7 +87,11 @@
         "Nodejs",
         "Go"
       ],
-      "autogenerate": true
+      "autogenerate": true,
+      "prefill": true
     }
+  },
+  "interaction": {
+    "drilldown": false
   }
 }
