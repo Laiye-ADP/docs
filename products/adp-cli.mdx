@@ -6,135 +6,203 @@ icon: "terminal"
 
 ## 概述
 
-**adp-mcp** 是 Laiye ADP 的 [Model Context Protocol](https://modelcontextprotocol.io/) 服务器，将 ADP 的文档解析、抽取与人机复核能力以 MCP 工具的形式暴露给 LLM 客户端（Claude Desktop、VS Code、Cursor、Codex CLI 等），让 Agent 可以直接发现、描述、验证与执行 ADP 任务。
+**agentic-doc-parse-and-extract**（简称 ADP CLI）是 Laiye ADP 的官方开源命令行工具，同时支持手动终端调用与 AI Skill 自动调用。一句命令即可完成：结构化文档解析 \+ 关键字段智能抽取，覆盖发票、订单、证件、票据、通用文档等全场景。
 
-<Card title="PyPI" icon="python" href="https://pypi.org/project/adp-mcp/">
-  pip install adp-mcp
-</Card>
+<CardGroup cols="2">
+  <Card title="GitHub" icon="github" href="https://github.com/laiye-ai/adp-cli">
+    laiye-ai/adp-cli
+  </Card>
 
-## 核心工具
+  <Card title="NPM" icon="npm" href="https://www.npmjs.com/package/@laiye-adp/agentic-doc-parse-and-extract-cli">
+    @laiye-adp/agentic-doc-parse-and-extract-cli
+  </Card>
 
-| 工具 | 说明 |
+  <Card title="PyPI" icon="python" href="https://pypi.org/project/agentic-doc-parse-and-extract/">
+    agentic-doc-parse-and-extract
+  </Card>
+
+  <Card title="Releases" icon="download" href="https://github.com/laiye-ai/adp-cli/releases">
+    预编译二进制包
+  </Card>
+</CardGroup>
+
+## 核心功能
+
+| 功能 | 描述 | 适用场景 |
+| --- | --- | --- |
+| **Document Parsing** | 多格式文档（PDF、图片、扫描件、手写本、复杂版面）结构化解析 | LLM 可读的结构化数据 |
+| **Out-of-the-Box Extraction** | 内置发票/收据/订单/中国证件等标准化抽取模型 | AP 自动化、费用管理、采购自动化 |
+| **Custom Extraction** | 自定义抽取应用、字段与识别逻辑 | 企业专属/行业定制文档 |
+| **Human-Review Collaboration** | 人机复核规则与任务 API | 质量保证、合规审查 |
+| **Webhook Callbacks** | 任务状态变化实时推送 | 事件驱动集成 |
+| **Task Query** | 异步任务提交与状态查询 | 批量处理、问题追溯 |
+| **Application Management** | 应用列表、详情、标签管理 | 全生命周期管理 |
+
+## 配置
+
+在 [adp-global.laiye.com](https://adp-global.laiye.com/) 获取 API Key（新用户每月 100 免费 credits）。
+
+```bash
+adp config set --api-key <your-api-key>
+adp config set --api-base-url https://adp-global.laiye.com
+adp config get
+```
+
+## 快速示例
+
+```bash
+# 列出可用应用
+adp app-id list
+
+# 解析本地文档
+adp parse local ./invoice.pdf --app-id <app-id>
+
+# 抽取关键字段
+adp extract local ./invoice.pdf --app-id <app-id>
+
+# 异步批量处理目录
+adp parse local ./documents/ --app-id <app-id> --async
+
+# 远程 URL 处理
+adp extract url https://example.com/file.pdf --app-id <app-id>
+
+# 查询异步任务
+adp parse query <task-id>
+
+# 两阶段异步（可恢复）
+adp extract local ./documents/ --app-id <app-id> --async --no-wait --export tasks.json
+adp extract query --watch --file tasks.json
+
+# 自动重试
+adp parse local ./documents/ --app-id <app-id> --retry 2
+
+# 查看剩余额度
+adp credit
+```
+
+## 命令列表
+
+<Note>
+  AI Agent 应调用 `adp schema` 获取机器可读的权威命令规范。
+</Note>
+
+| 命令 | 说明 |
 | --- | --- |
-| `adp_discover` | 列出可用 ADP 资源，支持按 domain、intent class、关键字过滤 |
-| `adp_describe` | 获取资源 \+ intent class 的使用契约（字段 schema、谓词、投影） |
-| `adp_validate` | 验证 intent IR 是否匹配资源 schema，不执行 |
-| `adp_execute` | 执行 ADP intent 并返回结果（支持 cursor 分页） |
+| `adp version` | 输出版本 |
+| `adp config set` / `get` / `clear` | 配置管理 |
+| `adp app-id list` / `cache` | 列出/缓存应用 |
+| `adp parse local <path>` | 解析本地文件/目录 |
+| `adp parse url <url>` | 解析远程文件 |
+| `adp parse base64 <data>` | 解析 Base64 内容 |
+| `adp parse query <task-id...>` | 查询异步解析任务 |
+| `adp extract local/url/base64/query` | 抽取对应命令 |
+| `adp custom-app create / update / delete / get-config` | 自定义应用管理 |
+| `adp custom-app ai-generate` | AI 推荐抽取字段 |
+| `adp human-review rule-create / update / delete / get-config` | 人机复核规则 |
+| `adp human-review task-create / task-query / result-update` | 复核任务与结果 |
+| `adp webhook create / update / delete / get-config / log` | Webhook 配置 |
+| `adp credit` | 剩余额度 |
+| `adp schema` | AI Agent 使用的 schema |
 
-## 安装
+## 全局 Flags
 
-```bash
-pip install adp-mcp
-```
-
-## 运行
-
-```bash
-adp-mcp --config /path/to/adp/config [--log-level INFO]
-```
-
-日志默认输出到 stderr，可重定向到文件：
-
-```bash
-adp-mcp --config /path/to/adp/config 2>/path/to/adp-mcp.log
-```
-
-### 身份验证
-
-使用 Basic Auth，设置环境变量：
-
-```bash
-export ADP_USERNAME=myuser
-export ADP_PASSWORD=mypassword
-```
-
-<Info>
-  若未设置 `ADP_USERNAME`，服务器将以匿名方式连接。
-</Info>
-
-## MCP 客户端配置
-
-<Tabs>
-  <Tab title="Claude Desktop">
-    添加到 `claude_desktop_config.json`：
-
-    ```json
-    {
-      "mcpServers": {
-        "adp": {
-          "command": "adp-mcp",
-          "args": ["--config", "/path/to/adp/config"]
-        }
-      }
-    }
-    ```
-  </Tab>
-  <Tab title="VS Code">
-    工作区 `.vscode/mcp.json` 或用户级 `settings.json`：
-
-    ```json
-    {
-      "servers": {
-        "adp": {
-          "type": "stdio",
-          "command": "adp-mcp",
-          "args": ["--config", "/path/to/adp/config"]
-        }
-      }
-    }
-    ```
-  </Tab>
-  <Tab title="Codex CLI">
-    `~/.codex/config.toml`：
-
-    ```toml
-    [mcp_servers.adp]
-    transport = { command = "adp-mcp", args = ["--config", "/path/to/adp/config"] }
-    enabled = true
-    ```
-  </Tab>
-  <Tab title="Cursor">
-    在 Cursor Settings 中添加 MCP Server：
-
-    ```json
-    {
-      "mcpServers": {
-        "adp": {
-          "command": "adp-mcp",
-          "args": ["--config", "/path/to/adp/config"]
-        }
-      }
-    }
-    ```
-  </Tab>
-</Tabs>
-
-## Docker 快速启动
-
-仓库 `docker/` 目录提供了一套自包含后端服务与 `mcp-runtime` 容器的 Docker Compose 栈：
-
-```bash
-cd adp-mcp/docker
-docker compose up -d
-```
-
-## 开发
-
-```bash
-cd adp-mcp
-uv sync --extra dev
-uv run python -m unittest discover -s tests -v
-```
-
-## 依赖
-
-| 包 | 版本 |
+| Flag | 说明 |
 | --- | --- |
-| `adp-hypervisor` | `>=0.1.0` |
-| `adp-sdk` | `>=0.1.0` |
-| `mcp` | `[cli]<2.0,>=1.0` |
-| Python | `>=3.11` |
+| `--json` | JSON 输出 |
+| `--quiet` | 静默模式 |
+| `--lang <en|zh>` | 界面语言 |
+| `--app-id` | 应用 ID（parse/extract 必填） |
+| `--async` | 异步模式 |
+| `--no-wait` | 仅提交不等待 |
+| `--export <path>` | 导出结果 |
+| `--timeout <seconds>` | 超时（默认 900s） |
+| `--retry <n>` | 重试次数 |
+| `--file <path>` | 从 JSON 文件读取任务 ID |
+
+## 异步工作流
+
+### 两阶段异步（`--no-wait`）
+
+**Phase 1 提交任务：**
+
+```bash
+adp extract local ./documents/ --app-id <app-id> --async --no-wait --export tasks.json
+```
+
+输出为 JSON 数组：
+
+```json
+[
+  { "path": "invoice.pdf", "task_id": "task_abc123" },
+  { "path": "contract.pdf", "task_id": "task_def456" }
+]
+```
+
+**Phase 2 查询结果：**
+
+```bash
+adp extract query --watch --file tasks.json --export ./results/
+```
+
+<Tip>
+  即使 CLI 中途崩溃，`tasks.json` 中的任务 ID 仍保留——随时可用 `query --file` 恢复。
+</Tip>
+
+## 人机协同示例
+
+```bash
+# 创建审核规则
+adp human-review rule-create --app-id <app-id> --rule-name "my-rule" \
+  --rule '[{"rule_dimension":"整体文档","rule_setting":"所有字段不能为空"}]' \
+  --rule-status "true" --rule-logic 2
+
+# AI 推荐规则
+adp human-review rule-ai-generate --app-id <app-id> \
+  --fields '[{"field_name":"amount","field_accuracy":"high"}]'
+
+# 创建异步复核任务
+adp human-review task-create --app-id <app-id> --url https://example.com/file.pdf --async
+```
+
+## 批处理输出结构
+
+```text
+adp_results_20250417_153020/
+├── _summary.json              # 汇总：总数、成功、失败、逐件状态
+├── invoice_01.pdf.json        # 成功结果
+├── contract_02.docx.json
+└── report_03.pdf.error.json   # 错误详情
+```
+
+## Exit Codes
+
+| Code | 含义 |
+| --- | --- |
+| `0` | 全部成功 |
+| `1` | 全部失败 / 系统错误 |
+| `2` | 参数错误 |
+| `3` | 资源不存在 |
+| `4` | 权限不足 |
+| `5` | 冲突 |
+| `6` | 部分失败 |
+
+## 环境变量
+
+| 变量 | 说明 |
+| --- | --- |
+| `ADP_API_KEY` | API key（覆盖配置文件） |
+| `ADP_API_BASE_URL` | 服务 URL |
+| `ADP_LANG` | 界面语言 (`en` / `zh`) |
+| `ADP_LOG_LEVEL` | 日志级别 |
+
+## 配置存储
+
+- 配置目录：`~/.adp/`
+- 配置文件：`~/.adp/config.json`
+- 加密 API key：`~/.adp/key.enc`（AES-256-GCM）
+- 应用缓存：`~/.adp/app_cache.json`
 
 ## 许可证
 
-Apache-2.0
+- **CLI 工具**：MIT 开源
+- **ADP 服务**：公有云 SaaS，按使用量计费；新用户每月 100 免费 credits
