@@ -42,8 +42,8 @@
     }
   },
   "logo": {
-    "light": "/images/logo-white.9acd912.svg",
-    "dark": "/images/logo.8f73202.svg",
+    "light": "/images/logo.8f73202.svg",
+    "dark": "/images/logo-white.9acd912.svg",
     "href": "https://adp.laiye.com/"
   },
   "navbar": {
