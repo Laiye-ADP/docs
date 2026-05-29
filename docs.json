@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Laiye ADP Documentation",
+  "name": "Laiye ADP 文档中心",
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
@@ -14,17 +14,23 @@
   "navigation": {
     "languages": [
       {
-        "language": "en",
+        "language": "cn",
         "pages": [
           "index",
           "quickstart",
           {
-            "group": "Products",
+            "group": "产品文档",
+            "icon": "book",
+            "pages": [
+              "products/adp-cli",
+              "products/adp-mcp"
+            ]
+          },
+          {
+            "group": "其他文档",
             "icon": "book",
             "pages": [
               "products/adp-skills",
-              "products/adp-cli",
-              "products/adp-mcp",
               "products/n8n-nodes-adp"
             ]
           }
@@ -36,12 +42,18 @@
           "ja/index",
           "ja/quickstart",
           {
-            "group": "Products",
+            "group": "产品文档",
+            "icon": "book",
+            "pages": [
+              "ja/products/adp-cli",
+              "ja/products/adp-mcp"
+            ]
+          },
+          {
+            "group": "其他文档",
             "icon": "book",
             "pages": [
               "ja/products/adp-skills",
-              "ja/products/adp-cli",
-              "ja/products/adp-mcp",
               "ja/products/n8n-nodes-adp"
             ]
           }
@@ -58,12 +70,12 @@
     "links": [
       {
         "href": "https://laiye-tech.feishu.cn/share/base/form/shrcnqALO4a52Q15i2BebtYktzb",
-        "label": "Usage Feedback"
+        "label": "使用反馈"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "ADP Dashboard",
+      "label": "ADP 工作台",
       "href": "https://adp.laiye.com"
     }
   },
@@ -85,7 +97,7 @@
       "website": "https://adp.laiye.com/"
     }
   },
-  "description": "Laiye ADP Documentation",
+  "description": "基于大语言模型与视觉语言模型，结合智能体技术，提供端到端的自动化文档处理能力",
   "api": {
     "examples": {
       "languages": [
