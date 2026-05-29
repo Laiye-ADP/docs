@@ -1,0 +1,128 @@
+---
+title: "n8n-nodes-adp"
+description: "n8n で Laiye ADP ノードを使用し、エンドツーエンドの請求書・ドキュメント自動化ワークフローを構築します"
+icon: "diagram-project"
+---
+
+## 概要
+
+**n8n-nodes-adp** は、Laiye ADP が [n8n](https://n8n.io/) 向けに提供するコミュニティノードパッケージです。ADP の請求書、領収書、注文書、身分証などの抽出機能を n8n ノードとしてラップしています。Gmail、Google Drive、Feishu、ERP などのシステムとシームレスに連携し、「メール → 請求書抽出 → アーカイブ」というエンドツーエンドの自動化ワークフローを構築できます。
+
+<Card title="n8n Workflow Template" icon="diagram-project" href="https://n8n.io/workflows/13174-extract-invoices-from-gmail-with-laiye-adp-and-save-them-to-google-drive/">
+  Extract invoices from Gmail with Laiye ADP and save them to Google Drive
+</Card>
+
+## 主な特長
+
+<CardGroup cols="2">
+  <Card title="高い精度" icon="bullseye">
+    主要フィールドの抽出精度は 91% 以上で、同種製品を大きく上回ります。
+  </Card>
+
+  <Card title="強力なテーブル抽出" icon="table">
+    テーブルを含む請求書向けの line-extract 技術により、優れたテーブル抽出性能を発揮します。
+  </Card>
+
+  <Card title="マルチフォーマット対応" icon="file">
+    PDF、画像、Word、Excel などの請求書フォーマットをそのままサポートし、変換は不要です。
+  </Card>
+
+  <Card title="軽量な統合" icon="plug">
+    Gmail、Google Drive とシームレスに連携し、すぐに使い始められます。
+  </Card>
+</CardGroup>
+
+## インストール
+
+<Tabs>
+  <Tab title="コミュニティノードからインストール（推奨）">
+    1. **Settings → Community Nodes** に移動します
+    2. **Install** をクリックします
+    3. パッケージ名 `n8n-nodes-adp` を入力します
+    4. コミュニティノードのリスクに同意するチェックを入れます
+    5. **Install** をクリックし、ノードパネルで **Laiye ADP** を検索します
+  </Tab>
+  <Tab title="手動 npm">
+    ```bash
+    npm install n8n-nodes-adp
+    ```
+
+    n8n を再起動して有効化します。
+  </Tab>
+  <Tab title="Docker">
+    n8n の Dockerfile に次を追加します:
+
+    ```dockerfile
+    RUN cd /usr/local/lib/node_modules/n8n && npm install n8n-nodes-adp
+    ```
+  </Tab>
+</Tabs>
+
+## クレデンシャル設定
+
+1. [adp.laiye.com](https://adp.laiye.com/) で登録し、毎月 100 回の無料呼び出しを取得します。
+2. 「すぐに使えるエージェントアプリ - 請求書/領収書/カード」に移動し、⋯ をクリックして次の情報を取得します:
+   - **API Key**
+   - **App Secret**
+   - **Access Key**
+3. n8n で「Laiye ADP API」クレデンシャルを作成し、上記のフィールドを入力します。
+
+## ノードの機能
+
+| ノード / Operation | 説明 |
+| --- | --- |
+| **Document Extract** | ファイル URL / Base64 / Binary を送信し、構造化 JSON を同期的に抽出 |
+| **Document Parse** | レイアウトを保持した構造化ドキュメントデータを出力 |
+| **Create Async Task** | 非同期タスクを送信し、`task_id` を返す |
+| **Query Task** | 非同期タスクの状態と結果をポーリング |
+| **List Apps** | 利用可能な抽出アプリ（OOTB とカスタム）を一覧表示 |
+
+## 典型的なワークフロー: Gmail 請求書 → ADP → Google Drive
+
+<Steps>
+  <Step title="Gmail の認可を完了">
+    Gmail アカウントを認可し、メールのフィルタ条件（件名に invoice を含む、指定サプライヤー、指定ラベルなど）を設定します。
+  </Step>
+  <Step title="ドキュメントを自動でフィルタリング">
+    組み込みフィルターで条件に合わないファイルを除外します。デフォルトのルール:
+
+    - 添付ファイル名に `invoice`、`receipt`、`expenses`、`fee` を含む
+    - ファイルサイズが 50 MB 未満
+    - 形式: `.jpeg/.jpg/.png/.bmp/.tiff/.pdf/.doc/.docx/.xls/.xlsx`
+  </Step>
+  <Step title="Laiye ADP ノードを呼び出す">
+    API Key / App Secret / Access Key を入力します。ADP は構造化 JSON を返し、10 種類以上のテキストフィールド（Invoice Name、Invoice Number、Date など）と完全なテーブル（Item Name、Quantity、Unit Price など）を含みます。
+  </Step>
+  <Step title="Google Drive に保存">
+    - 処理済みファイルは Binary に変換し、Google Drive (Sheet) にインポートします。
+    - 未処理ファイルは **Untreated Document** フォルダーに保存します。
+    - Parent Folder を変更してパスをカスタマイズできます。
+  </Step>
+</Steps>
+
+## ユースケース
+
+- **マルチベンダー統合**: 複数サプライヤーからの請求書を効率的に処理し、自動でアーカイブします。
+- **会計事務所の一括処理**: 顧客が増えても人員を増やさず請求書処理の需要に対応できます。
+- **越境貿易企業**: 多言語・複雑なレイアウトの海外請求書シナリオで、手動設定は不要です。
+- **中小規模のテック企業**: 従業員の経費精算請求書から金額、日付、請求書番号を即座に認識し、手入力作業から解放されます。
+
+## リソース
+
+<CardGroup cols="2">
+  <Card title="n8n Template" icon="diagram-project" href="https://n8n.io/workflows/13174-extract-invoices-from-gmail-with-laiye-adp-and-save-them-to-google-drive/">
+    Gmail → ADP → Google Drive
+  </Card>
+
+  <Card title="コミュニティディスカッション" icon="comments" href="https://community.n8n.io/t/template-automated-invoice-processing-workflow-gmail-adp-google-drive/286419">
+    n8n コミュニティスレッド
+  </Card>
+
+  <Card title="Laiye 公式サイト" icon="globe" href="https://laiye.com/">
+    Laiye ADP 製品について
+  </Card>
+
+  <Card title="LinkedIn" icon="linkedin" href="https://www.linkedin.com/company/laiye">
+    最新の製品情報を取得
+  </Card>
+</CardGroup>

@@ -12,17 +12,39 @@
     "dark": "/images/259055827.png"
   },
   "navigation": {
-    "pages": [
-      "index",
-      "quickstart",
+    "languages": [
       {
-        "group": "Products",
-        "icon": "book",
+        "language": "en",
         "pages": [
-          "products/adp-skills",
-          "products/adp-cli",
-          "products/adp-mcp",
-          "products/n8n-nodes-adp"
+          "index",
+          "quickstart",
+          {
+            "group": "Products",
+            "icon": "book",
+            "pages": [
+              "products/adp-skills",
+              "products/adp-cli",
+              "products/adp-mcp",
+              "products/n8n-nodes-adp"
+            ]
+          }
+        ]
+      },
+      {
+        "language": "ja",
+        "pages": [
+          "ja/index",
+          "ja/quickstart",
+          {
+            "group": "Products",
+            "icon": "book",
+            "pages": [
+              "ja/products/adp-skills",
+              "ja/products/adp-cli",
+              "ja/products/adp-mcp",
+              "ja/products/n8n-nodes-adp"
+            ]
+          }
         ]
       }
     ]

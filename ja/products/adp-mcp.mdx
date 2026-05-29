@@ -1,0 +1,140 @@
+---
+title: "ADP MCP"
+description: "Model Context Protocol を通じて Laiye ADP のドキュメント処理機能を MCP クライアントに統合します"
+icon: "plug"
+---
+
+## 概要
+
+**adp-mcp** は、Laiye ADP の [Model Context Protocol](https://modelcontextprotocol.io/) サーバーです。ADP のドキュメント解析、抽出、ヒューマンレビュー機能を MCP ツールとして LLM クライアント（Claude Desktop、VS Code、Cursor、Codex CLI など）に公開し、エージェントが ADP タスクを直接発見・記述・検証・実行できるようにします。
+
+<Card title="PyPI" icon="python" href="https://pypi.org/project/adp-mcp/">
+  pip install adp-mcp
+</Card>
+
+## 主要ツール
+
+| ツール | 説明 |
+| --- | --- |
+| `adp_discover` | 利用可能な ADP リソースを一覧表示。domain、intent class、キーワードでフィルタ可能 |
+| `adp_describe` | リソースと intent class の利用契約（フィールドスキーマ、述語、プロジェクション）を取得 |
+| `adp_validate` | intent IR がリソーススキーマと一致するかを検証（実行はしない） |
+| `adp_execute` | ADP intent を実行して結果を返す（カーソルによるページネーション対応） |
+
+## インストール
+
+```bash
+pip install adp-mcp
+```
+
+## 実行
+
+```bash
+adp-mcp --config /path/to/adp/config [--log-level INFO]
+```
+
+ログはデフォルトで stderr に出力され、ファイルへリダイレクトできます:
+
+```bash
+adp-mcp --config /path/to/adp/config 2>/path/to/adp-mcp.log
+```
+
+### 認証
+
+Basic Auth を使用します。環境変数を設定してください:
+
+```bash
+export ADP_USERNAME=myuser
+export ADP_PASSWORD=mypassword
+```
+
+<Info>
+  `ADP_USERNAME` が設定されていない場合、サーバーは匿名で接続します。
+</Info>
+
+## MCP クライアント設定
+
+<Tabs>
+  <Tab title="Claude Desktop">
+    `claude_desktop_config.json` に追加します:
+
+    ```json
+    {
+      "mcpServers": {
+        "adp": {
+          "command": "adp-mcp",
+          "args": ["--config", "/path/to/adp/config"]
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="VS Code">
+    ワークスペースの `.vscode/mcp.json`、またはユーザー設定の `settings.json`:
+
+    ```json
+    {
+      "servers": {
+        "adp": {
+          "type": "stdio",
+          "command": "adp-mcp",
+          "args": ["--config", "/path/to/adp/config"]
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="Codex CLI">
+    `~/.codex/config.toml`:
+
+    ```toml
+    [mcp_servers.adp]
+    transport = { command = "adp-mcp", args = ["--config", "/path/to/adp/config"] }
+    enabled = true
+    ```
+  </Tab>
+  <Tab title="Cursor">
+    Cursor Settings から MCP Server を追加します:
+
+    ```json
+    {
+      "mcpServers": {
+        "adp": {
+          "command": "adp-mcp",
+          "args": ["--config", "/path/to/adp/config"]
+        }
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Docker クイックスタート
+
+リポジトリの `docker/` ディレクトリには、自己完結型のバックエンドサービスと `mcp-runtime` コンテナーを含む Docker Compose スタックが用意されています:
+
+```bash
+cd adp-mcp/docker
+docker compose up -d
+```
+
+## 開発
+
+```bash
+cd adp-mcp
+uv sync --extra dev
+uv run python -m unittest discover -s tests -v
+```
+
+## 依存関係
+
+| パッケージ | バージョン |
+| --- | --- |
+| `adp-hypervisor` | `>=0.1.0` |
+| `adp-sdk` | `>=0.1.0` |
+| `mcp` | `[cli]<2.0,>=1.0` |
+| Python | `>=3.11` |
+
+## ライセンス
+
+Apache-2.0
