@@ -1,0 +1,233 @@
+---
+title: "ADP CLI"
+description: "Laiye ADP 公式コマンドラインツール。1 コマンドでドキュメント解析と重要フィールド抽出を実行します"
+icon: "terminal"
+---
+
+## 概要
+
+**agentic-doc-parse-and-extract**（略称: ADP CLI）は、Laiye ADP の公式オープンソースコマンドラインツールです。ターミナルからの手動呼び出しと、AI Skill による自動呼び出しの両方をサポートします。1 コマンドで、構造化ドキュメント解析と重要フィールドのインテリジェントな抽出を実行でき、請求書、注文書、身分証、伝票、汎用ドキュメントなど、あらゆるシナリオをカバーします。
+
+<CardGroup cols="2">
+  <Card title="GitHub" icon="github" href="https://github.com/laiye-ai/adp-cli">
+    laiye-ai/adp-cli
+  </Card>
+
+  <Card title="NPM" icon="npm" href="https://www.npmjs.com/package/@laiye-adp/agentic-doc-parse-and-extract-cli">
+    @laiye-adp/agentic-doc-parse-and-extract-cli
+  </Card>
+
+  <Card title="PyPI" icon="python" href="https://pypi.org/project/agentic-doc-parse-and-extract/">
+    agentic-doc-parse-and-extract
+  </Card>
+
+  <Card title="Releases" icon="download" href="https://github.com/laiye-ai/adp-cli/releases">
+    プリビルドバイナリパッケージ
+  </Card>
+</CardGroup>
+
+## 主な機能
+
+| 機能 | 説明 | 想定シナリオ |
+| --- | --- | --- |
+| **Document Parsing** | マルチフォーマットドキュメント（PDF、画像、スキャン、手書き、複雑なレイアウト）の構造化解析 | LLM が読み取れる構造化データ |
+| **Out-of-the-Box Extraction** | 請求書／領収書／注文書／中国身分証など、標準化された抽出モデルを内蔵 | AP 自動化、経費管理、調達自動化 |
+| **Custom Extraction** | 抽出アプリ、フィールド、認識ロジックのカスタマイズ | 企業専用／業界固有のドキュメント |
+| **Human-Review Collaboration** | ヒューマンレビューのルールとタスク API | 品質保証、コンプライアンス監査 |
+| **Webhook Callbacks** | タスク状態の変更をリアルタイムにプッシュ | イベント駆動の統合 |
+| **Task Query** | 非同期タスクの送信と状態クエリ | バッチ処理、問題追跡 |
+| **Application Management** | アプリ一覧、詳細、タグ管理 | ライフサイクル全体の管理 |
+
+## インストール
+
+<Tabs>
+  <Tab title="npm（推奨）">
+    ```bash
+    npm install -g @laiye-adp/agentic-doc-parse-and-extract-cli
+    ```
+  </Tab>
+  <Tab title="Linux / macOS">
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/laiye-ai/adp-cli/main/scripts/adp-init.sh | bash
+    ```
+  </Tab>
+  <Tab title="Windows">
+    ```powershell
+    irm https://raw.githubusercontent.com/laiye-ai/adp-cli/main/scripts/adp-init.ps1 | iex
+    ```
+  </Tab>
+  <Tab title="エージェントへのワンクリック統合">
+    ```bash
+    npx skills add laiye-ai/adp-cli -y -g
+    ```
+  </Tab>
+</Tabs>
+
+## 設定
+
+[adp-global.laiye.com](https://adp-global.laiye.com/) で API キーを取得します（新規ユーザーには毎月 100 クレジットの無料枠が付与されます）。
+
+```bash
+adp config set --api-key <your-api-key>
+adp config set --api-base-url https://adp-global.laiye.com
+adp config get
+```
+
+## クイック例
+
+```bash
+# 利用可能なアプリを一覧表示
+adp app-id list
+
+# ローカルドキュメントの解析
+adp parse local ./invoice.pdf --app-id <app-id>
+
+# 重要フィールドの抽出
+adp extract local ./invoice.pdf --app-id <app-id>
+
+# ディレクトリの非同期バッチ処理
+adp parse local ./documents/ --app-id <app-id> --async
+
+# リモート URL の処理
+adp extract url https://example.com/file.pdf --app-id <app-id>
+
+# 非同期タスクのクエリ
+adp parse query <task-id>
+
+# 2 段階非同期（再開可能）
+adp extract local ./documents/ --app-id <app-id> --async --no-wait --export tasks.json
+adp extract query --watch --file tasks.json
+
+# 自動リトライ
+adp parse local ./documents/ --app-id <app-id> --retry 2
+
+# 残りクレジットを確認
+adp credit
+```
+
+## コマンド一覧
+
+<Note>
+  AI エージェントは `adp schema` を呼び出して、機械可読の正式なコマンド仕様を取得してください。
+</Note>
+
+| コマンド | 説明 |
+| --- | --- |
+| `adp version` | バージョン表示 |
+| `adp config set` / `get` / `clear` | 設定管理 |
+| `adp app-id list` / `cache` | アプリ一覧／キャッシュ |
+| `adp parse local <path>` | ローカルファイル／ディレクトリの解析 |
+| `adp parse url <url>` | リモートファイルの解析 |
+| `adp parse base64 <data>` | Base64 コンテンツの解析 |
+| `adp parse query <task-id...>` | 非同期解析タスクのクエリ |
+| `adp extract local/url/base64/query` | 対応する抽出コマンド |
+| `adp custom-app create / update / delete / get-config` | カスタムアプリ管理 |
+| `adp custom-app ai-generate` | AI による抽出フィールドの推奨 |
+| `adp human-review rule-create / update / delete / get-config` | ヒューマンレビュールール |
+| `adp human-review task-create / task-query / result-update` | レビュータスクと結果 |
+| `adp webhook create / update / delete / get-config / log` | Webhook 設定 |
+| `adp credit` | 残りクレジット |
+| `adp schema` | AI エージェント用のスキーマ |
+
+## グローバルフラグ
+
+| フラグ | 説明 |
+| --- | --- |
+| `--json` | JSON 出力 |
+| `--quiet` | サイレントモード |
+| `--lang <en|zh>` | インターフェース言語 |
+| `--app-id` | アプリ ID（parse/extract で必須） |
+| `--async` | 非同期モード |
+| `--no-wait` | 送信のみで待機しない |
+| `--export <path>` | 結果のエクスポート |
+| `--timeout <seconds>` | タイムアウト（デフォルト 900 秒） |
+| `--retry <n>` | リトライ回数 |
+| `--file <path>` | JSON ファイルからタスク ID を読み込み |
+
+## 非同期ワークフロー
+
+### 2 段階非同期（`--no-wait`）
+
+**Phase 1: タスクの送信**
+
+```bash
+adp extract local ./documents/ --app-id <app-id> --async --no-wait --export tasks.json
+```
+
+JSON 配列が出力されます:
+
+```json
+[
+  { "path": "invoice.pdf", "task_id": "task_abc123" },
+  { "path": "contract.pdf", "task_id": "task_def456" }
+]
+```
+
+**Phase 2: 結果のクエリ**
+
+```bash
+adp extract query --watch --file tasks.json --export ./results/
+```
+
+<Tip>
+  CLI が途中でクラッシュしても、`tasks.json` 内のタスク ID は保持されます。`query --file` でいつでも再開できます。
+</Tip>
+
+## ヒューマンインザループの例
+
+```bash
+# レビュールールの作成
+adp human-review rule-create --app-id <app-id> --rule-name "my-rule" \
+  --rule '[{"rule_dimension":"ドキュメント全体","rule_setting":"すべてのフィールドが空であってはならない"}]' \
+  --rule-status "true" --rule-logic 2
+
+# AI によるルールの推奨
+adp human-review rule-ai-generate --app-id <app-id> \
+  --fields '[{"field_name":"amount","field_accuracy":"high"}]'
+
+# 非同期レビュータスクの作成
+adp human-review task-create --app-id <app-id> --url https://example.com/file.pdf --async
+```
+
+## バッチ処理の出力構造
+
+```text
+adp_results_20250417_153020/
+├── _summary.json              # サマリー: 総数、成功、失敗、各件のステータス
+├── invoice_01.pdf.json        # 成功結果
+├── contract_02.docx.json
+└── report_03.pdf.error.json   # エラー詳細
+```
+
+## 終了コード
+
+| Code | 意味 |
+| --- | --- |
+| `0` | すべて成功 |
+| `1` | すべて失敗 / システムエラー |
+| `2` | 引数エラー |
+| `3` | リソースが存在しない |
+| `4` | 権限不足 |
+| `5` | コンフリクト |
+| `6` | 一部失敗 |
+
+## 環境変数
+
+| 変数 | 説明 |
+| --- | --- |
+| `ADP_API_KEY` | API キー（設定ファイルを上書き） |
+| `ADP_API_BASE_URL` | サービス URL |
+| `ADP_LANG` | インターフェース言語 (`en` / `zh`) |
+| `ADP_LOG_LEVEL` | ログレベル |
+
+## 設定の保存場所
+
+- 設定ディレクトリ: `~/.adp/`
+- 設定ファイル: `~/.adp/config.json`
+- 暗号化された API キー: `~/.adp/key.enc`（AES-256-GCM）
+- アプリキャッシュ: `~/.adp/app_cache.json`
+
+## ライセンス
+
+- **CLI ツール**: MIT オープンソース
+- **ADP サービス**: パブリッククラウド SaaS、従量課金。新規ユーザーには毎月 100 クレジットの無料枠が付与されます

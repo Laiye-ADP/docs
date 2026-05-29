@@ -1,0 +1,40 @@
+---
+title: "Laiye ADP 開発者ドキュメント"
+description: "Agentic Document Processing — エージェントにドキュメントを理解させ、業務を自律的に推進"
+sidebarTitle: "はじめに"
+---
+
+**Laiye ADP（Agentic Document Processing）** は、大規模言語モデルと視覚言語モデルにエージェント技術を組み合わせ、エンドツーエンドの自動ドキュメント処理機能を提供します。本ドキュメントでは、開発者向けの ADP オープンソースエコシステム（CLI、Skills、MCP サービス、n8n ノード）をまとめています。
+
+## 製品ラインナップ
+
+<CardGroup cols={2}>
+  <Card title="ADP Skills" icon="puzzle-piece" href="/ja/products/adp-skills">
+    クロスプラットフォームですぐに利用できる Skill コレクション。OpenClaw、Claude、Coze、Manus などのエージェントプラットフォームから ADP の機能を直接呼び出せます。
+  </Card>
+
+  <Card title="ADP CLI" icon="terminal" href="/ja/products/adp-cli">
+    公式コマンドラインツール。ドキュメント解析と重要フィールド抽出を 1 コマンドで実行でき、バッチ処理、非同期処理、ヒューマンインザループ、Webhook に対応します。
+  </Card>
+
+  <Card title="ADP MCP" icon="plug" href="/ja/products/adp-mcp">
+    Model Context Protocol サービス。ADP の機能を MCP ツールとして Claude、Cursor、VS Code、Codex CLI に公開します。
+  </Card>
+
+  <Card title="n8n-nodes-adp" icon="diagram-project" href="/ja/products/n8n-nodes-adp">
+    n8n コミュニティノードパッケージ。「Gmail → ADP → Google Drive / ERP」のようなエンドツーエンドの自動化ワークフローを構築できます。
+  </Card>
+</CardGroup>
+
+## 選び方
+
+| やりたいこと | 推奨プロダクト |
+| --- | --- |
+| ターミナルやスクリプトから ADP を呼び出す | [ADP CLI](/ja/products/adp-cli) |
+| エージェントプラットフォーム（OpenClaw / Claude / Coze）からワンクリックで呼び出す | [ADP Skills](/ja/products/adp-skills) |
+| MCP クライアント（Claude Desktop / Cursor / VS Code）から呼び出す | [ADP MCP](/ja/products/adp-mcp) |
+| ローコードワークフロー（n8n）でオーケストレーションする | [n8n-nodes-adp](/ja/products/n8n-nodes-adp) |
+
+<Tip>
+  新規ユーザーは [adp.laiye.com](https://adp.laiye.com/) または [adp-global.laiye.com](https://adp-global.laiye.com/) に登録すると、毎月 **100 クレジット**を無料で利用できます。
+</Tip>
