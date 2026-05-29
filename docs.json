@@ -9,7 +9,20 @@
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "pages": ["index", "quickstart"],
+    "pages": [
+      "index",
+      "quickstart",
+      {
+        "group": "产品文档",
+        "icon": "book",
+        "pages": [
+          "products/adp-skills",
+          "products/adp-cli",
+          "products/adp-mcp",
+          "products/n8n-nodes-adp"
+        ]
+      }
+    ],
     "global": {
       "anchors": [
         {

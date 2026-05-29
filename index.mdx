@@ -1,24 +1,40 @@
 ---
-title: "Introduction"
-description: "Welcome to your Mintlify project"
+title: "Laiye ADP 开发者文档"
+description: "Agentic Document Processing — 让智能体读懂文档，自主驱动业务"
+sidebarTitle: "介绍"
 ---
 
-Write a short description of your product here. What it does, who it's for, and what they can accomplish with it.
+**Laiye ADP（Agentic Document Processing）** 基于大语言模型与视觉语言模型，结合智能体技术，提供端到端的自动化文档处理能力。本文档汇集了 ADP 面向开发者的开源生态：CLI、Skills、MCP 服务、以及 n8n 节点。
 
-<Card title="Quickstart" icon="rocket" href="/quickstart">
-  This card links to the quickstart page in your project.
-</Card>
-<Card title="Components" icon="puzzle-piece" href="https://mintlify.com/docs/components">
-  Add cards, callouts, steps, tabs, and more to design and structure your pages. This card links to the components overview in the Mintlify documentation with information about every available component.
+## 产品矩阵
 
-  Edit this card to link to a different page in your project when you add more content.
-</Card>
-<Card title="Settings" icon="gear" href="https://mintlify.com/docs/organize/settings">
-  Set your site name, branding, and navigation in the `docs.json` file. This card links to the settings overview page in the Mintlify documentation with information about how to configure your project.
+<CardGroup cols={2}>
+  <Card title="ADP Skills" icon="puzzle-piece" href="/products/adp-skills">
+    跨平台的开箱即用 Skill 集合，可在 OpenClaw、Claude、扣子、Manus 等智能体平台上直接调用 ADP 能力。
+  </Card>
 
-  Edit this card to link to a different page in your project when you add more content.
-</Card>
+  <Card title="ADP CLI" icon="terminal" href="/products/adp-cli">
+    官方命令行工具：一条命令完成文档解析 \+ 关键字段抽取，支持批处理、异步、人机协同与 Webhook。
+  </Card>
+
+  <Card title="ADP MCP" icon="plug" href="/products/adp-mcp">
+    Model Context Protocol 服务，将 ADP 能力以 MCP 工具形式暴露给 Claude、Cursor、VS Code、Codex CLI。
+  </Card>
+
+  <Card title="n8n-nodes-adp" icon="diagram-project" href="/products/n8n-nodes-adp">
+    n8n 社区节点包，构建“Gmail → ADP → Google Drive / ERP”等端到端自动化工作流。
+  </Card>
+</CardGroup>
+
+## 如何选择
+
+| 你想要…… | 推荐使用 |
+| --- | --- |
+| 在终端 / 脚本中调用 ADP | [ADP CLI](/products/adp-cli) |
+| 在智能体平台（OpenClaw / Claude / 扣子）一键调用 | [ADP Skills](/products/adp-skills) |
+| 在 MCP 客户端（Claude Desktop / Cursor / VS Code）中调用 | [ADP MCP](/products/adp-mcp) |
+| 在低代码工作流（n8n）中编排 | [n8n-nodes-adp](/products/n8n-nodes-adp) |
 
 <Tip>
-  Ready to make this your own? Start by editing this page. Update your `docs.json` file to customize your site. Then fill out the [Quickstart](/quickstart) page.
+  新用户注册 [adp.laiye.com](https://adp.laiye.com/) 或 [adp-global.laiye.com](https://adp-global.laiye.com/) 后，每月免费获得 **100 credits**。
 </Tip>

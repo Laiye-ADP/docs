@@ -1,0 +1,128 @@
+---
+title: "n8n-nodes-adp"
+description: "在 n8n 中使用 Laiye ADP 节点，构建端到端的发票与文档自动化工作流"
+icon: "diagram-project"
+---
+
+## 概述
+
+**n8n-nodes-adp** 是 Laiye ADP 面向 [n8n](https://n8n.io/) 的社区节点包，将 ADP 的发票、收据、订单、证件等抽取能力封装为 n8n 节点。可与 Gmail、Google Drive、飞书、ERP 等系统无缝衔接，构建“邮件 → 发票抽取 → 归档”的端到端自动化工作流。
+
+<Card title="n8n Workflow Template" icon="diagram-project" href="https://n8n.io/workflows/13174-extract-invoices-from-gmail-with-laiye-adp-and-save-them-to-google-drive/">
+  Extract invoices from Gmail with Laiye ADP and save them to Google Drive
+</Card>
+
+## 核心优势
+
+<CardGroup cols="2">
+  <Card title="高准确率" icon="bullseye">
+    核心字段抽取准确率 91%\+，远高于同类产品。
+  </Card>
+
+  <Card title="强大表格抽取" icon="table">
+    针对含表格发票的 line-extract 技术，表格抽取效果显著。
+  </Card>
+
+  <Card title="多格式兼容" icon="file">
+    原生支持 PDF、图片、Word、Excel 等发票格式，无需转换。
+  </Card>
+
+  <Card title="轻量集成" icon="plug">
+    与 Gmail、Google Drive 无缝接入，开箱即用。
+  </Card>
+</CardGroup>
+
+## 安装
+
+<Tabs>
+  <Tab title="社区节点安装（推荐）">
+    1. 进入 **Settings → Community Nodes**
+    2. 点击 **Install**
+    3. 输入包名：`n8n-nodes-adp`
+    4. 勾选同意社区节点风险
+    5. 点击 **Install** 后在节点面板中搜索 **Laiye ADP**
+  </Tab>
+  <Tab title="手动 npm">
+    ```bash
+    npm install n8n-nodes-adp
+    ```
+
+    重启 n8n 后生效。
+  </Tab>
+  <Tab title="Docker">
+    在你的 n8n Dockerfile 中添加：
+
+    ```dockerfile
+    RUN cd /usr/local/lib/node_modules/n8n && npm install n8n-nodes-adp
+    ```
+  </Tab>
+</Tabs>
+
+## 凭证配置
+
+1. 访问 [adp.laiye.com](https://adp.laiye.com/) 注册，获取每月 100 免费调用。
+2. 进入“开箱即用智能体应用 - 发票/收据/卡证”，点击 ⋯ 获取：
+   - **API Key**
+   - **App Secret**
+   - **Access Key**
+3. 在 n8n 中创建“Laiye ADP API”凭证，填入上述字段。
+
+## 节点能力
+
+| 节点 / Operation | 说明 |
+| --- | --- |
+| **Document Extract** | 提交文件 URL / Base64 / Binary，同步抽取结构化 JSON |
+| **Document Parse** | 输出保留版式的结构化文档数据 |
+| **Create Async Task** | 提交异步任务，返回 `task_id` |
+| **Query Task** | 轮询异步任务状态与结果 |
+| **List Apps** | 列出可用抽取应用（OOTB 与自定义） |
+
+## 典型工作流：Gmail 发票 → ADP → Google Drive
+
+<Steps>
+  <Step title="完成 Gmail 授权">
+    授权 Gmail 账号，设置邮件过滤条件（主题含 invoice、指定供应商、指定 label 等）。
+  </Step>
+  <Step title="自动过滤文档">
+    内置过滤器过滤不符合条件的文件。默认规则：
+
+    - 附件标题包含 `invoice`、`receipt`、`expenses`、`fee`
+    - 文件大小 \< 50 MB
+    - 格式：`.jpeg/.jpg/.png/.bmp/.tiff/.pdf/.doc/.docx/.xls/.xlsx`
+  </Step>
+  <Step title="调用 Laiye ADP 节点">
+    填写 API Key / App Secret / Access Key。ADP 返回结构化 JSON，包含 10\+ 文本字段（Invoice Name、Invoice Number、Date 等）与完整表格（Item Name、Quantity、Unit Price 等）。
+  </Step>
+  <Step title="存储到 Google Drive">
+    - 已处理文件转换为 Binary，导入 Google Drive (Sheet)。
+    - 未处理文件存入 **Untreated Document** 文件夹。
+    - 可修改 Parent Folder 自定义路径。
+  </Step>
+</Steps>
+
+## 应用场景
+
+- **多供应商集成**：高效处理多供应商发票，自动归档。
+- **会计事务所批量处理**：客户增长不加人也能满足发票处理需求。
+- **跨境贸易企业**：多语种 / 复杂版面海外发票场景，无需人工设置。
+- **中小型科技企业**：員工报销发票快速识别金额、日期、发票号，告别手工录入。
+
+## 资源
+
+<CardGroup cols="2">
+  <Card title="n8n Template" icon="diagram-project" href="https://n8n.io/workflows/13174-extract-invoices-from-gmail-with-laiye-adp-and-save-them-to-google-drive/">
+    Gmail → ADP → Google Drive
+  </Card>
+
+  <Card title="社区讨论" icon="comments" href="https://community.n8n.io/t/template-automated-invoice-processing-workflow-gmail-adp-google-drive/286419">
+    n8n Community 主题
+  </Card>
+
+  <Card title="Laiye 官网" icon="globe" href="https://laiye.com/">
+    了解 Laiye ADP 产品
+  </Card>
+
+  <Card title="LinkedIn" icon="linkedin" href="https://www.linkedin.com/company/laiye">
+    获取最新产品动态
+  </Card>
+</CardGroup>

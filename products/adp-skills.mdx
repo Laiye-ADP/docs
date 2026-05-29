@@ -1,0 +1,164 @@
+---
+title: "ADP Skills"
+description: "Laiye ADP 智能体文档处理 Skill 集合，跨平台接入企业级文档处理能力"
+icon: "puzzle-piece"
+---
+
+## 概述
+
+**adp-skills** 是 Laiye ADP（Agentic Document Processing）推出的开箱即用 Skill 集合。深度融合 VLM（视觉语言模型）、LLM（大语言模型）与智能体自主决策技术，将传统基于规则的字段抽取升级为目标驱动的全流程智能自动化。
+
+<Card title="GitHub 仓库" icon="github" href="https://github.com/laiye-ai-repos/adp-skill">
+  laiye-ai-repos/adp-skill
+</Card>
+
+## 核心优势
+
+<CardGroup cols="2">
+  <Card title="多模态能力零标注" icon="wand-magic-sparkles">
+    VLM 视觉理解 \+ LLM 语义理解结合，无需样本标注与模型训练，自然语言定义抽取需求。
+  </Card>
+
+  <Card title="100+ 语种统一模型" icon="globe">
+    中文、英文、法文、东南亚、欧洲语种及混合语言文档，无需额外语言包。
+  </Card>
+
+  <Card title="自学习与迭代" icon="arrows-rotate">
+    基于 Agent 架构自动记录识别偏差，持续优化，准确率随使用提升。
+  </Card>
+
+  <Card title="即插即用" icon="plug">
+    开箱即用 Skill，对话式工作流，一句话可发起文档处理任务。
+  </Card>
+</CardGroup>
+
+## 架构：点、线、面
+
+| 层级 | 定位 | 示例 |
+| --- | --- | --- |
+| **点：基础解析与抽取** | 看懂文档，准确抽取字段 | 一次提取海外发票金额、日期、供应商 |
+| **线：端到端流程** | 多步骤连接为自动化工作流 | 发票抽取 → 合同匹配 → 金额核对 → ERP 同步 |
+| **面：人机协同迭代** | 人工校正驱动持续学习 | 多次修正后自适应意大利发票小数记法 |
+
+## Skill 分类
+
+<Tabs>
+  <Tab title="限时免费">
+    | Skill | 说明 |
+    | --- | --- |
+    | **Global Invoice Free Edition** | 面向跨境财务、自动化与系统集成场景，为发票/票据/收据提供高精度、全格式、多语种的智能抽取。 |
+  </Tab>
+  <Tab title="通用型">
+    | Skill | 说明 |
+    | --- | --- |
+    | **Agentic Document Parsing & Extraction** | AI 驱动的高频文档解析与关键信息抽取：发票、订单、收据、长文本、身份证件。支持可复用自定义模板、批量并发、人机复核。 |
+  </Tab>
+  <Tab title="专项能力型">
+    | Skill | 说明 |
+    | --- | --- |
+    | **global-invoice-recognition-and-extraction** | 多语种、多币种的全球发票识别与抽取，输出结构化 JSON。 |
+    | **Universal Document Parsing** | 支持 10\+ 格式解析。可输出 JSON 或 Markdown（保留原始标题、表格、列表等版式）。 |
+  </Tab>
+  <Tab title="场景型">
+    | Skill | 说明 |
+    | --- | --- |
+    | **invoice-extractor-from-mail** | 面向跨境贸易 AP 财务团队。自动从邮箱（IMAP/OAuth）获取发票附件，批量提取并导出到 Excel 或业务系统。 |
+  </Tab>
+</Tabs>
+
+## 通用使用步骤
+
+### Step 1：安装 ADP CLI
+
+```bash
+# 推荐：npm 跨平台
+npm install -g @laiye-adp/agentic-doc-parse-and-extract-cli
+```
+
+```bash
+# Linux / macOS
+curl -fsSL https://raw.githubusercontent.com/laiye-ai/adp-cli/main/scripts/adp-init.sh | bash
+```
+
+```powershell
+# Windows PowerShell
+irm https://raw.githubusercontent.com/laiye-ai/adp-cli/main/scripts/adp-init.ps1 | iex
+```
+
+### Step 2：获取 API Key
+
+<Info>
+  新用户注册后每月免费赠送 **100 credits**。
+</Info>
+
+| 区域 | 登录地址 | API Base URL |
+| --- | --- | --- |
+| 中国大陆 | [adp.laiye.com](https://adp.laiye.com/) | `https://adp.laiye.com/` |
+| 全球 | [adp-global.laiye.com](https://adp-global.laiye.com/) | `https://adp-global.laiye.com/` |
+
+```bash
+adp config set --api-key <your-api-key>
+adp config set --api-base-url https://adp.laiye.com
+adp config get
+```
+
+### Step 3：获取 APP ID
+
+| `app_type` | 类型 |
+| --- | --- |
+| `0` | 开箱即用（OOTB）应用，`app_id` 以 `ootb_` 开头 |
+| `1` | 自定义应用，用户创建 |
+
+## 接入智能体平台
+
+<CardGroup cols="2">
+  <Card title="OpenClaw / Claude" icon="robot">
+    ```bash
+    openclaw skills install agentic-doc-parse-and-extract
+    ```
+  </Card>
+
+  <Card title="腾讯 WorkBuddy" icon="comments">
+    输入框输入：我想使用这个技能 [https://github.com/laiye-ai/adp-cli](https://github.com/laiye-ai/adp-cli)
+  </Card>
+
+  <Card title="扌子 / Manus" icon="box">
+    下载 Skill 包后上传至平台，按提示完成认证配置。
+  </Card>
+
+  <Card title="企业内部平台" icon="building">
+    从 GitHub / NPM / PyPI 下载 CLI Skill 包添加至智能体平台。
+  </Card>
+</CardGroup>
+
+## 典型场景
+
+<AccordionGroup>
+  <Accordion title="跨境采购——海外发票处理">
+    财务一句话：“帮我汇总今天收到的海外发票到 Excel。”ADP 自动扫邮件、定位附件、抽取字段、交叉验证并生成汇总报告。
+  </Accordion>
+
+  <Accordion title="贸易物流——多单据一致性审核">
+    单证员一句话：“帮我检查这些单据里的收发货人信息和货物信息是否一致。”ADP 自动解析发票、装箱单、提货单等多份单据并输出异常项报告。
+  </Accordion>
+</AccordionGroup>
+
+## 资源
+
+<CardGroup cols="2">
+  <Card title="ClawHub" icon="store" href="https://clawhub.ai/Jeane-li/laiye-doc-processing">
+    从 ClawHub 一键安装
+  </Card>
+
+  <Card title="GitHub Repo" icon="github" href="https://github.com/laiye-ai-repos/adp-skill">
+    查看所有 Skill 源码
+  </Card>
+
+  <Card title="官方网站" icon="globe" href="https://laiye.com/">
+    Laiye ADP 官网
+  </Card>
+
+  <Card title="问题反馈" icon="bug" href="https://github.com/laiye-ai-repos/adp-skill/issues">
+    GitHub Issues
+  </Card>
+</CardGroup>
