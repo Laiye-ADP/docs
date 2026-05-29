@@ -17,11 +17,12 @@
         "language": "cn",
         "pages": [
           "index",
-          "quickstart",
+          "updatelog",
           {
             "group": "产品文档",
             "icon": "book",
             "pages": [
+              "products/adp-api",
               "products/adp-cli",
               "products/adp-mcp"
             ]
@@ -40,7 +41,7 @@
         "language": "ja",
         "pages": [
           "ja/index",
-          "ja/quickstart",
+          "ja/updatelog",
           {
             "group": "产品文档",
             "icon": "book",

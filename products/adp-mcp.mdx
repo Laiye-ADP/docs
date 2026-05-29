@@ -1,140 +1,340 @@
 ---
-title: "ADP MCP"
-description: "通过 Model Context Protocol 将 Laiye ADP 文档处理能力接入 MCP 客户端"
+title: "ADP MCP Server"
+description: "通过 Model Context Protocol 让 AI 客户端无需编写代码即可调用 Laiye ADP 文档解析与抽取能力"
 icon: "plug"
 ---
 
 ## 概述
 
-**adp-mcp** 是 Laiye ADP 的 [Model Context Protocol](https://modelcontextprotocol.io/) 服务器，将 ADP 的文档解析、抽取与人机复核能力以 MCP 工具的形式暴露给 LLM 客户端（Claude Desktop、VS Code、Cursor、Codex CLI 等），让 Agent 可以直接发现、描述、验证与执行 ADP 任务。
+**ADP MCP Server** 是来也科技**智能体文档处理产品（Agentic Document Processing，简称 ADP）**的 Model Context Protocol 服务端，让任何支持 MCP 协议的 AI 客户端（Claude Desktop、Cursor、Copilot Chat、通义灵码、Coze 等）无需编写代码即可调用 ADP 的文档解析与抽取能力。与 CLI 工具不同，MCP Server 以 **Streamable HTTP** 传输运行，一条连接即可发现所有可用工具、调用处理、查询结果——完全在对话窗口内完成。
 
-<Card title="PyPI" icon="python" href="https://pypi.org/project/adp-mcp/">
-  pip install adp-mcp
+ADP 产品深度融合视觉语言模型（VLM）、大语言模型（LLM）与智能体自主决策技术，将行业沿用多年的规则驱动的机械字段抽取，全面升级为目标驱动的全流程智能自动化。产品专注于各类业务单据智能化处理，可对海外发票、国内票据、采购合同、物流单据、金融报表、交易合同等文件自动分类并精准抽取关键字段，同时支持表格解析、内容核验与多语种识别，无需人工搭建模板、标注数据和维护规则。
+
+<Card title="立即体验" icon="rocket" href="https://adp.laiye.com/?utm_source=github">
+  注册 ADP 账号，新用户每月 100 免费积分
 </Card>
 
-## 核心工具
+## 快速接入
 
-| 工具 | 说明 |
-| --- | --- |
-| `adp_discover` | 列出可用 ADP 资源，支持按 domain、intent class、关键字过滤 |
-| `adp_describe` | 获取资源 \+ intent class 的使用契约（字段 schema、谓词、投影） |
-| `adp_validate` | 验证 intent IR 是否匹配资源 schema，不执行 |
-| `adp_execute` | 执行 ADP intent 并返回结果（支持 cursor 分页） |
+### 1. 获取 API Key
 
-## 安装
+访问 [adp.laiye.com](https://adp.laiye.com/?utm_source=github) 注册 ADP 账号，在个人设置「我的 MCP」中获取 API Key。
 
-```bash
-pip install adp-mcp
-```
-
-## 运行
-
-```bash
-adp-mcp --config /path/to/adp/config [--log-level INFO]
-```
-
-日志默认输出到 stderr，可重定向到文件：
-
-```bash
-adp-mcp --config /path/to/adp/config 2>/path/to/adp-mcp.log
-```
-
-### 身份验证
-
-使用 Basic Auth，设置环境变量：
-
-```bash
-export ADP_USERNAME=myuser
-export ADP_PASSWORD=mypassword
-```
-
-<Info>
-  若未设置 `ADP_USERNAME`，服务器将以匿名方式连接。
-</Info>
-
-## MCP 客户端配置
+### 2. 配置 MCP 客户端
 
 <Tabs>
+  <Tab title="可视化配置（推荐）">
+    大多数 MCP 客户端（Cursor、通义灵码、Coze 等）支持在设置界面直接添加 MCP 服务。以 Cursor 为例：
+
+    1. 打开 **Settings → MCP**
+    2. 点击 **Add new MCP server**
+    3. 填写以下信息：
+       - **Name**：`ADP`（自定义名称）
+       - **Type**：`streamable-http`
+       - **URL**：`https://adp.laiye.com/mcp?key=<YOUR-ADP-API-Key>`
+    4. 保存后即可在对话中使用 ADP 工具
+  </Tab>
   <Tab title="Claude Desktop">
-    添加到 `claude_desktop_config.json`：
+    在 `claude_desktop_config.json` 中添加：
 
     ```json
     {
       "mcpServers": {
         "adp": {
-          "command": "adp-mcp",
-          "args": ["--config", "/path/to/adp/config"]
+          "url": "https://adp.laiye.com/mcp?key=<YOUR-ADP-API-Key>",
+          "transport": "streamable-http"
         }
       }
     }
     ```
   </Tab>
-  <Tab title="VS Code">
-    工作区 `.vscode/mcp.json` 或用户级 `settings.json`：
+  <Tab title="其他客户端">
+    核心参数：
 
-    ```json
-    {
-      "servers": {
-        "adp": {
-          "type": "stdio",
-          "command": "adp-mcp",
-          "args": ["--config", "/path/to/adp/config"]
-        }
-      }
-    }
-    ```
-  </Tab>
-  <Tab title="Codex CLI">
-    `~/.codex/config.toml`：
+    | 参数 | 值 |
+    | --- | --- |
+    | **Endpoint** | `https://adp.laiye.com/mcp` |
+    | **Transport** | Streamable HTTP |
+    | **认证方式** | URL Query `?key=<YOUR-ADP-API-Key>` |
 
-    ```toml
-    [mcp_servers.adp]
-    transport = { command = "adp-mcp", args = ["--config", "/path/to/adp/config"] }
-    enabled = true
-    ```
-  </Tab>
-  <Tab title="Cursor">
-    在 Cursor Settings 中添加 MCP Server：
-
-    ```json
-    {
-      "mcpServers": {
-        "adp": {
-          "command": "adp-mcp",
-          "args": ["--config", "/path/to/adp/config"]
-        }
-      }
-    }
-    ```
+    其他客户端（VS Code、Copilot Chat 等）配置方式同理，将以上参数填入对应的 MCP 设置即可。
   </Tab>
 </Tabs>
 
-## Docker 快速启动
+<Info>
+  私有部署环境请将域名替换为实际服务地址。
+</Info>
 
-仓库 `docker/` 目录提供了一套自包含后端服务与 `mcp-runtime` 容器的 Docker Compose 栈：
+### 3. 开始使用
 
-```bash
-cd adp-mcp/docker
-docker compose up -d
-```
+连接成功后，AI 客户端会自动发现所有可用的 ADP 工具。直接在对话中描述你的需求即可，例如：
 
-## 开发
+- "帮我解析这份 PDF 的结构"
+- "提取这张身份证的信息"
+- "从这张发票里抽取金额和日期"
 
-```bash
-cd adp-mcp
-uv sync --extra dev
-uv run python -m unittest discover -s tests -v
-```
+## 工具列表
 
-## 依赖
+### 文档解析
 
-| 包 | 版本 |
+| 工具名 | 说明 |
 | --- | --- |
-| `adp-hypervisor` | `>=0.1.0` |
-| `adp-sdk` | `>=0.1.0` |
-| `mcp` | `[cli]<2.0,>=1.0` |
-| Python | `>=3.11` |
+| `parse_document` | 对 PDF、图片、Word、Excel、PPT 等文档进行版面解析，返回结构化的文本块、表格、阅读顺序与页面坐标。适用于不确定文档类型、需要先获取原始结构的场景；如已确认是特定类型，请优先使用对应的专用提取工具。 |
+
+### 票据与订单抽取
+
+| 工具名 | 标题 | 说明 |
+| --- | --- | --- |
+| `extract_china_invoice` | 中国票据 | 覆盖中国地区 30\+ 种常见票据：全电发票、普通发票、专用发票、出租车票、火车票、飞机行程单、财政发票等 |
+| `extract_global_invoice` | 海外发票/收据 | 从 PDF 或图片中提取海外发票、收据的关键字段（发票号、金额、税额、币种、明细行等） |
+| `extract_purchase_order` | 订单 | 从采购订单、销售订单中提取订单号、买卖双方信息、商品明细、总金额等 |
+
+### 卡证抽取
+
+| 工具名 | 标题 | 说明 |
+| --- | --- | --- |
+| `extract_id_card` | 身份证 | 中国大陆居民身份证，支持正反面识别 |
+| `extract_bank_card` | 银行卡 | 银行卡正面（卡号、所属银行、卡种、有效期） |
+| `extract_vehicle_cert` | 车辆合格证 | 机动车整车出厂合格证 |
+| `extract_account_permit` | 开户许可证 | 企业开户许可证 |
+| `extract_driver_license` | 驾驶证 | 中国机动车驾驶证，支持正副页 |
+| `extract_business_license` | 营业执照 | 中国企业营业执照 |
+| `extract_passport_cn` | 护照-中国 | 中华人民共和国护照 |
+| `extract_vehicle_license` | 行驶证 | 中国机动车行驶证，支持正副页 |
+| `extract_org_code_cert` | 组织机构代码证 | 组织机构代码证 |
+| `extract_household_book` | 户口本 | 中国居民户口本，支持首页与个人页 |
+| `extract_hk_macao_permit` | 港澳通行证 | 往来港澳通行证 |
+
+### 自定义抽取
+
+除上述开箱即用工具外，MCP 提供两个工具来使用你在 ADP 平台上创建的自定义抽取应用：
+
+| 工具名 | 说明 |
+| --- | --- |
+| `list_custom_extract_apps` | 列出当前用户的所有自定义抽取应用，返回每个应用的 ID、名称、描述、标签和输出字段定义 |
+| `execute_custom_extract_app` | 使用指定的自定义抽取应用处理文件，需先通过 `list_custom_extract_apps` 获取 `app_id` |
+
+<Tip>
+  使用流程：先调用 `list_custom_extract_apps` 查看可用应用列表，获取目标应用的 `app_id`，再调用 `execute_custom_extract_app` 传入 `app_id` 与文件进行抽取。
+</Tip>
+
+## 工具输入参数
+
+### 文档解析与 OOTB 抽取工具
+
+所有开箱即用工具共享统一的输入 Schema：
+
+| 参数 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `file` | string | 是 | 文件 URL 或 Base64 编码内容 |
+| `file_name` | string | 否 | 文件名（含扩展名） |
+| `with_rec_result` | boolean | 否 | 是否包含 OCR 中间结果，默认 `true` |
+| `wait` | boolean | 否 | 是否同步等待结果，默认 `true` |
+| `timeout_seconds` | integer | 否 | 同步等待超时秒数，默认 `300`，范围 1–900 |
+
+### execute\_custom\_extract\_app
+
+在上述参数基础上增加：
+
+| 参数 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `app_id` | string | 是 | 自定义抽取应用 ID（通过 `list_custom_extract_apps` 获取） |
+
+<Note>
+  **文件传入方式：** `file` 传入以 `http://`、`https://`、`file://` 开头的链接为 URL 模式；传入非 URL 格式内容时自动识别为 Base64 编码。
+
+  **同步 vs 异步：** `wait=true`（默认）阻塞等待处理完成直接返回结果；`wait=false` 立即返回 `task_id`，后续可查询任务状态。
+</Note>
+
+## 工具输出
+
+### parse\_document 输出
+
+```json
+{
+  "task_id": "fabd7f0a4e7211f1bbc4d85ed35661fd",
+  "status": 4,
+  "message": "",
+  "doc_recognize_result": [
+    {
+      "page_num": 1,
+      "document_content": "Full text content of this page...",
+      "document_details": [
+        {
+          "type": "Text",
+          "text": "Paragraph content...",
+          "position": [{"points": [{"x": 311, "y": 50}, {"x": 500, "y": 50}, {"x": 500, "y": 80}, {"x": 311, "y": 80}]}],
+          "ocr_confidence": {
+            "ocr_mean_confidence": 0.999,
+            "ocr_min_confidence": 0.998,
+            "is_overall_confidence": 1
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `task_id` | string | 任务 ID |
+| `status` | integer | 任务状态码 |
+| `message` | string | 状态消息 |
+| `doc_recognize_result` | array | 各页识别结果 |
+| `doc_recognize_result[].page_num` | integer | 页码（1 起始） |
+| `doc_recognize_result[].document_content` | string | 该页完整文本（按阅读顺序） |
+| `doc_recognize_result[].document_details` | array | 元素级详情 |
+| `document_details[].type` | string | 元素类型：`Text`、`Table`、`Picture` |
+| `document_details[].text` | string | 文本内容；Picture 类型为图片 URL |
+| `document_details[].position` | array | 边界框坐标（4 个角点） |
+| `document_details[].ocr_confidence` | object | OCR 置信度（`ocr_mean_confidence` / `ocr_min_confidence`，范围 0–1） |
+
+### extract 类工具输出
+
+```json
+{
+  "task_id": "91283e544e7111f18cd6d85ed35661fd",
+  "status": 4,
+  "message": "",
+  "extraction_result": [
+    {
+      "field_key": "invoice_number",
+      "field_name": "发票号码",
+      "field_values": [
+        {
+          "field_value": "24VLT0591617",
+          "field_confidence": 1.0,
+          "references": []
+        }
+      ]
+    },
+    {
+      "field_key": "line_items",
+      "field_name": "商品明细",
+      "references": [],
+      "field_confidence": 1.0,
+      "table_values": [
+        [
+          {
+            "field_name": "商品名称",
+            "field_key": "line_items_description",
+            "field_values": [
+              {
+                "field_value": "TESLA MODEL 3",
+                "field_confidence": 1.0,
+                "references": "Description: TESLA MODEL 3"
+              }
+            ]
+          }
+        ]
+      ]
+    }
+  ]
+}
+```
+
+**普通字段**（无 `table_values`）：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `field_key` | string | 字段标识 |
+| `field_name` | string | 字段名称 |
+| `field_values[].field_value` | string | 提取值 |
+| `field_values[].field_confidence` | float | 置信度（0–1） |
+
+**表格字段**（含 `table_values`）：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `field_key` | string | 表格标识 |
+| `field_name` | string | 表格名称 |
+| `table_values` | array\[array\] | 二维数组：每行是一个单元格数组，每个单元格含 `field_name`、`field_key`、`field_values` |
+
+<Tip>
+  判断方式：字段对象包含 `table_values` → 表格字段；仅含 `field_values` → 普通字段。
+</Tip>
+
+### 异步返回（`wait=false`）
+
+```json
+{
+  "task_id": "fabd7f0a4e7211f1bbc4d85ed35661fd",
+  "status": "running"
+}
+```
+
+## 任务状态码
+
+| 状态码 | MCP 状态 | 说明 |
+| --- | --- | --- |
+| `0` | running | 未知 |
+| `1` | running | 就绪/排队中 |
+| `2` | running | 处理中 |
+| `4` | success | 成功 |
+| `5` | failed | 失败 |
+| `6` | failed | 已取消 |
+
+## 支持的文件格式
+
+| 格式 | 扩展名 | 说明 |
+| --- | --- | --- |
+| PDF | `.pdf` | 支持扫描件与电子版 |
+| 图片 | `.jpg` `.jpeg` `.png` `.bmp` `.tiff` `.webp` | 支持手机拍摄件 |
+| Word | `.doc` `.docx` | — |
+| Excel | `.xls` `.xlsx` | — |
+| PPT | `.ppt` `.pptx` | — |
+
+## 认证说明
+
+ADP MCP Server 使用 API Key 认证，通过 URL Query 参数传递：
+
+```
+https://adp.laiye.com/mcp?key=<YOUR-ADP-API-Key>
+```
+
+- API Key 可在 ADP 控制台「我的 MCP」页面获取
+- 每个 API Key 绑定一个用户，仅可访问该用户下的应用与数据
+- API Key 不会出现在请求体或响应中，仅用于认证
+
+## 常见问题
+
+<AccordionGroup>
+  <Accordion title="MCP 连接后看不到某些卡证工具？">
+    工具列表按当前用户的已初始化应用动态生成。首次连接时系统会自动初始化所有开箱即用应用，初始化完成后刷新工具列表即可看到全部工具。
+  </Accordion>
+  <Accordion title="卡证工具返回「文档抽取失败」？">
+    请确认上传的文件与工具类型匹配（例如：身份证图片使用 `extract_id_card`，不要用 `extract_vehicle_cert`）。文件格式需为支持的图片或 PDF。
+  </Accordion>
+  <Accordion title="超时怎么处理？">
+    默认超时 300 秒（5 分钟），可通过 `timeout_seconds` 参数调整（最大 900 秒）。大文件或复杂文档建议使用 `wait=false` 异步模式，再通过 `task_id` 查询结果。
+  </Accordion>
+  <Accordion title="与 ADP CLI / OpenAPI 有什么区别？">
+    三者功能等价，区别仅在接入方式：
+
+    | 接入方式 | 适合场景 |
+    | --- | --- |
+    | **MCP Server** | AI 客户端（Claude Desktop、Cursor 等）直接调用，无需写代码 |
+    | **ADP CLI** | 终端命令行、脚本自动化、AI Skill 集成 |
+    | **OpenAPI** | 业务系统集成、后端服务调用 |
+  </Accordion>
+</AccordionGroup>
+
+## 支持与联系
+
+<CardGroup cols={2}>
+  <Card title="Open API 使用指南" icon="book" href="https://laiye-tech.feishu.cn/wiki/PO9Jw4cH3iV2ThkMPW2c539pnkc">
+    API 接口文档
+  </Card>
+  <Card title="公有云操作手册" icon="file-lines" href="https://laiye-tech.feishu.cn/wiki/UDYIwG42pisBbFkJI39ctpeKnWh">
+    ADP 产品操作手册
+  </Card>
+</CardGroup>
+
+- **邮箱：** mkt@laiye.com
+- **官网：** [来也科技](https://laiye.com/product/adp-platform)
 
 ## 许可证
 
-Apache-2.0
+- **MCP Server**：免费接入，作为 ADP 产品的一部分提供
+- **ADP 服务**：公有云 AI 文档处理服务，按使用量计费；新用户每月 100 免费积分

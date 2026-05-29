@@ -1,12 +1,14 @@
 ---
 title: "ADP CLI"
-description: "Laiye ADP 官方命令行工具，一句命令完成文档解析与关键字段抽取"
+description: "Laiye ADP 官方开源命令行工具，一句命令完成文档解析与关键字段抽取"
 icon: "terminal"
 ---
 
 ## 概述
 
-**agentic-doc-parse-and-extract**（简称 ADP CLI）是 Laiye ADP 的官方开源命令行工具，同时支持手动终端调用与 AI Skill 自动调用。一句命令即可完成：结构化文档解析 \+ 关键字段智能抽取，覆盖发票、订单、证件、票据、通用文档等全场景。
+ADP 是来也科技基于大模型通用理解能力的**智能体文档处理产品（Agentic Document Processing，简称 ADP）**：不依赖规则与标注，具备多语种、多模态、多场景的通用理解能力；智能体自主规划与执行，能理解任务目标、自主拆解步骤、调用工具、完成复杂任务；从文档输入到业务决策再到人机协同，形成端到端的业务自动化闭环。
+
+**agentic-doc-parse-and-extract**（简称 ADP CLI）是 ADP 的官方开源命令行工具，同时支持手动终端调用与 AI Skill 自动调用。一句命令即可完成：结构化文档解析 \+ 关键字段智能抽取，覆盖发票、订单、证件、票据、通用文档等全场景，输出标准 JSON，无缝接入自动化与 AI 工作流。
 
 <CardGroup cols="2">
   <Card title="GitHub" icon="github" href="https://github.com/laiye-ai/adp-cli">
@@ -28,15 +30,37 @@ icon: "terminal"
 
 ## 核心功能
 
+agentic-doc-parse-and-extract 专注于文档全流程的智能化处理，兼顾手动终端调用与 AI Agent 自动调用。核心功能覆盖解析、抽取、批处理全场景，无需复杂配置，一句命令即可完成：
+
 | 功能 | 描述 | 适用场景 |
 | --- | --- | --- |
-| **Document Parsing** | 多格式文档（PDF、图片、扫描件、手写本、复杂版面）结构化解析 | LLM 可读的结构化数据 |
-| **Out-of-the-Box Extraction** | 内置发票/收据/订单/中国证件等标准化抽取模型 | AP 自动化、费用管理、采购自动化 |
-| **Custom Extraction** | 自定义抽取应用、字段与识别逻辑 | 企业专属/行业定制文档 |
-| **Human-Review Collaboration** | 人机复核规则与任务 API | 质量保证、合规审查 |
-| **Webhook Callbacks** | 任务状态变化实时推送 | 事件驱动集成 |
-| **Task Query** | 异步任务提交与状态查询 | 批量处理、问题追溯 |
-| **Application Management** | 应用列表、详情、标签管理 | 全生命周期管理 |
+| **Document Parsing** | 自动识别 PDF、图片等多格式文档，将杂乱的非结构化内容（扫描件、手写本、复杂版面）转为标准化结构化数据，同时保留原始层级与关键关系 | 将非结构化文档转为 LLM 可读的结构化数据，供后续抽取 |
+| **Out-of-the-Box Extraction** | 基于 ADP 大模型原生 AI 能力，内置发票/收据/订单/中国常用证件等标准化抽取模型，无需配置规则或人工标注，一键抽取关键字段并输出标准 JSON | AP 自动化、费用管理、采购自动化、卡证信息快速入库 |
+| **Custom Extraction** | 支持自主创建、编辑与管理个性化抽取应用，为企业专属文档与行业定制表单配置专属字段与识别逻辑 | 企业专属/行业定制/非标准化文档的私有抽取需求 |
+| **Task Query** | 支持异步任务提交与状态查询，快速查看任务执行进度、成功/失败状态与最终处理结果 | 批量任务处理、异步文档处理、问题追溯与记录追踪 |
+| **Application Management** | 提供完整的应用管理能力，可查看全部可用抽取应用（系统内置 \+ 自定义）、查询应用详情、管理应用标签 | 多场景业务切换、应用全生命周期管理、自定义应用管理 |
+
+## 安装与更新
+
+<CodeGroup>
+
+```bash 从源码安装
+pip install -e .
+```
+
+```bash 从 PyPI 安装
+pip install agentic_doc_parse_and_extract
+```
+
+```bash 版本更新（npm）
+npm install -g @laiye-adp/agentic-doc-parse-and-extract-cli
+```
+
+</CodeGroup>
+
+<Note>
+  PyPI 包不再维护，请通过 npm 更新到最新版本。
+</Note>
 
 ## 配置
 
@@ -69,11 +93,11 @@ adp extract url https://example.com/file.pdf --app-id <app-id>
 # 查询异步任务
 adp parse query <task-id>
 
-# 两阶段异步（可恢复）
+# 两阶段异步（提交与查询分离，可恢复）
 adp extract local ./documents/ --app-id <app-id> --async --no-wait --export tasks.json
 adp extract query --watch --file tasks.json
 
-# 自动重试
+# 失败自动重试（最多 2 次）
 adp parse local ./documents/ --app-id <app-id> --retry 2
 
 # 查看剩余额度
@@ -83,45 +107,64 @@ adp credit
 ## 命令列表
 
 <Note>
-  AI Agent 应调用 `adp schema` 获取机器可读的权威命令规范。
+  AI Agent 应调用 `adp schema` 获取机器可读的权威命令规范。下表为人类友好的速查摘要。
 </Note>
 
 | 命令 | 说明 |
 | --- | --- |
 | `adp version` | 输出版本 |
-| `adp config set` / `get` / `clear` | 配置管理 |
-| `adp app-id list` / `cache` | 列出/缓存应用 |
+| `adp config set` | 设置 API key / base URL |
+| `adp config get` | 显示当前配置 |
+| `adp config clear` | 清除配置 |
+| `adp app-id list` | 列出可用应用 |
+| `adp app-id cache` | 从本地缓存读取应用列表 |
 | `adp parse local <path>` | 解析本地文件/目录 |
-| `adp parse url <url>` | 解析远程文件 |
+| `adp parse url <url>` | 解析远程文件（支持 URL 列表文件） |
 | `adp parse base64 <data>` | 解析 Base64 内容 |
-| `adp parse query <task-id...>` | 查询异步解析任务 |
-| `adp extract local/url/base64/query` | 抽取对应命令 |
-| `adp custom-app create / update / delete / get-config` | 自定义应用管理 |
+| `adp parse query <task-id...>` | 查询异步解析任务（支持多个 ID 或 `--file`） |
+| `adp extract local <path>` | 抽取本地文件/目录 |
+| `adp extract url <url>` | 抽取远程文件 |
+| `adp extract base64 <data>` | 抽取 Base64 内容 |
+| `adp extract query <task-id...>` | 查询异步抽取任务（支持多个 ID 或 `--file`） |
+| `adp custom-app create` | 创建自定义抽取应用 |
+| `adp custom-app update` | 更新自定义应用配置 |
+| `adp custom-app get-config` | 显示应用配置 |
+| `adp custom-app delete` | 删除自定义应用 |
+| `adp custom-app delete-version` | 删除指定配置版本 |
 | `adp custom-app ai-generate` | AI 推荐抽取字段 |
-| `adp human-review rule-create / update / delete / get-config` | 人机复核规则 |
-| `adp human-review task-create / task-query / result-update` | 复核任务与结果 |
-| `adp webhook create / update / delete / get-config / log` | Webhook 配置 |
-| `adp credit` | 剩余额度 |
-| `adp schema` | AI Agent 使用的 schema |
+| `adp credit` | 显示剩余额度 |
+| `adp schema` | 输出命令 schema（供 AI Agent 使用） |
 
-## 全局 Flags
+## Flags
 
 | Flag | 说明 |
 | --- | --- |
 | `--json` | JSON 输出 |
-| `--quiet` | 静默模式 |
-| `--lang <en|zh>` | 界面语言 |
-| `--app-id` | 应用 ID（parse/extract 必填） |
+| `--quiet` | 静默模式，仅输出结果 |
+| `--lang <en\|zh>` | 界面语言 |
+| `--app-id` | 应用 ID（parse / extract 必填） |
 | `--async` | 异步模式 |
-| `--no-wait` | 仅提交不等待 |
-| `--export <path>` | 导出结果 |
+| `--no-wait` | 仅提交任务、不等待结果（与 `--async` 配合） |
+| `--export <path>` | 导出结果到文件（单文件）或目录（批量） |
 | `--timeout <seconds>` | 超时（默认 900s） |
-| `--retry <n>` | 重试次数 |
-| `--file <path>` | 从 JSON 文件读取任务 ID |
+| `--concurrency <n>` | 并发数（免费版最大 1，付费版最大 2） |
+| `--retry <n>` | 可重试错误的重试次数（默认 0） |
+| `--file <path>` | 从 JSON 文件读取任务 ID（`--no-wait` 的输出，仅查询用） |
 
 ## 异步工作流
 
+对于大文件或批量任务，使用 `--async` 提交，CLI 返回 `task-id`，再通过 `parse query` / `extract query` 轮询结果：
+
+```bash
+adp parse local ./big.pdf --app-id <app-id> --async
+# 返回 task-id
+
+adp parse query <task-id>
+```
+
 ### 两阶段异步（`--no-wait`）
+
+默认情况下 `--async` 会提交并轮询直到完成——适合 AI Agent。对于可恢复的工作流，使用两阶段模式：
 
 **Phase 1 提交任务：**
 
@@ -129,7 +172,7 @@ adp credit
 adp extract local ./documents/ --app-id <app-id> --async --no-wait --export tasks.json
 ```
 
-输出为 JSON 数组：
+输出为带任务 ID 的 JSON 数组：
 
 ```json
 [
@@ -141,6 +184,7 @@ adp extract local ./documents/ --app-id <app-id> --async --no-wait --export task
 **Phase 2 查询结果：**
 
 ```bash
+adp extract query --watch --file tasks.json
 adp extract query --watch --file tasks.json --export ./results/
 ```
 
@@ -148,23 +192,9 @@ adp extract query --watch --file tasks.json --export ./results/
   即使 CLI 中途崩溃，`tasks.json` 中的任务 ID 仍保留——随时可用 `query --file` 恢复。
 </Tip>
 
-## 人机协同示例
+## 批处理
 
-```bash
-# 创建审核规则
-adp human-review rule-create --app-id <app-id> --rule-name "my-rule" \
-  --rule '[{"rule_dimension":"整体文档","rule_setting":"所有字段不能为空"}]' \
-  --rule-status "true" --rule-logic 2
-
-# AI 推荐规则
-adp human-review rule-ai-generate --app-id <app-id> \
-  --fields '[{"field_name":"amount","field_accuracy":"high"}]'
-
-# 创建异步复核任务
-adp human-review task-create --app-id <app-id> --url https://example.com/file.pdf --async
-```
-
-## 批处理输出结构
+处理多个文件/URL 时，CLI 会将每个结果写入独立文件：
 
 ```text
 adp_results_20250417_153020/
@@ -173,6 +203,10 @@ adp_results_20250417_153020/
 ├── contract_02.docx.json
 └── report_03.pdf.error.json   # 错误详情
 ```
+
+- `--export <dir>` — 指定输出目录
+- 不带 `--export` — 自动创建 `adp_results_<timestamp>/`
+- 单文件 — 输出到 stdout 或 `--export` 指定的文件路径
 
 ## Exit Codes
 
@@ -184,7 +218,7 @@ adp_results_20250417_153020/
 | `3` | 资源不存在 |
 | `4` | 权限不足 |
 | `5` | 冲突 |
-| `6` | 部分失败 |
+| `6` | 部分失败（批量中部分任务失败） |
 
 ## 环境变量
 
@@ -192,8 +226,8 @@ adp_results_20250417_153020/
 | --- | --- |
 | `ADP_API_KEY` | API key（覆盖配置文件） |
 | `ADP_API_BASE_URL` | 服务 URL |
-| `ADP_LANG` | 界面语言 (`en` / `zh`) |
-| `ADP_LOG_LEVEL` | 日志级别 |
+| `ADP_LANG` | 界面语言（`en` / `zh`） |
+| `ADP_LOG_LEVEL` | 日志级别（`debug` / `info` / `warn` / `error`） |
 
 ## 配置存储
 
@@ -201,8 +235,33 @@ adp_results_20250417_153020/
 - 配置文件：`~/.adp/config.json`
 - 加密 API key：`~/.adp/key.enc`（AES-256-GCM）
 - 应用缓存：`~/.adp/app_cache.json`
+- 版本检查缓存：`~/.adp/version_check.json`（每 24 小时刷新）
 
 ## 许可证
 
-- **CLI 工具**：MIT 开源
-- **ADP 服务**：公有云 SaaS，按使用量计费；新用户每月 100 免费 credits
+采用开源工具 \+ 付费服务的组合模式：CLI 工具完全免费开源，便于快速集成；核心 ADP 智能解析能力为公有云商业服务，按实际用量计费，旨在提供高准确率、稳定的文档处理体验。
+
+- **CLI 工具**：MIT 开源，可自由使用、修改与分发
+- **ADP 服务**：基于公有云的 AI 文档处理服务，按使用量计费
+
+免费额度：新用户注册后每月可获得 **100 免费 credits**，体验全部功能。
+
+## 支持与联系
+
+<CardGroup cols={2}>
+  <Card title="ADP CLI 使用指南" icon="book" href="https://laiye-tech.feishu.cn/wiki/YIaawiK2DimisZk5KfDc8a8cnLh">
+    CLI 文档
+  </Card>
+  <Card title="OpenAPI 使用指南" icon="file-lines" href="https://laiye-tech.feishu.cn/wiki/S1t2wYR04ivndKkMDxxcp2SFnKd">
+    API 文档
+  </Card>
+  <Card title="公有云操作手册" icon="book-open" href="https://laiye-tech.feishu.cn/wiki/OfexwgVUQiOpEek4kO7c7NEJnAe">
+    用户指南
+  </Card>
+  <Card title="GitHub Issues" icon="github" href="https://github.com/laiye-ai/adp-cli/issues">
+    问题反馈
+  </Card>
+</CardGroup>
+
+- **邮箱：** global\_product@laiye.com
+- **官网：** [Laiye Technology](https://laiye.com/en/)
