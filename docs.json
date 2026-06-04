@@ -22,6 +22,25 @@
     "languages": [
       {
         "language": "cn",
+        "navbar": {
+          "links": [
+            {
+              "href": "https://laiye-tech.feishu.cn/share/base/form/shrcnqALO4a52Q15i2BebtYktzb",
+              "label": "使用反馈"
+            }
+          ],
+          "primary": {
+            "type": "button",
+            "label": "ADP 工作台",
+            "href": "https://adp.laiye.com"
+          }
+        },
+        "footer": {
+          "socials": {
+            "github": "https://github.com/Laiye-ADP",
+            "website": "https://adp.laiye.com/"
+          }
+        },
         "pages": [
           "index",
           "updatelog",
@@ -139,6 +158,25 @@
       },
       {
         "language": "en",
+        "navbar": {
+          "links": [
+            {
+              "href": "https://laiye-tech.feishu.cn/share/base/form/shrcnqALO4a52Q15i2BebtYktzb",
+              "label": "Feedback"
+            }
+          ],
+          "primary": {
+            "type": "button",
+            "label": "ADP Console",
+            "href": "https://adp-global.laiye.com"
+          }
+        },
+        "footer": {
+          "socials": {
+            "github": "https://github.com/Laiye-ADP",
+            "website": "https://adp-global.laiye.com/"
+          }
+        },
         "pages": [
           "en/index",
           "en/updatelog",
@@ -258,21 +296,7 @@
   },
   "logo": {
     "light": "/images/logo.8f73202.svg",
-    "dark": "/images/logo-white.9acd912.svg",
-    "href": "https://adp.laiye.com/"
-  },
-  "navbar": {
-    "links": [
-      {
-        "href": "https://laiye-tech.feishu.cn/share/base/form/shrcnqALO4a52Q15i2BebtYktzb",
-        "label": "使用反馈"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "ADP 工作台",
-      "href": "https://adp.laiye.com"
-    }
+    "dark": "/images/logo-white.9acd912.svg"
   },
   "contextual": {
     "options": [
@@ -285,12 +309,6 @@
       "cursor",
       "vscode"
     ]
-  },
-  "footer": {
-    "socials": {
-      "github": "https://github.com/Laiye-ADP",
-      "website": "https://adp.laiye.com/"
-    }
   },
   "description": "基于大语言模型与视觉语言模型，结合智能体技术，提供端到端的自动化文档处理能力",
   "api": {
