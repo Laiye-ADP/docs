@@ -1,0 +1,129 @@
+openapi: 3.1.0
+info:
+  title: 国内通用票据
+  version: 1.0.0
+  description: ADP 预置应用接口，适用于国内通用票据抽取场景。
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: https://adp.laiye.com
+    description: ADP 生产环境
+tags:
+  - name: 国内通用票据抽取
+    description: 抽取国内通用票据字段。
+paths:
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract:
+    post:
+      tags: [国内通用票据抽取]
+      summary: 国内通用票据抽取（同步接口）
+      description: 针对国内通用票据文件进行字段抽取。返回字段和分类结果由预置应用配置决定。
+      operationId: extractDomesticBill
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentExtractRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentExtractResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+  parameters:
+    TenantName:
+      name: tenant_name
+      in: path
+      required: true
+      description: 租户名称，默认 laiye。
+      schema:
+        type: string
+        default: laiye
+  requestBodies:
+    DocumentExtractRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentExtractRequest'
+          example:
+            app_id: app_abc123
+            file_url: https://example.com/invoice.pdf
+  responses:
+    DocumentExtractResponse:
+      description: 抽取结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentExtractResponse'
+    ValidationError:
+      description: 参数校验错误。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SimpleResponse'
+  schemas:
+    DocumentExtractRequest:
+      type: object
+      properties:
+        app_id:
+          type: string
+          description: 国内通用票据预置应用的唯一标识。
+        file_base64:
+          type: string
+          description: 待抽取文件 Base64，与 file_url 二选一。
+        file_url:
+          type: string
+          format: uri
+          description: 待抽取文件 URL，与 file_base64 二选一。
+      required: [app_id]
+      anyOf:
+        - required: [file_base64]
+        - required: [file_url]
+    SimpleResponse:
+      type: object
+      properties:
+        code:
+          oneOf:
+            - type: string
+            - type: integer
+        message:
+          type: string
+        tips:
+          type:
+            - string
+            - 'null'
+    DocumentExtractResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: true
+              properties:
+                task_id:
+                  type: string
+                file_url:
+                  type: string
+                status:
+                  type: integer
+                doc_recognize_result:
+                  type: array
+                  items:
+                    type: object
+                    additionalProperties: true
+                extraction_result:
+                  type: array
+                  items:
+                    type: object
+                    additionalProperties: true
+                classify_result:
+                  type: object
+                  additionalProperties: true

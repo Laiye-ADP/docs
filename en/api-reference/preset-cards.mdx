@@ -1,0 +1,58 @@
+---
+title: "Cards and certificates"
+description: "Use ADP preset applications to extract fields from cards and certificates."
+---
+
+## Overview
+
+Cards and certificates use the document extraction API.
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract
+```
+
+Async tasks use the same request body:
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task
+GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}
+```
+
+## Request parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `tenant_name` | string | Yes | Tenant name. Default: `laiye`. |
+| `app_id` | string | Yes | Unique ID of the card and certificate preset application. |
+| `file_base64` | string | Optional | Base64 content of the file. Use either `file_base64` or `file_url`. |
+| `file_url` | string | Optional | Online file URL. Use either `file_url` or `file_base64`. Only HTTP URLs are supported. |
+| `with_rec_result` | boolean | No | Whether to return document recognition results. Default: `false`. |
+
+## Supported document types
+
+| Type | Typical fields |
+| --- | --- |
+| Vehicle certificate of conformity | Certificate number, vehicle manufacturer, brand, model, VIN/frame number, engine number, manufacture date |
+| Exit-entry permit for Hong Kong and Macao | Name, English name, date of birth, gender, validity period, issuing authority, certificate number |
+| Household register | Household type, head of household, household number, address, member name, relationship, ID number |
+| Driver license | License number, name, gender, nationality, date of birth, permitted vehicle class, issuing authority |
+| Account opening permit | Approval number, number, basic deposit account, legal representative, bank, account number |
+| ID card | Name, gender, ethnicity, date of birth, address, ID number, issuing authority, validity period |
+| Vehicle license | Plate number, vehicle type, owner, usage nature, brand and model, VIN, engine number, registration date |
+| Bank card | Card number, issuing institution, validity period, card type |
+| Business license | Unified social credit code, name, type, business scope, registered capital, legal representative |
+| Chinese passport | Name, English name, gender, date of birth, place of birth, passport number, issuing place, validity period |
+| Organization code certificate | Organization code, organization name, organization type, address, validity period, issuing authority |
+
+## Response
+
+The response uses the common document extraction structure.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `code` | string | Business code. `success` means the request succeeded. |
+| `message` | string | Response message. |
+| `data.task_id` | string | Extraction task ID. |
+| `data.status` | integer | Extraction status. `4` means success, and `5` means failure. |
+| `data.extraction_result` | array | Field extraction results. |
+| `data.classify_result` | object | Document classification result. |

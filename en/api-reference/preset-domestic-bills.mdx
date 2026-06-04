@@ -1,0 +1,80 @@
+---
+title: "Domestic general bills"
+description: "Use ADP preset applications to extract fields from domestic general bills."
+---
+
+## Overview
+
+Domestic general bills use the document extraction API.
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract
+```
+
+The API returns extracted fields and classification results based on the preset application configuration.
+
+## Request parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `tenant_name` | string | Yes | Tenant name. Default: `laiye`. |
+| `app_id` | string | Yes | Unique ID of the domestic general bill preset application. |
+| `file_base64` | string | Optional | Base64 content of the file. Use either `file_base64` or `file_url`. |
+| `file_url` | string | Optional | Online file URL. Use either `file_url` or `file_base64`. Only HTTP URLs are supported. |
+
+## Supported bill types
+
+| Bill type | Key |
+| --- | --- |
+| Air transport e-ticket itinerary | `air_transport` |
+| Customs declaration form | `custom_declaration_form` |
+| Customs payment form | `customs_payment_form` |
+| Electronic air transport e-ticket itinerary | `electronic_air_transport` |
+| Electronic motor vehicle sales invoice | `electronic_motor_vehicle_sale_invoice` |
+| Electronic train ticket | `electronic_train_ticket` |
+| Electronic used car sales invoice | `electronic_used_car_purchase_invoice` |
+| Fiscal paper | `fiscal_paper` |
+| Electronic fiscal paper | `fiscal_paper_electronic` |
+| General machine-printed invoice | `general_machine_invoice` |
+| Highway passenger invoice | `highway_passenger_invoice` |
+| Machine-printed electronic invoice | `machine_printed_invoice` |
+| Electronic medical invoice | `medical_electronic_invoice` |
+| Medical invoice | `medical_invoice` |
+| Motor vehicle sales invoice | `motor_vehicle_sale_invoice` |
+| Other invoice | `other` |
+| Quota invoice | `quota_invoice` |
+| Shipping invoice | `shipping_invoice` |
+| Tax clearance certificate | `tax_clearance_certificate` |
+| Taxi ticket | `taxi_ticket` |
+| Train ticket refund fee | `ticket_refund_fee` |
+| Train ticket | `train_ticket` |
+| Ride-hailing itinerary | `travel_transport` |
+| VAT invoice sales list | `vat_invoice_sales_list` |
+| Used car sales invoice | `used_car_purchase_invoice` |
+| VAT special invoice | `vat_special_invoice` |
+| VAT electronic special invoice | `vat_electronic_special_invoice` |
+| VAT electronic invoice | `vat_electronic_invoice` |
+| VAT common invoice | `vat_common_invoice` |
+| Blockchain electronic invoice | `blockchain_electronic_invoice` |
+| New VAT electronic invoice | `vat_electronic_invoice_new` |
+| New VAT electronic special invoice | `vat_electronic_special_invoice_new` |
+| VAT electronic toll invoice | `vat_electronic_toll_invoice` |
+| VAT roll invoice | `vat_roll_invoice` |
+| Vehicle toll invoice | `vehicle_toll` |
+
+## Response
+
+The response uses the common document extraction structure.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `code` | string | Business code. `success` means the request succeeded. |
+| `message` | string | Response message. |
+| `data.task_id` | string | Extraction task ID. |
+| `data.status` | integer | Extraction status. `4` means success, and `5` means failure. |
+| `data.extraction_result` | array | Field extraction results. |
+| `data.classify_result` | object | Document classification result. |
+
+<Note>
+The field list is long and may change with preset application updates. Actual returned fields depend on the configuration for the `app_id`.
+</Note>

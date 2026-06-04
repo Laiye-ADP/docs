@@ -1,0 +1,1082 @@
+openapi: 3.1.0
+info:
+  title: ADP API
+  version: 1.0.0
+  description: Laiye ADP 官方 OpenAPI 接口规范，覆盖文档抽取、文档解析、抽取应用管理、积分查询、工作流运行和工作流文件管理。
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: https://adp.laiye.com
+    description: ADP 生产环境
+tags:
+  - name: 文档抽取
+    description: 从上传的文档中抽取结构化字段。
+  - name: 文档解析
+    description: 识别上传文档中的文字、版面块和位置信息。
+  - name: 应用管理
+    description: 创建、修改、删除和查询抽取应用及配置。
+  - name: 账户
+    description: 查询账户积分和使用情况。
+  - name: 工作流
+    description: 运行工作流应用并查询执行结果。
+  - name: 工作流文件
+    description: 上传和管理工作流应用使用的文件。
+paths:
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract:
+    post:
+      tags: [文档抽取]
+      summary: 文档抽取（同步接口）
+      description: 针对用户上传的文档，调用指定的文档抽取应用，根据应用配置和规则从文件中提取指定内容。同一接口适用于自定义抽取应用、海外发票、收据、采购订单、国内通用票据和卡证等场景。
+      operationId: extractDocument
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentExtractRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentExtractResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task:
+    post:
+      tags: [文档抽取]
+      summary: 创建文档抽取异步任务
+      description: 创建文档抽取任务并立即返回 task_id。适用于大文档或长时间抽取任务。
+      operationId: createDocumentExtractTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentExtractRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TaskCreateResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}:
+    get:
+      tags: [文档抽取]
+      summary: 查询文档抽取任务结果
+      description: 根据创建任务接口返回的 task_id 查询文档抽取状态和结果。
+      operationId: queryDocumentExtractTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentExtractResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize:
+    post:
+      tags: [文档解析]
+      summary: 文档解析（同步接口）
+      description: 接受用户上传的文档，识别文档中的文字内容和文本块位置信息。
+      operationId: recognizeDocument
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentFileRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentRecognizeResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize/create/task:
+    post:
+      tags: [文档解析]
+      summary: 创建文档解析异步任务
+      description: 创建文档解析任务并立即返回 task_id。
+      operationId: createDocumentRecognizeTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentFileRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TaskCreateResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize/query/task/{task_id}:
+    get:
+      tags: [文档解析]
+      summary: 查询文档解析任务结果
+      description: 根据创建任务接口返回的 task_id 查询文档解析状态和结果。
+      operationId: queryDocumentRecognizeTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentRecognizeResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create:
+    post:
+      tags: [应用管理]
+      summary: 创建抽取应用
+      description: 创建抽取应用，并设置标签、字段配置和抽取配置。
+      operationId: createExtractionApp
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/ExtractionAppCreateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ExtractionAppResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete:
+    post:
+      tags: [应用管理]
+      summary: 删除抽取应用
+      description: 删除抽取应用，删除后无法恢复。
+      operationId: deleteExtractionApp
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/AppIdRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/SimpleResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update:
+    post:
+      tags: [应用管理]
+      summary: 修改抽取应用
+      description: 更新抽取应用的名称、标签、字段配置和抽取配置。
+      operationId: updateExtractionApp
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/ExtractionAppUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ExtractionAppResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config:
+    post:
+      tags: [应用管理]
+      summary: 查询应用列表或应用配置
+      description: 原文档中“查询应用列表”和“查询应用配置”使用相同路径。传入 app_id 时查询指定应用配置；不传 app_id 时可按名称、能力、应用类型和分页参数查询应用列表。
+      operationId: listOrGetExtractionAppConfig
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/AppConfigQueryRequest'
+      responses:
+        '200':
+          description: 应用列表或应用配置。
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/AppListResponse'
+                  - $ref: '#/components/schemas/AppConfigResponse'
+              examples:
+                list:
+                  value:
+                    code: 200
+                    message: success
+                    data:
+                      list:
+                        - id: app_abc123
+                          app_name: 采购单抽取
+                          app_label: [finance]
+                      total: 1
+                config:
+                  value:
+                    code: 200
+                    message: success
+                    data:
+                      app_id: app_abc123
+                      app_name: 采购单抽取
+                      app_label: [finance]
+                      config_version: v1
+                      extract_fields: []
+                      parse_mode: standard
+                      enable_long_doc: false
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete:
+    post:
+      tags: [应用管理]
+      summary: 删除抽取应用的配置
+      description: 删除应用下某一个版本的字段配置信息。
+      operationId: deleteExtractionAppVersion
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/AppVersionDeleteRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/SimpleResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend:
+    post:
+      tags: [应用管理]
+      summary: 智能体生成抽取字段提示词
+      description: 基于示例文档，AI 自动生成字段名称、字段类型和字段提示词等配置参考。
+      operationId: recommendExtractionFields
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/AiRecommendRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/AppConfigResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/user/payment:
+    post:
+      tags: [账户]
+      summary: 查看用户积分使用情况
+      description: 无需请求体，根据 X-API-KEY 获取当前用户积分信息。
+      operationId: getUserPayment
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      responses:
+        '200':
+          $ref: '#/components/responses/UserPaymentResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/v1/app/run:
+    post:
+      tags: [工作流]
+      summary: 运行应用（同步接口）
+      description: 同步运行工作流应用的发布版本，阻塞等待执行完成后返回结果。
+      operationId: runDocFlowApp
+      security:
+        - EngineApiKeyAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/DocFlowRunRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocFlowRunResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/v1/app/run/create/task:
+    post:
+      tags: [工作流]
+      summary: 创建运行应用异步任务
+      description: 异步触发工作流应用运行，立即返回 run_id，不等待执行完成。
+      operationId: createDocFlowRunTask
+      security:
+        - EngineApiKeyAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/DocFlowRunRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocFlowRunResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}:
+    get:
+      tags: [工作流]
+      summary: 查询运行结果
+      description: 根据 run_id 查询工作流应用运行状态和结果。
+      operationId: queryDocFlowRunTask
+      security:
+        - EngineApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocFlowRunResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/files/upload:
+    post:
+      tags: [工作流文件]
+      summary: 文件上传
+      description: 上传文件到智能引擎存储，返回文件 ID 和下载地址。上传后的文件可在运行工作流接口的 files 参数中使用。
+      operationId: uploadDocFlowFile
+      security:
+        - EngineApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FileUploadRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/FileResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/files/{file_id}:
+    get:
+      tags: [工作流文件]
+      summary: 获取文件信息
+      description: 根据文件 ID 获取文件元信息。
+      operationId: getDocFlowFile
+      security:
+        - EngineApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FileId'
+      responses:
+        '200':
+          $ref: '#/components/responses/FileResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/files/{file_id}/delete:
+    post:
+      tags: [工作流文件]
+      summary: 删除文件
+      description: 删除指定文件。该操作不可恢复。
+      operationId: deleteDocFlowFile
+      security:
+        - EngineApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FileId'
+      responses:
+        '200':
+          $ref: '#/components/responses/FileDeleteResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+      description: 用户接入 OpenAPI 的令牌，在应用 API 中查看。
+    EngineApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: 工作流智能引擎 API 访问密钥。
+  parameters:
+    TenantName:
+      name: tenant_name
+      in: path
+      required: true
+      description: 租户名称，默认 laiye。
+      schema:
+        type: string
+        default: laiye
+    TaskId:
+      name: task_id
+      in: path
+      required: true
+      description: 任务 ID。
+      schema:
+        type: string
+    RunId:
+      name: run_id
+      in: path
+      required: true
+      description: 运行 ID。
+      schema:
+        type: string
+    FileId:
+      name: file_id
+      in: path
+      required: true
+      description: 文件 ID。
+      schema:
+        type: string
+    AcceptLanguage:
+      name: accept-language
+      in: header
+      required: false
+      description: 返回字段名称的语言。默认 zh 返回中文字段名；设置为 en 返回英文字段名。
+      schema:
+        type: string
+        enum: [zh, en]
+        default: zh
+  requestBodies:
+    DocumentFileRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentFileRequest'
+          example:
+            app_id: app_abc123
+            file_url: https://example.com/invoice.pdf
+    DocumentExtractRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentExtractRequest'
+          examples:
+            fileUrl:
+              value:
+                app_id: app_abc123
+                file_url: https://example.com/purchase_order.pdf
+                with_rec_result: false
+            fileBase64:
+              value:
+                app_id: app_abc123
+                file_base64: JVBERi0xLjQKJcfs...
+                with_rec_result: true
+    AppIdRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppIdRequest'
+          example:
+            app_id: app_abc123
+    AppVersionDeleteRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppVersionDeleteRequest'
+          example:
+            app_id: app_abc123
+            config_version: v1
+    ExtractionAppCreateRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExtractionAppCreateRequest'
+    ExtractionAppUpdateRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExtractionAppUpdateRequest'
+    AppConfigQueryRequest:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppConfigQueryRequest'
+    AiRecommendRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AiRecommendRequest'
+          example:
+            app_id: app_abc123
+            file_url: https://example.com/sample.pdf
+    DocFlowRunRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocFlowRunRequest'
+          example:
+            application_id: app_abc123
+            inputs:
+              query: 请帮我分析这份采购单
+            files:
+              - url: https://example.com/purchase_order.pdf
+                name: 采购单.pdf
+                mime_type: application/pdf
+  responses:
+    SimpleResponse:
+      description: 通用响应。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SimpleResponse'
+          example:
+            code: success
+            message: success
+    ValidationError:
+      description: 参数校验错误。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SimpleResponse'
+    TaskCreateResponse:
+      description: 任务创建结果。
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/SimpleResponse'
+              - type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      task_id:
+                        type: string
+          example:
+            code: success
+            message: ''
+            data:
+              task_id: 94fe9b74e0e311f091505e345594c618
+    DocumentExtractResponse:
+      description: 文档抽取结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentExtractResponse'
+          example:
+            code: success
+            message: ''
+            data:
+              task_id: 94fe9b74e0e311f091505e345594c618
+              file_url: ''
+              status: 4
+              doc_recognize_result: []
+              extraction_result: []
+    DocumentRecognizeResponse:
+      description: 文档解析结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentRecognizeResponse'
+          example:
+            code: success
+            message: ''
+            data:
+              task_id: 94fe9b74e0e311f091505e345594c618
+              file_url: ''
+              status: 4
+              doc_recognize_result: []
+    ExtractionAppResponse:
+      description: 抽取应用结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExtractionAppResponse'
+    AppConfigResponse:
+      description: 应用配置结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppConfigResponse'
+    UserPaymentResponse:
+      description: 用户积分信息。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserPaymentResponse'
+          example:
+            code: success
+            message: ''
+            data:
+              total_credits: 0
+              used_credits: 0
+              expired_credits: 0
+              remaining_credits: 0
+    DocFlowRunResponse:
+      description: 工作流运行结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocFlowRunResponse'
+          example:
+            code: success
+            message: ''
+            data:
+              run_id: run_xyz789
+              status: succeeded
+              output:
+                result: 采购单分析完成
+              error: null
+              started_at: '2026-04-30T10:00:00Z'
+              ended_at: '2026-04-30T10:00:15Z'
+    FileResponse:
+      description: 文件信息。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FileResponse'
+    FileDeleteResponse:
+      description: 文件删除结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FileDeleteResponse'
+  schemas:
+    SimpleResponse:
+      type: object
+      properties:
+        code:
+          oneOf:
+            - type: string
+            - type: integer
+          description: 业务码。成功通常为 success 或 200。
+        message:
+          type: string
+          description: 返回信息。
+        tips:
+          type:
+            - string
+            - 'null'
+          description: 详细信息，默认为空。
+    DocumentFileRequest:
+      allOf:
+        - type: object
+          properties:
+            app_id:
+              type: string
+              description: 应用的唯一标识。
+            file_base64:
+              type: string
+              description: 待处理文件 Base64，与 file_url 二选一。
+            file_url:
+              type: string
+              format: uri
+              description: 待处理文件 URL，与 file_base64 二选一。
+          required: [app_id]
+        - anyOf:
+            - required: [file_base64]
+            - required: [file_url]
+    DocumentExtractRequest:
+      allOf:
+        - $ref: '#/components/schemas/DocumentFileRequest'
+        - type: object
+          properties:
+            with_rec_result:
+              type: boolean
+              description: 是否返回文档解析结果。
+              default: false
+    DocumentExtractResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/DocumentExtractData'
+    DocumentExtractData:
+      type: object
+      properties:
+        task_id:
+          type: string
+        file_url:
+          type: string
+        status:
+          type: integer
+          description: 1=等待，2=解析中，3=抽取中，4=成功，5=失败。
+        doc_recognize_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecognizePage'
+        extraction_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtractionField'
+        collaboration_result:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        output_result:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    DocumentRecognizeResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                task_id:
+                  type: string
+                file_url:
+                  type: string
+                status:
+                  type: integer
+                doc_recognize_result:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/RecognizePage'
+    RecognizePage:
+      type: object
+      properties:
+        page_num:
+          type: integer
+        document_content:
+          type: string
+        document_details:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentDetail'
+    DocumentDetail:
+      type: object
+      properties:
+        type:
+          type: string
+        text:
+          type: string
+        position:
+          type: array
+          items:
+            type: object
+            properties:
+              points:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Point'
+        ocr_confidence:
+          type: object
+          properties:
+            ocr_mean_confidence:
+              type: number
+            ocr_min_confidence:
+              type: number
+            is_overall_confidence:
+              type: integer
+    Point:
+      type: object
+      properties:
+        x:
+          type: number
+        y:
+          type: number
+    ExtractionField:
+      type: object
+      additionalProperties: true
+      properties:
+        field_key:
+          type: string
+        field_name:
+          type: string
+        field_values:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        references:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        table_values:
+          type: array
+          items:
+            type: array
+            items:
+              type: object
+              additionalProperties: true
+    ExtractionFieldConfig:
+      type: object
+      properties:
+        field_name:
+          type: string
+        field_type:
+          type: string
+          enum: [string, date, table]
+        field_prompt:
+          type: string
+        sub_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtractionSubFieldConfig'
+      required: [field_name, field_type]
+    ExtractionSubFieldConfig:
+      type: object
+      properties:
+        field_name:
+          type: string
+        field_type:
+          type: string
+          enum: [string, date]
+        field_prompt:
+          type: string
+      required: [field_type]
+    LongDocConfig:
+      type: object
+      properties:
+        doc_type:
+          type: string
+        doc_desc:
+          type: string
+    ExtractionAppCreateRequest:
+      type: object
+      properties:
+        app_name:
+          type: string
+        app_label:
+          type: array
+          maxItems: 5
+          items:
+            type: string
+        extract_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtractionFieldConfig'
+        parse_mode:
+          type: string
+          enum: [standard, advance, agentic]
+        enable_long_doc:
+          type: boolean
+          default: false
+        long_doc_config:
+          type: array
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/LongDocConfig'
+      required: [app_name, extract_fields, parse_mode]
+    ExtractionAppUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/ExtractionAppCreateRequest'
+        - type: object
+          properties:
+            app_id:
+              type: string
+            config_version:
+              type: string
+          required: [app_id, config_version]
+    AppIdRequest:
+      type: object
+      properties:
+        app_id:
+          type: string
+      required: [app_id]
+    AppVersionDeleteRequest:
+      type: object
+      properties:
+        app_id:
+          type: string
+        config_version:
+          type: string
+      required: [app_id, config_version]
+    AppConfigQueryRequest:
+      type: object
+      properties:
+        app_id:
+          type: string
+        config_version:
+          type: string
+        app_name:
+          type: string
+        ai_function:
+          type: integer
+        app_type:
+          type: integer
+          description: 1=自定义，0=系统预设。
+        with_extra:
+          type: integer
+        offset:
+          type: integer
+        limit:
+          type: integer
+    AiRecommendRequest:
+      allOf:
+        - type: object
+          properties:
+            app_id:
+              type: string
+            file_base64:
+              type: string
+            file_url:
+              type: string
+              format: uri
+          required: [app_id]
+        - anyOf:
+            - required: [file_base64]
+            - required: [file_url]
+    ExtractionAppResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AppConfigData'
+    AppListResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                list:
+                  type: array
+                  items:
+                    type: object
+                    additionalProperties: true
+                total:
+                  type: integer
+    AppConfigResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AppConfigData'
+    AppConfigData:
+      type: object
+      additionalProperties: true
+      properties:
+        app_id:
+          type: string
+        app_name:
+          type: string
+        app_label:
+          type: array
+          items:
+            type: string
+        config_version:
+          type: string
+        extract_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtractionFieldConfig'
+        parse_mode:
+          type: string
+        enable_long_doc:
+          type: boolean
+        long_doc_config:
+          type: array
+          items:
+            $ref: '#/components/schemas/LongDocConfig'
+    UserPaymentResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                total_credits:
+                  type: number
+                used_credits:
+                  type: number
+                expired_credits:
+                  type: number
+                remaining_credits:
+                  type: number
+    DocFlowRunRequest:
+      type: object
+      properties:
+        application_id:
+          type: string
+        release_version_id:
+          type: string
+        session_id:
+          type: string
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocFlowInputFile'
+        inputs:
+          type: object
+          additionalProperties: true
+      required: [application_id]
+    DocFlowInputFile:
+      type: object
+      properties:
+        url:
+          type: string
+        name:
+          type: string
+        mime_type:
+          type: string
+        size:
+          type: integer
+      required: [url, name, mime_type]
+    DocFlowRunResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                run_id:
+                  type: string
+                status:
+                  type: string
+                  enum: [pending, running, succeeded, failed, cancelled, paused, timeout]
+                output:
+                  type:
+                    - object
+                    - 'null'
+                  additionalProperties: true
+                error:
+                  type:
+                    - string
+                    - 'null'
+                started_at:
+                  type: string
+                  format: date-time
+                ended_at:
+                  type:
+                    - string
+                    - 'null'
+                  format: date-time
+    FileUploadRequest:
+      type: object
+      properties:
+        chunk:
+          type: string
+          format: binary
+        application_id:
+          type: string
+        sharing_scope:
+          type: string
+          enum: [user, application]
+          default: application
+      required: [chunk]
+    FileResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: true
+              properties:
+                id:
+                  type: string
+                file_name:
+                  type: string
+                file_size:
+                  type: integer
+                content_type:
+                  type: string
+                download_url:
+                  type: string
+                status:
+                  type: string
+    FileDeleteResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                id:
+                  type: string

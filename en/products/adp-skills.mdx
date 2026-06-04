@@ -1,0 +1,164 @@
+---
+title: "ADP Skills"
+description: "Laiye ADP Skill collection for connecting enterprise-grade document processing across agent platforms."
+icon: "puzzle-piece"
+---
+
+## Overview
+
+**adp-skills** is a ready-to-use Skill collection from Laiye ADP. It combines vision language models, large language models, and agentic decision-making to upgrade rule-based field extraction into goal-driven document automation.
+
+<Card title="GitHub repository" icon="github" href="https://github.com/laiye-ai-repos/adp-skill">
+  laiye-ai-repos/adp-skill
+</Card>
+
+## Key advantages
+
+<CardGroup cols="2">
+  <Card title="Multimodal without labeling" icon="wand-magic-sparkles">
+    Combine visual understanding and semantic understanding. Define extraction needs with natural language without sample labeling or model training.
+  </Card>
+
+  <Card title="100+ languages" icon="globe">
+    Process Chinese, English, French, Southeast Asian, European, and mixed-language documents with one model.
+  </Card>
+
+  <Card title="Self-learning iteration" icon="arrows-rotate">
+    The agentic architecture records recognition deviations and improves with usage.
+  </Card>
+
+  <Card title="Ready to use" icon="plug">
+    Start document processing tasks through conversational workflows.
+  </Card>
+</CardGroup>
+
+## Architecture: point, line, and surface
+
+| Layer | Role | Example |
+| --- | --- | --- |
+| **Point: parsing and extraction** | Understand documents and extract fields accurately. | Extract amount, date, and supplier from an overseas invoice. |
+| **Line: end-to-end process** | Connect multiple steps into automated workflows. | Invoice extraction → contract matching → amount verification → ERP sync. |
+| **Surface: human-in-the-loop iteration** | Use human corrections to drive continuous learning. | Adapt to Italian invoice decimal notation after repeated corrections. |
+
+## Skill categories
+
+<Tabs>
+  <Tab title="Limited-time free">
+    | Skill | Description |
+    | --- | --- |
+    | **Global Invoice Free Edition** | High-accuracy extraction for invoices, bills, and receipts across formats and languages. Designed for cross-border finance, automation, and system integration. |
+  </Tab>
+  <Tab title="General">
+    | Skill | Description |
+    | --- | --- |
+    | **Agentic Document Parsing & Extraction** | AI-powered high-frequency document parsing and key field extraction for invoices, orders, receipts, long text, and IDs. Supports reusable custom templates, batch concurrency, and human review. |
+  </Tab>
+  <Tab title="Specialized">
+    | Skill | Description |
+    | --- | --- |
+    | **global-invoice-recognition-and-extraction** | Multilingual and multi-currency global invoice recognition and extraction with structured JSON output. |
+    | **Universal Document Parsing** | Parse 10+ formats and output JSON or Markdown while preserving headings, tables, lists, and layout. |
+  </Tab>
+  <Tab title="Scenario">
+    | Skill | Description |
+    | --- | --- |
+    | **invoice-extractor-from-mail** | Automatically fetch invoice attachments from email with IMAP or OAuth, extract fields in batches, and export results to Excel or business systems. |
+  </Tab>
+</Tabs>
+
+## General workflow
+
+### Step 1: Install ADP CLI
+
+```bash
+# Recommended: npm across platforms
+npm install -g @laiye-adp/agentic-doc-parse-and-extract-cli
+```
+
+```bash
+# Linux / macOS
+curl -fsSL https://raw.githubusercontent.com/laiye-ai/adp-cli/main/scripts/adp-init.sh | bash
+```
+
+```powershell
+# Windows PowerShell
+irm https://raw.githubusercontent.com/laiye-ai/adp-cli/main/scripts/adp-init.ps1 | iex
+```
+
+### Step 2: Get an API key
+
+<Info>
+  New users receive **100 free credits** each month.
+</Info>
+
+| Region | Login URL | API base URL |
+| --- | --- | --- |
+| Chinese mainland | [adp.laiye.com](https://adp.laiye.com/) | `https://adp.laiye.com/` |
+| Global | [adp-global.laiye.com](https://adp-global.laiye.com/) | `https://adp-global.laiye.com/` |
+
+```bash
+adp config set --api-key <your-api-key>
+adp config set --api-base-url https://adp.laiye.com
+adp config get
+```
+
+### Step 3: Get an app ID
+
+| `app_type` | Type |
+| --- | --- |
+| `0` | Out-of-the-box application. `app_id` starts with `ootb_`. |
+| `1` | Custom application created by the user. |
+
+## Connect to agent platforms
+
+<CardGroup cols="2">
+  <Card title="OpenClaw / Claude" icon="robot">
+    ```bash
+    openclaw skills install agentic-doc-parse-and-extract
+    ```
+  </Card>
+
+  <Card title="Tencent WorkBuddy" icon="comments">
+    Enter: I want to use this skill [https://github.com/laiye-ai/adp-cli](https://github.com/laiye-ai/adp-cli)
+  </Card>
+
+  <Card title="Manus" icon="box">
+    Download the Skill package, upload it to the platform, and follow the prompts to configure authentication.
+  </Card>
+
+  <Card title="Internal enterprise platforms" icon="building">
+    Download the CLI Skill package from GitHub, NPM, or PyPI and add it to your agent platform.
+  </Card>
+</CardGroup>
+
+## Common scenarios
+
+<AccordionGroup>
+  <Accordion title="Cross-border procurement: overseas invoice processing">
+    A finance user can say: "Summarize today's overseas invoices into Excel." ADP scans emails, finds attachments, extracts fields, cross-checks data, and generates a summary report.
+  </Accordion>
+
+  <Accordion title="Trade logistics: multi-document consistency review">
+    A document specialist can say: "Check whether the shipper, receiver, and goods information are consistent across these documents." ADP parses invoices, packing lists, delivery notes, and other documents, then outputs exceptions.
+  </Accordion>
+</AccordionGroup>
+
+## Resources
+
+<CardGroup cols="2">
+  <Card title="ClawHub" icon="store" href="https://clawhub.ai/Jeane-li/laiye-doc-processing">
+    Install from ClawHub
+  </Card>
+
+  <Card title="GitHub Repo" icon="github" href="https://github.com/laiye-ai-repos/adp-skill">
+    View all Skill source code
+  </Card>
+
+  <Card title="Official website" icon="globe" href="https://laiye.com/">
+    Laiye ADP website
+  </Card>
+
+  <Card title="Feedback" icon="bug" href="https://github.com/laiye-ai-repos/adp-skill/issues">
+    GitHub Issues
+  </Card>
+</CardGroup>

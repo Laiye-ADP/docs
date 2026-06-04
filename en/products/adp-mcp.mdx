@@ -1,0 +1,308 @@
+---
+title: "ADP MCP Server"
+description: "Use Model Context Protocol to let AI clients call Laiye ADP document parsing and extraction without writing code."
+icon: "plug"
+---
+
+## Overview
+
+**ADP MCP Server** is the Model Context Protocol server for Laiye ADP. It lets MCP-compatible AI clients, such as Claude Desktop, Cursor, Copilot Chat, Tongyi Lingma, and Coze, call ADP document parsing and extraction without writing code. Unlike the CLI, MCP Server runs over **Streamable HTTP**. A single connection can discover available tools, submit processing tasks, and query results inside the chat window.
+
+ADP combines vision language models, large language models, and agentic decision-making. It upgrades rule-driven field extraction into goal-driven document automation. ADP can classify and extract key fields from invoices, domestic bills, purchase contracts, logistics documents, financial reports, transaction contracts, and more. It supports table parsing, content verification, and multilingual recognition without manual templates, labeled data, or rule maintenance.
+
+<Card title="Try ADP" icon="rocket" href="https://adp.laiye.com/?utm_source=github">
+  Sign up for ADP. New users receive 100 free credits each month.
+</Card>
+
+## Quick start
+
+### 1. Get an API key
+
+Visit [adp.laiye.com](https://adp.laiye.com/?utm_source=github), register an ADP account, and get your API key from **My MCP** in personal settings.
+
+### 2. Configure your MCP client
+
+<Tabs>
+  <Tab title="Visual configuration (recommended)">
+    Most MCP clients, including Cursor, Tongyi Lingma, and Coze, let you add MCP servers in their settings UI. In Cursor:
+
+    1. Open **Settings → MCP**.
+    2. Click **Add new MCP server**.
+    3. Fill in:
+       - **Name**: `ADP`
+       - **Type**: `streamable-http`
+       - **URL**: `https://adp.laiye.com/mcp?key=<YOUR-ADP-API-Key>`
+    4. Save the configuration and use ADP tools in chat.
+  </Tab>
+  <Tab title="Claude Desktop">
+    Add the server to `claude_desktop_config.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "adp": {
+          "url": "https://adp.laiye.com/mcp?key=<YOUR-ADP-API-Key>",
+          "transport": "streamable-http"
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="Other clients">
+    Core parameters:
+
+    | Parameter | Value |
+    | --- | --- |
+    | **Endpoint** | `https://adp.laiye.com/mcp` |
+    | **Transport** | Streamable HTTP |
+    | **Authentication** | URL query `?key=<YOUR-ADP-API-Key>` |
+
+    Use the same values in the MCP settings of VS Code, Copilot Chat, or other clients.
+  </Tab>
+</Tabs>
+
+<Info>
+  For private deployments, replace the domain with your actual service address.
+</Info>
+
+### 3. Start using ADP
+
+After connection, the AI client discovers all available ADP tools. Describe your task in chat, for example:
+
+- "Parse the structure of this PDF."
+- "Extract information from this ID card."
+- "Extract amount and date from this invoice."
+
+## Tools
+
+### Document parsing
+
+| Tool | Description |
+| --- | --- |
+| `parse_document` | Parse PDFs, images, Word, Excel, PPT, and other documents. Returns structured text blocks, tables, reading order, and page coordinates. Use this when the document type is unknown or when you need the raw structure first. |
+
+### Bills and order extraction
+
+| Tool | Title | Description |
+| --- | --- | --- |
+| `extract_china_invoice` | China bills | Covers 30+ common China bill types, including electronic invoices, common invoices, special VAT invoices, taxi tickets, train tickets, air itineraries, and fiscal invoices. |
+| `extract_global_invoice` | Global invoices/receipts | Extracts key fields from global invoices and receipts, including invoice number, amount, tax, currency, and line items. |
+| `extract_purchase_order` | Orders | Extracts order number, buyer and seller information, line items, and total amount from purchase and sales orders. |
+
+### Cards and certificates
+
+| Tool | Title | Description |
+| --- | --- | --- |
+| `extract_id_card` | ID card | Mainland China resident ID card. Front and back sides are supported. |
+| `extract_bank_card` | Bank card | Bank card front side, including card number, bank, card type, and validity period. |
+| `extract_vehicle_cert` | Vehicle certificate | Motor vehicle certificate of conformity. |
+| `extract_account_permit` | Account opening permit | Enterprise account opening permit. |
+| `extract_driver_license` | Driver license | China motor vehicle driver license. Main and secondary pages are supported. |
+| `extract_business_license` | Business license | China business license. |
+| `extract_passport_cn` | Chinese passport | People's Republic of China passport. |
+| `extract_vehicle_license` | Vehicle license | China motor vehicle license. Main and secondary pages are supported. |
+| `extract_org_code_cert` | Organization code certificate | Organization code certificate. |
+| `extract_household_book` | Household register | China household register. Home page and personal pages are supported. |
+| `extract_hk_macao_permit` | Hong Kong and Macao permit | Exit-entry permit for Hong Kong and Macao. |
+
+### Custom extraction
+
+MCP also provides two tools for custom extraction applications created in the ADP platform:
+
+| Tool | Description |
+| --- | --- |
+| `list_custom_extract_apps` | List all custom extraction applications for the current user, including app ID, name, description, labels, and output field definitions. |
+| `execute_custom_extract_app` | Process a file with a specified custom extraction application. Use `list_custom_extract_apps` to get the `app_id` first. |
+
+<Tip>
+  First call `list_custom_extract_apps` to find the target `app_id`, then call `execute_custom_extract_app` with the file and `app_id`.
+</Tip>
+
+## Tool input parameters
+
+### Document parsing and OOTB extraction tools
+
+All out-of-the-box tools share the same input schema:
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `file` | string | Yes | File URL or Base64 content. |
+| `file_name` | string | No | File name with extension. |
+| `with_rec_result` | boolean | No | Whether to include OCR intermediate results. Default: `true`. |
+| `wait` | boolean | No | Whether to wait synchronously for the result. Default: `true`. |
+| `timeout_seconds` | integer | No | Synchronous wait timeout in seconds. Default: `300`, range 1-900. |
+
+### `execute_custom_extract_app`
+
+This tool also requires:
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `app_id` | string | Yes | Custom extraction application ID from `list_custom_extract_apps`. |
+
+<Note>
+  **File input:** Values starting with `http://`, `https://`, or `file://` are treated as URLs. Other values are treated as Base64 content.
+
+  **Sync vs async:** `wait=true` blocks until processing completes. `wait=false` returns `task_id` immediately for later querying.
+</Note>
+
+## Tool output
+
+### `parse_document` output
+
+```json
+{
+  "task_id": "fabd7f0a4e7211f1bbc4d85ed35661fd",
+  "status": 4,
+  "message": "",
+  "doc_recognize_result": [
+    {
+      "page_num": 1,
+      "document_content": "Full text content of this page...",
+      "document_details": []
+    }
+  ]
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `task_id` | string | Task ID. |
+| `status` | integer | Task status code. |
+| `message` | string | Status message. |
+| `doc_recognize_result` | array | Page-level recognition results. |
+| `doc_recognize_result[].page_num` | integer | Page number, starting from 1. |
+| `doc_recognize_result[].document_content` | string | Full page text in reading order. |
+| `doc_recognize_result[].document_details` | array | Element-level details. |
+| `document_details[].type` | string | Element type, such as `Text`, `Table`, or `Picture`. |
+| `document_details[].text` | string | Text content. Picture elements return image URLs. |
+| `document_details[].position` | array | Bounding box coordinates. |
+| `document_details[].ocr_confidence` | object | OCR confidence values from 0 to 1. |
+
+### Extraction tool output
+
+```json
+{
+  "task_id": "91283e544e7111f18cd6d85ed35661fd",
+  "status": 4,
+  "message": "",
+  "extraction_result": [
+    {
+      "field_key": "invoice_number",
+      "field_name": "Invoice number",
+      "field_values": [
+        {
+          "field_value": "24VLT0591617",
+          "field_confidence": 1.0,
+          "references": []
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Normal fields**:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `field_key` | string | Field key. |
+| `field_name` | string | Field name. |
+| `field_values[].field_value` | string | Extracted value. |
+| `field_values[].field_confidence` | float | Confidence from 0 to 1. |
+
+**Table fields**:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `field_key` | string | Table key. |
+| `field_name` | string | Table name. |
+| `table_values` | array[array] | Two-dimensional array. Each row contains cells with `field_name`, `field_key`, and `field_values`. |
+
+<Tip>
+  If a field object contains `table_values`, it is a table field. If it only contains `field_values`, it is a normal field.
+</Tip>
+
+### Async response with `wait=false`
+
+```json
+{
+  "task_id": "fabd7f0a4e7211f1bbc4d85ed35661fd",
+  "status": "running"
+}
+```
+
+## Task status codes
+
+| Code | MCP status | Description |
+| --- | --- | --- |
+| `0` | running | Unknown. |
+| `1` | running | Ready or queued. |
+| `2` | running | Processing. |
+| `4` | success | Succeeded. |
+| `5` | failed | Failed. |
+| `6` | failed | Cancelled. |
+
+## Supported file formats
+
+| Format | Extension | Description |
+| --- | --- | --- |
+| PDF | `.pdf` | Scanned and digital PDFs are supported. |
+| Images | `.jpg` `.jpeg` `.png` `.bmp` `.tiff` `.webp` | Mobile photos are supported. |
+| Word | `.doc` `.docx` | Supported. |
+| Excel | `.xls` `.xlsx` | Supported. |
+| PPT | `.ppt` `.pptx` | Supported. |
+
+## Authentication
+
+ADP MCP Server uses API key authentication through a URL query parameter:
+
+```text
+https://adp.laiye.com/mcp?key=<YOUR-ADP-API-Key>
+```
+
+- Get the API key from **My MCP** in the ADP console.
+- Each API key is bound to one user and can access only that user's applications and data.
+- The API key is used only for authentication and does not appear in request or response bodies.
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="Why are some card tools missing after MCP connects?">
+    The tool list is generated dynamically based on applications initialized for the current user. On first connection, the system initializes all out-of-the-box applications. Refresh the tool list after initialization.
+  </Accordion>
+  <Accordion title="Why does a card tool return document extraction failed?">
+    Make sure the uploaded file matches the tool type. For example, use `extract_id_card` for ID card images, not `extract_vehicle_cert`. The file must be a supported image or PDF.
+  </Accordion>
+  <Accordion title="How do I handle timeouts?">
+    The default timeout is 300 seconds. You can set `timeout_seconds` up to 900 seconds. For large or complex documents, use `wait=false` and query the result with `task_id`.
+  </Accordion>
+  <Accordion title="How is MCP different from ADP CLI and OpenAPI?">
+    They provide equivalent capabilities but use different integration methods.
+
+    | Method | Best for |
+    | --- | --- |
+    | **MCP Server** | AI clients such as Claude Desktop and Cursor. No code required. |
+    | **ADP CLI** | Terminal commands, script automation, and AI Skill integration. |
+    | **OpenAPI** | Business system integration and backend service calls. |
+  </Accordion>
+</AccordionGroup>
+
+## Support
+
+<CardGroup cols={2}>
+  <Card title="OpenAPI guide" icon="book" href="https://laiye-tech.feishu.cn/wiki/PO9Jw4cH3iV2ThkMPW2c539pnkc">
+    API documentation
+  </Card>
+  <Card title="Public cloud user guide" icon="file-lines" href="https://laiye-tech.feishu.cn/wiki/UDYIwG42pisBbFkJI39ctpeKnWh">
+    ADP user guide
+  </Card>
+</CardGroup>
+
+- **Email:** mkt@laiye.com
+- **Website:** [Laiye](https://laiye.com/product/adp-platform)
+
+## License
+
+- **MCP Server**: Free access as part of the ADP product.
+- **ADP service**: Public cloud AI document processing service billed by usage. New users receive 100 free credits each month.

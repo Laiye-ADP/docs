@@ -1,0 +1,267 @@
+---
+title: "ADP CLI"
+description: "Laiye ADP official open-source CLI for document parsing and key field extraction with a single command."
+icon: "terminal"
+---
+
+## Overview
+
+ADP is Laiye's **Agentic Document Processing** product. It uses the general understanding capabilities of large models to process documents without relying on rules or manual labels. It supports multilingual, multimodal, and multi-scenario document understanding. Agents can understand task goals, break down steps, call tools, and complete complex tasks. From document input to business decisions and human review, ADP helps build an end-to-end automation loop.
+
+**agentic-doc-parse-and-extract** (ADP CLI) is ADP's official open-source command-line tool. It supports manual terminal usage and automated AI Skill calls. With one command, you can parse documents into structured data and extract key fields across invoices, orders, IDs, bills, and general documents. Results are returned as standard JSON for automation and AI workflows.
+
+<CardGroup cols="2">
+  <Card title="GitHub" icon="github" href="https://github.com/laiye-ai/adp-cli">
+    laiye-ai/adp-cli
+  </Card>
+
+  <Card title="NPM" icon="npm" href="https://www.npmjs.com/package/@laiye-adp/agentic-doc-parse-and-extract-cli">
+    @laiye-adp/agentic-doc-parse-and-extract-cli
+  </Card>
+
+  <Card title="PyPI" icon="python" href="https://pypi.org/project/agentic-doc-parse-and-extract/">
+    agentic-doc-parse-and-extract
+  </Card>
+
+  <Card title="Releases" icon="download" href="https://github.com/laiye-ai/adp-cli/releases">
+    Prebuilt binaries
+  </Card>
+</CardGroup>
+
+## Key capabilities
+
+agentic-doc-parse-and-extract focuses on intelligent document processing from parsing to extraction and batch processing. It works for both manual CLI usage and AI Agent automation.
+
+| Capability | Description | Use cases |
+| --- | --- | --- |
+| **Document parsing** | Recognize PDFs, images, and other document formats. Convert unstructured content, including scans, handwriting, and complex layouts, into structured data while preserving hierarchy and key relationships. | Convert unstructured documents into LLM-readable structured data. |
+| **Out-of-the-box extraction** | Use ADP's native AI capabilities and built-in extraction models for invoices, receipts, orders, and common Chinese IDs. No rules or manual labels are required. | AP automation, expense management, procurement automation, and card/ID onboarding. |
+| **Custom extraction** | Create, edit, and manage custom extraction applications with dedicated fields and logic for company-specific documents and industry forms. | Private extraction needs for proprietary, industry-specific, or non-standard documents. |
+| **Task query** | Submit async tasks and query progress, success/failure state, and final results. | Batch processing, async document processing, troubleshooting, and audit trails. |
+| **Application management** | View available extraction applications, including built-in and custom apps, query details, and manage labels. | Multi-scenario switching and application lifecycle management. |
+
+## Install and update
+
+<CodeGroup>
+
+```bash Install from source
+pip install -e .
+```
+
+```bash Install from PyPI
+pip install agentic_doc_parse_and_extract
+```
+
+```bash Update with npm
+npm install -g @laiye-adp/agentic-doc-parse-and-extract-cli
+```
+
+</CodeGroup>
+
+<Note>
+  The PyPI package is no longer maintained. Use npm to update to the latest version.
+</Note>
+
+## Configure
+
+Get an API key from [adp-global.laiye.com](https://adp-global.laiye.com/). New users receive 100 free credits each month.
+
+```bash
+adp config set --api-key <your-api-key>
+adp config set --api-base-url https://adp-global.laiye.com
+adp config get
+```
+
+## Quick examples
+
+```bash
+# List available apps
+adp app-id list
+
+# Parse a local document
+adp parse local ./invoice.pdf --app-id <app-id>
+
+# Extract key fields
+adp extract local ./invoice.pdf --app-id <app-id>
+
+# Process a directory asynchronously
+adp parse local ./documents/ --app-id <app-id> --async
+
+# Process a remote URL
+adp extract url https://example.com/file.pdf --app-id <app-id>
+
+# Query an async task
+adp parse query <task-id>
+
+# Two-phase async workflow
+adp extract local ./documents/ --app-id <app-id> --async --no-wait --export tasks.json
+adp extract query --watch --file tasks.json
+
+# Retry recoverable failures up to 2 times
+adp parse local ./documents/ --app-id <app-id> --retry 2
+
+# Check remaining credits
+adp credit
+```
+
+## Commands
+
+<Note>
+  AI Agents should call `adp schema` to get the authoritative machine-readable command schema. This table is a human-friendly summary.
+</Note>
+
+| Command | Description |
+| --- | --- |
+| `adp version` | Print the version. |
+| `adp config set` | Set API key or base URL. |
+| `adp config get` | Show current configuration. |
+| `adp config clear` | Clear configuration. |
+| `adp app-id list` | List available applications. |
+| `adp app-id cache` | Read the app list from local cache. |
+| `adp parse local <path>` | Parse local files or directories. |
+| `adp parse url <url>` | Parse remote files. URL list files are supported. |
+| `adp parse base64 <data>` | Parse Base64 content. |
+| `adp parse query <task-id...>` | Query async parse tasks. Multiple IDs and `--file` are supported. |
+| `adp extract local <path>` | Extract fields from local files or directories. |
+| `adp extract url <url>` | Extract fields from remote files. |
+| `adp extract base64 <data>` | Extract fields from Base64 content. |
+| `adp extract query <task-id...>` | Query async extraction tasks. Multiple IDs and `--file` are supported. |
+| `adp custom-app create` | Create a custom extraction application. |
+| `adp custom-app update` | Update a custom application. |
+| `adp custom-app get-config` | Show application configuration. |
+| `adp custom-app delete` | Delete a custom application. |
+| `adp custom-app delete-version` | Delete a configuration version. |
+| `adp custom-app ai-generate` | Generate recommended extraction fields with AI. |
+| `adp credit` | Show remaining credits. |
+| `adp schema` | Output the command schema for AI Agents. |
+
+## Flags
+
+| Flag | Description |
+| --- | --- |
+| `--json` | Output JSON. |
+| `--quiet` | Quiet mode. Print only results. |
+| `--lang <en\|zh>` | UI language. |
+| `--app-id` | Application ID. Required for parse and extract. |
+| `--async` | Use async mode. |
+| `--no-wait` | Submit tasks without waiting. Use with `--async`. |
+| `--export <path>` | Export results to a file for a single file or a directory for batch processing. |
+| `--timeout <seconds>` | Timeout. Default: 900 seconds. |
+| `--concurrency <n>` | Concurrency. Free tier max: 1. Paid tier max: 2. |
+| `--retry <n>` | Retry count for recoverable errors. Default: 0. |
+| `--file <path>` | Read task IDs from a JSON file. Used for querying `--no-wait` output. |
+
+## Async workflow
+
+For large files or batch tasks, use `--async` to submit the task. The CLI returns a `task-id`, and you can poll results with `parse query` or `extract query`.
+
+```bash
+adp parse local ./big.pdf --app-id <app-id> --async
+# Returns task-id
+
+adp parse query <task-id>
+```
+
+### Two-phase async with `--no-wait`
+
+By default, `--async` submits the task and polls until completion. This is convenient for AI Agents. For resumable workflows, use two phases.
+
+**Phase 1: submit tasks**
+
+```bash
+adp extract local ./documents/ --app-id <app-id> --async --no-wait --export tasks.json
+```
+
+The output is a JSON array with task IDs:
+
+```json
+[
+  { "path": "invoice.pdf", "task_id": "task_abc123" },
+  { "path": "contract.pdf", "task_id": "task_def456" }
+]
+```
+
+**Phase 2: query results**
+
+```bash
+adp extract query --watch --file tasks.json
+adp extract query --watch --file tasks.json --export ./results/
+```
+
+<Tip>
+  If the CLI exits unexpectedly, task IDs in `tasks.json` are still available. Resume anytime with `query --file`.
+</Tip>
+
+## Batch processing
+
+When processing multiple files or URLs, the CLI writes each result to a separate file:
+
+```text
+adp_results_20250417_153020/
+├── _summary.json
+├── invoice_01.pdf.json
+├── contract_02.docx.json
+└── report_03.pdf.error.json
+```
+
+- `--export <dir>` specifies the output directory.
+- Without `--export`, the CLI creates `adp_results_<timestamp>/`.
+- Single-file tasks output to stdout or to the file path specified by `--export`.
+
+## Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| `0` | All tasks succeeded. |
+| `1` | All tasks failed or a system error occurred. |
+| `2` | Invalid arguments. |
+| `3` | Resource not found. |
+| `4` | Permission denied. |
+| `5` | Conflict. |
+| `6` | Partial failure in a batch. |
+
+## Environment variables
+
+| Variable | Description |
+| --- | --- |
+| `ADP_API_KEY` | API key. Overrides the config file. |
+| `ADP_API_BASE_URL` | Service URL. |
+| `ADP_LANG` | UI language: `en` or `zh`. |
+| `ADP_LOG_LEVEL` | Log level: `debug`, `info`, `warn`, or `error`. |
+
+## Configuration storage
+
+- Config directory: `~/.adp/`
+- Config file: `~/.adp/config.json`
+- Encrypted API key: `~/.adp/key.enc` (AES-256-GCM)
+- App cache: `~/.adp/app_cache.json`
+- Version check cache: `~/.adp/version_check.json`, refreshed every 24 hours
+
+## License
+
+ADP CLI uses an open-source tool plus paid service model. The CLI is free and open source for fast integration. The ADP intelligent parsing service is a paid public cloud service billed by usage.
+
+- **CLI tool**: MIT licensed. You can use, modify, and distribute it.
+- **ADP service**: Public cloud AI document processing service billed by usage.
+
+Free credits: new users receive **100 free credits** each month after registration.
+
+## Support
+
+<CardGroup cols={2}>
+  <Card title="ADP CLI guide" icon="book" href="https://laiye-tech.feishu.cn/wiki/YIaawiK2DimisZk5KfDc8a8cnLh">
+    CLI documentation
+  </Card>
+  <Card title="OpenAPI guide" icon="file-lines" href="https://laiye-tech.feishu.cn/wiki/S1t2wYR04ivndKkMDxxcp2SFnKd">
+    API documentation
+  </Card>
+  <Card title="Public cloud user guide" icon="book-open" href="https://laiye-tech.feishu.cn/wiki/OfexwgVUQiOpEek4kO7c7NEJnAe">
+    User guide
+  </Card>
+  <Card title="GitHub Issues" icon="github" href="https://github.com/laiye-ai/adp-cli/issues">
+    Report issues
+  </Card>
+</CardGroup>
+
+- **Email:** global_product@laiye.com
+- **Website:** [Laiye](https://laiye.com/en/)

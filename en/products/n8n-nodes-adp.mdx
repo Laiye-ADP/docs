@@ -1,0 +1,128 @@
+---
+title: "n8n-nodes-adp"
+description: "Use Laiye ADP nodes in n8n to build end-to-end invoice and document automation workflows."
+icon: "diagram-project"
+---
+
+## Overview
+
+**n8n-nodes-adp** is a community node package for [n8n](https://n8n.io/). It wraps ADP extraction capabilities for invoices, receipts, orders, IDs, and other documents as n8n nodes. You can connect it with Gmail, Google Drive, Feishu, ERP systems, and more to build workflows such as "email → invoice extraction → archive".
+
+<Card title="n8n Workflow Template" icon="diagram-project" href="https://n8n.io/workflows/13174-extract-invoices-from-gmail-with-laiye-adp-and-save-them-to-google-drive/">
+  Extract invoices from Gmail with Laiye ADP and save them to Google Drive
+</Card>
+
+## Key advantages
+
+<CardGroup cols="2">
+  <Card title="High accuracy" icon="bullseye">
+    Core field extraction accuracy reaches 91%+, higher than comparable products.
+  </Card>
+
+  <Card title="Strong table extraction" icon="table">
+    Line-item extraction is optimized for invoices with tables.
+  </Card>
+
+  <Card title="Multi-format support" icon="file">
+    Supports PDF, images, Word, Excel, and other invoice formats without conversion.
+  </Card>
+
+  <Card title="Lightweight integration" icon="plug">
+    Works with Gmail and Google Drive out of the box.
+  </Card>
+</CardGroup>
+
+## Install
+
+<Tabs>
+  <Tab title="Community node (recommended)">
+    1. Go to **Settings → Community Nodes**.
+    2. Click **Install**.
+    3. Enter the package name: `n8n-nodes-adp`.
+    4. Accept the community node risk notice.
+    5. Click **Install**, then search for **Laiye ADP** in the node panel.
+  </Tab>
+  <Tab title="Manual npm">
+    ```bash
+    npm install n8n-nodes-adp
+    ```
+
+    Restart n8n for the package to take effect.
+  </Tab>
+  <Tab title="Docker">
+    Add this to your n8n Dockerfile:
+
+    ```dockerfile
+    RUN cd /usr/local/lib/node_modules/n8n && npm install n8n-nodes-adp
+    ```
+  </Tab>
+</Tabs>
+
+## Configure credentials
+
+1. Visit [adp.laiye.com](https://adp.laiye.com/) to register and get 100 free monthly calls.
+2. Open **Out-of-the-box agent applications - Invoice/receipt/card**, then click **...** to get:
+   - **API Key**
+   - **App Secret**
+   - **Access Key**
+3. In n8n, create **Laiye ADP API** credentials and enter the values above.
+
+## Node capabilities
+
+| Node / operation | Description |
+| --- | --- |
+| **Document Extract** | Submit a file URL, Base64 content, or binary file and synchronously extract structured JSON. |
+| **Document Parse** | Output structured document data while preserving layout. |
+| **Create Async Task** | Submit an async task and return `task_id`. |
+| **Query Task** | Poll async task status and results. |
+| **List Apps** | List available extraction applications, including OOTB and custom apps. |
+
+## Example workflow: Gmail invoice → ADP → Google Drive
+
+<Steps>
+  <Step title="Authorize Gmail">
+    Authorize the Gmail account and set email filters, such as invoice in subject, specific supplier, or specific label.
+  </Step>
+  <Step title="Filter documents automatically">
+    Built-in filters exclude files that do not match the conditions. Default rules:
+
+    - Attachment title contains `invoice`, `receipt`, `expenses`, or `fee`.
+    - File size is less than 50 MB.
+    - Format is `.jpeg/.jpg/.png/.bmp/.tiff/.pdf/.doc/.docx/.xls/.xlsx`.
+  </Step>
+  <Step title="Call the Laiye ADP node">
+    Enter API Key, App Secret, and Access Key. ADP returns structured JSON with 10+ text fields, such as Invoice Name, Invoice Number, and Date, plus full line items such as Item Name, Quantity, and Unit Price.
+  </Step>
+  <Step title="Store files in Google Drive">
+    - Processed files are converted to binary and imported into Google Drive Sheets.
+    - Unprocessed files are stored in the **Untreated Document** folder.
+    - You can change Parent Folder to customize the path.
+  </Step>
+</Steps>
+
+## Use cases
+
+- **Multi-supplier integration**: Process invoices from many suppliers and archive them automatically.
+- **Accounting firm batch processing**: Handle more client invoices without increasing headcount.
+- **Cross-border trade**: Process multilingual and complex overseas invoices without manual setup.
+- **Small and midsize technology companies**: Extract reimbursement amount, date, and invoice number without manual entry.
+
+## Resources
+
+<CardGroup cols="2">
+  <Card title="n8n Template" icon="diagram-project" href="https://n8n.io/workflows/13174-extract-invoices-from-gmail-with-laiye-adp-and-save-them-to-google-drive/">
+    Gmail → ADP → Google Drive
+  </Card>
+
+  <Card title="Community discussion" icon="comments" href="https://community.n8n.io/t/template-automated-invoice-processing-workflow-gmail-adp-google-drive/286419">
+    n8n Community thread
+  </Card>
+
+  <Card title="Laiye website" icon="globe" href="https://laiye.com/">
+    Learn about Laiye ADP
+  </Card>
+
+  <Card title="LinkedIn" icon="linkedin" href="https://www.linkedin.com/company/laiye">
+    Get product updates
+  </Card>
+</CardGroup>

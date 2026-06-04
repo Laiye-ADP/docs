@@ -1,0 +1,103 @@
+openapi: 3.1.0
+info:
+  title: Domestic general bills
+  version: 1.0.0
+  description: ADP preset application API for extracting domestic general bills.
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: https://adp-global.laiye.com
+    description: ADP global production endpoint
+tags:
+  - name: Domestic bill extraction
+    description: Extract fields from domestic general bills.
+paths:
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract:
+    post:
+      tags: [Domestic bill extraction]
+      summary: Extract domestic general bill (sync)
+      description: Extract fields from domestic general bills. Returned fields and classification results depend on the preset application configuration.
+      operationId: extractDomesticBill
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentExtractRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentExtractResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+  parameters:
+    TenantName:
+      name: tenant_name
+      in: path
+      required: true
+      description: "Tenant name. Default: laiye."
+      schema:
+        type: string
+        default: laiye
+  requestBodies:
+    DocumentExtractRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentExtractRequest'
+  responses:
+    DocumentExtractResponse:
+      description: Extraction result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentExtractResponse'
+    ValidationError:
+      description: Validation error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SimpleResponse'
+  schemas:
+    DocumentExtractRequest:
+      type: object
+      properties:
+        app_id:
+          type: string
+        file_base64:
+          type: string
+        file_url:
+          type: string
+          format: uri
+      required: [app_id]
+      anyOf:
+        - required: [file_base64]
+        - required: [file_url]
+    SimpleResponse:
+      type: object
+      properties:
+        code:
+          oneOf:
+            - type: string
+            - type: integer
+        message:
+          type: string
+        tips:
+          type:
+            - string
+            - 'null'
+    DocumentExtractResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: true

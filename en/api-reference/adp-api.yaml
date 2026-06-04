@@ -1,0 +1,724 @@
+openapi: 3.1.0
+info:
+  title: ADP API
+  version: 1.0.0
+  description: Laiye ADP OpenAPI reference for document extraction, document recognition, application management, credit usage, workflow runs, and workflow file management.
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: https://adp-global.laiye.com
+    description: ADP global production endpoint
+tags:
+  - name: Document extraction
+    description: Extract structured fields from uploaded documents.
+  - name: Document recognition
+    description: Recognize text, layout blocks, and positions from uploaded documents.
+  - name: Application management
+    description: Create, update, delete, and query extraction applications and configurations.
+  - name: Account
+    description: Query credit usage.
+  - name: Workflow
+    description: Run workflow applications and query run results.
+  - name: Workflow files
+    description: Upload and manage files used by workflow applications.
+paths:
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract:
+    post:
+      tags: [Document extraction]
+      summary: Extract document (sync)
+      description: Extract fields from an uploaded document by using the specified extraction application.
+      operationId: extractDocument
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentExtractRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentExtractResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task:
+    post:
+      tags: [Document extraction]
+      summary: Create document extraction task
+      description: Create an async document extraction task and return task_id immediately.
+      operationId: createDocumentExtractTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentExtractRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TaskCreateResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}:
+    get:
+      tags: [Document extraction]
+      summary: Query document extraction result
+      description: Query document extraction status and results by task_id.
+      operationId: queryDocumentExtractTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentExtractResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize:
+    post:
+      tags: [Document recognition]
+      summary: Recognize document (sync)
+      description: Recognize text content and block positions from an uploaded document.
+      operationId: recognizeDocument
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentFileRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentRecognizeResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize/create/task:
+    post:
+      tags: [Document recognition]
+      summary: Create document recognition task
+      description: Create an async document recognition task and return task_id immediately.
+      operationId: createDocumentRecognizeTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentFileRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TaskCreateResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize/query/task/{task_id}:
+    get:
+      tags: [Document recognition]
+      summary: Query document recognition result
+      description: Query document recognition status and results by task_id.
+      operationId: queryDocumentRecognizeTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentRecognizeResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create:
+    post:
+      tags: [Application management]
+      summary: Create extraction application
+      description: Create an extraction application and configure labels, fields, and parsing options.
+      operationId: createExtractionApp
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/ExtractionAppCreateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ExtractionAppResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete:
+    post:
+      tags: [Application management]
+      summary: Delete extraction application
+      description: Delete an extraction application. This action cannot be undone.
+      operationId: deleteExtractionApp
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/AppIdRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/SimpleResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update:
+    post:
+      tags: [Application management]
+      summary: Update extraction application
+      description: Update the name, labels, fields, and parsing configuration of an extraction application.
+      operationId: updateExtractionApp
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/ExtractionAppUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ExtractionAppResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config:
+    post:
+      tags: [Application management]
+      summary: List applications or get application configuration
+      description: List extraction applications, or pass app_id to get the configuration of a specific application.
+      operationId: listOrGetExtractionAppConfig
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/AppConfigQueryRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/AppConfigResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete:
+    post:
+      tags: [Application management]
+      summary: Delete extraction application configuration
+      description: Delete a field configuration version under an application.
+      operationId: deleteExtractionAppVersion
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/AppVersionDeleteRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/SimpleResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend:
+    post:
+      tags: [Application management]
+      summary: Generate extraction field prompts
+      description: Generate field names, field types, and prompts from sample documents.
+      operationId: recommendExtractionFields
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/AiRecommendRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/AppConfigResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/user/payment:
+    post:
+      tags: [Account]
+      summary: Get credit usage
+      description: Get current user credit usage by X-API-KEY.
+      operationId: getUserPayment
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      responses:
+        '200':
+          $ref: '#/components/responses/UserPaymentResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/v1/app/run:
+    post:
+      tags: [Workflow]
+      summary: Run workflow application (sync)
+      description: Run the published workflow application version synchronously and wait for the result.
+      operationId: runWorkflowApp
+      security:
+        - EngineApiKeyAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/WorkflowRunRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/WorkflowRunResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/v1/app/run/create/task:
+    post:
+      tags: [Workflow]
+      summary: Create workflow run task
+      description: Trigger a workflow run asynchronously and return run_id immediately.
+      operationId: createWorkflowRunTask
+      security:
+        - EngineApiKeyAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/WorkflowRunRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/WorkflowRunResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}:
+    get:
+      tags: [Workflow]
+      summary: Query workflow run result
+      description: Query workflow run status and result by run_id.
+      operationId: queryWorkflowRunTask
+      security:
+        - EngineApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      responses:
+        '200':
+          $ref: '#/components/responses/WorkflowRunResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/files/upload:
+    post:
+      tags: [Workflow files]
+      summary: Upload file
+      description: Upload a file to engine storage and return the file ID and download URL.
+      operationId: uploadWorkflowFile
+      security:
+        - EngineApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FileUploadRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/FileResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/files/{file_id}:
+    get:
+      tags: [Workflow files]
+      summary: Get file information
+      description: Get file metadata by file ID.
+      operationId: getWorkflowFile
+      security:
+        - EngineApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FileId'
+      responses:
+        '200':
+          $ref: '#/components/responses/FileResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/files/{file_id}/delete:
+    post:
+      tags: [Workflow files]
+      summary: Delete file
+      description: Delete a file. This action cannot be undone.
+      operationId: deleteWorkflowFile
+      security:
+        - EngineApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FileId'
+      responses:
+        '200':
+          $ref: '#/components/responses/FileDeleteResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+    EngineApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  parameters:
+    TenantName:
+      name: tenant_name
+      in: path
+      required: true
+      description: "Tenant name. Default: laiye."
+      schema:
+        type: string
+        default: laiye
+    TaskId:
+      name: task_id
+      in: path
+      required: true
+      description: Task ID.
+      schema:
+        type: string
+    RunId:
+      name: run_id
+      in: path
+      required: true
+      description: Run ID.
+      schema:
+        type: string
+    FileId:
+      name: file_id
+      in: path
+      required: true
+      description: File ID.
+      schema:
+        type: string
+    AcceptLanguage:
+      name: accept-language
+      in: header
+      required: false
+      description: Field name language. Use zh for Chinese or en for English.
+      schema:
+        type: string
+        enum: [zh, en]
+        default: en
+  requestBodies:
+    DocumentFileRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentFileRequest'
+    DocumentExtractRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentExtractRequest'
+    AppIdRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppIdRequest'
+    AppVersionDeleteRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppVersionDeleteRequest'
+    ExtractionAppCreateRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExtractionAppCreateRequest'
+    ExtractionAppUpdateRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExtractionAppUpdateRequest'
+    AppConfigQueryRequest:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppConfigQueryRequest'
+    AiRecommendRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AiRecommendRequest'
+    WorkflowRunRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WorkflowRunRequest'
+  responses:
+    SimpleResponse:
+      description: Common response.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SimpleResponse'
+    ValidationError:
+      description: Validation error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SimpleResponse'
+    TaskCreateResponse:
+      description: Task creation result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TaskCreateResponse'
+    DocumentExtractResponse:
+      description: Document extraction result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentExtractResponse'
+    DocumentRecognizeResponse:
+      description: Document recognition result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentRecognizeResponse'
+    ExtractionAppResponse:
+      description: Extraction application result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppConfigResponse'
+    AppConfigResponse:
+      description: Application configuration result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppConfigResponse'
+    UserPaymentResponse:
+      description: Credit usage.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserPaymentResponse'
+    WorkflowRunResponse:
+      description: Workflow run result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WorkflowRunResponse'
+    FileResponse:
+      description: File information.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FileResponse'
+    FileDeleteResponse:
+      description: File deletion result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FileDeleteResponse'
+  schemas:
+    SimpleResponse:
+      type: object
+      properties:
+        code:
+          oneOf:
+            - type: string
+            - type: integer
+        message:
+          type: string
+        tips:
+          type:
+            - string
+            - 'null'
+    DocumentFileRequest:
+      type: object
+      properties:
+        app_id:
+          type: string
+        file_base64:
+          type: string
+        file_url:
+          type: string
+          format: uri
+      required: [app_id]
+      anyOf:
+        - required: [file_base64]
+        - required: [file_url]
+    DocumentExtractRequest:
+      allOf:
+        - $ref: '#/components/schemas/DocumentFileRequest'
+        - type: object
+          properties:
+            with_rec_result:
+              type: boolean
+              default: false
+    TaskCreateResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                task_id:
+                  type: string
+    DocumentExtractResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: true
+    DocumentRecognizeResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: true
+    ExtractionFieldConfig:
+      type: object
+      properties:
+        field_name:
+          type: string
+        field_type:
+          type: string
+          enum: [string, date, table]
+        field_prompt:
+          type: string
+        sub_fields:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      required: [field_name, field_type]
+    ExtractionAppCreateRequest:
+      type: object
+      properties:
+        app_name:
+          type: string
+        app_label:
+          type: array
+          items:
+            type: string
+        extract_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtractionFieldConfig'
+        parse_mode:
+          type: string
+          enum: [standard, advance, agentic]
+        enable_long_doc:
+          type: boolean
+        long_doc_config:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      required: [app_name, extract_fields, parse_mode]
+    ExtractionAppUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/ExtractionAppCreateRequest'
+        - type: object
+          properties:
+            app_id:
+              type: string
+            config_version:
+              type: string
+          required: [app_id, config_version]
+    AppIdRequest:
+      type: object
+      properties:
+        app_id:
+          type: string
+      required: [app_id]
+    AppVersionDeleteRequest:
+      type: object
+      properties:
+        app_id:
+          type: string
+        config_version:
+          type: string
+      required: [app_id, config_version]
+    AppConfigQueryRequest:
+      type: object
+      additionalProperties: true
+    AiRecommendRequest:
+      allOf:
+        - $ref: '#/components/schemas/DocumentFileRequest'
+    AppConfigResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: true
+    UserPaymentResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                total_credits:
+                  type: number
+                used_credits:
+                  type: number
+                expired_credits:
+                  type: number
+                remaining_credits:
+                  type: number
+    WorkflowRunRequest:
+      type: object
+      properties:
+        application_id:
+          type: string
+        release_version_id:
+          type: string
+        session_id:
+          type: string
+        files:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        inputs:
+          type: object
+          additionalProperties: true
+      required: [application_id]
+    WorkflowRunResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: true
+    FileUploadRequest:
+      type: object
+      properties:
+        chunk:
+          type: string
+          format: binary
+        application_id:
+          type: string
+        sharing_scope:
+          type: string
+          enum: [user, application]
+      required: [chunk]
+    FileResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: true
+    FileDeleteResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                id:
+                  type: string

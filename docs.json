@@ -29,7 +29,103 @@
             "group": "产品文档",
             "icon": "book",
             "pages": [
-              "products/adp-api",
+              {
+                "group": "ADP API",
+                "root": "products/adp-api",
+                "icon": "file-lines",
+                "pages": [
+                  {
+                    "group": "海外发票、收据和采购订单",
+                    "root": "api-reference/preset-overseas-documents",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+                    ],
+                    "openapi": {
+                      "source": "/api-reference/preset-overseas-documents.yaml",
+                      "directory": "api-reference/preset-overseas-documents"
+                    }
+                  },
+                  {
+                    "group": "国内通用票据",
+                    "root": "api-reference/preset-domestic-bills",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract"
+                    ],
+                    "openapi": {
+                      "source": "/api-reference/preset-domestic-bills.yaml",
+                      "directory": "api-reference/preset-domestic-bills"
+                    }
+                  },
+                  {
+                    "group": "卡证",
+                    "root": "api-reference/preset-cards",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+                    ],
+                    "openapi": {
+                      "source": "/api-reference/preset-cards.yaml",
+                      "directory": "api-reference/preset-cards"
+                    }
+                  },
+                  {
+                    "group": "文档抽取",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+                    ]
+                  },
+                  {
+                    "group": "文档解析",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize/create/task",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize/query/task/{task_id}"
+                    ]
+                  },
+                  {
+                    "group": "应用管理",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend"
+                    ]
+                  },
+                  {
+                    "group": "账户",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/user/payment"
+                    ]
+                  },
+                  {
+                    "group": "工作流",
+                    "pages": [
+                      "POST /open/agentic_engine/laiye/v1/app/run",
+                      "POST /open/agentic_engine/laiye/v1/app/run/create/task",
+                      "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}"
+                    ]
+                  },
+                  {
+                    "group": "工作流文件",
+                    "pages": [
+                      "POST /open/agentic_engine/laiye/files/upload",
+                      "GET /open/agentic_engine/laiye/files/{file_id}",
+                      "POST /open/agentic_engine/laiye/files/{file_id}/delete"
+                    ]
+                  }
+                ],
+                "openapi": {
+                  "source": "/api-reference/adp-api.yaml",
+                  "directory": "api-reference/adp-api"
+                }
+              },
               "products/adp-cli",
               "products/adp-mcp"
             ]
@@ -47,12 +143,112 @@
           "en/index",
           "en/updatelog",
           {
-            "group": "产品文档",
+            "group": "Product docs",
             "icon": "book",
-            "pages": ["en/products/adp-cli", "en/products/adp-mcp"]
+            "pages": [
+              {
+                "group": "ADP API",
+                "root": "en/products/adp-api",
+                "icon": "file-lines",
+                "pages": [
+                  {
+                    "group": "Overseas invoices, receipts, and purchase orders",
+                    "root": "en/api-reference/preset-overseas-documents",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+                    ],
+                    "openapi": {
+                      "source": "/en/api-reference/preset-overseas-documents.yaml",
+                      "directory": "en/api-reference/preset-overseas-documents"
+                    }
+                  },
+                  {
+                    "group": "Domestic general bills",
+                    "root": "en/api-reference/preset-domestic-bills",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract"
+                    ],
+                    "openapi": {
+                      "source": "/en/api-reference/preset-domestic-bills.yaml",
+                      "directory": "en/api-reference/preset-domestic-bills"
+                    }
+                  },
+                  {
+                    "group": "Cards and certificates",
+                    "root": "en/api-reference/preset-cards",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+                    ],
+                    "openapi": {
+                      "source": "/en/api-reference/preset-cards.yaml",
+                      "directory": "en/api-reference/preset-cards"
+                    }
+                  },
+                  {
+                    "group": "Document extraction",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+                    ]
+                  },
+                  {
+                    "group": "Document recognition",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize/create/task",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize/query/task/{task_id}"
+                    ]
+                  },
+                  {
+                    "group": "Application management",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend"
+                    ]
+                  },
+                  {
+                    "group": "Account",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/user/payment"
+                    ]
+                  },
+                  {
+                    "group": "Workflow",
+                    "pages": [
+                      "POST /open/agentic_engine/laiye/v1/app/run",
+                      "POST /open/agentic_engine/laiye/v1/app/run/create/task",
+                      "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}"
+                    ]
+                  },
+                  {
+                    "group": "Workflow files",
+                    "pages": [
+                      "POST /open/agentic_engine/laiye/files/upload",
+                      "GET /open/agentic_engine/laiye/files/{file_id}",
+                      "POST /open/agentic_engine/laiye/files/{file_id}/delete"
+                    ]
+                  }
+                ],
+                "openapi": {
+                  "source": "/en/api-reference/adp-api.yaml",
+                  "directory": "en/api-reference/adp-api"
+                }
+              },
+              "en/products/adp-cli",
+              "en/products/adp-mcp"
+            ]
           },
           {
-            "group": "其他文档",
+            "group": "Other docs",
             "icon": "book",
             "pages": ["en/products/adp-skills", "en/products/n8n-nodes-adp"]
           }
