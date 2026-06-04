@@ -11,6 +11,13 @@
     "light": "/images/img_v3_02up_fe3d1af4-0716-4d31-ac7d-92529975b35g.png",
     "dark": "/images/259055827.png"
   },
+  "groups": [
+    {
+      "name": "hidden",
+      "hidden": true,
+      "pages": ["scripts", "styles"]
+    }
+  ],
   "navigation": {
     "languages": [
       {
@@ -30,33 +37,24 @@
           {
             "group": "其他文档",
             "icon": "book",
-            "pages": [
-              "products/adp-skills",
-              "products/n8n-nodes-adp"
-            ]
+            "pages": ["products/adp-skills", "products/n8n-nodes-adp"]
           }
         ]
       },
       {
-        "language": "ja",
+        "language": "en",
         "pages": [
-          "ja/index",
-          "ja/updatelog",
+          "en/index",
+          "en/updatelog",
           {
             "group": "产品文档",
             "icon": "book",
-            "pages": [
-              "ja/products/adp-cli",
-              "ja/products/adp-mcp"
-            ]
+            "pages": ["en/products/adp-cli", "en/products/adp-mcp"]
           },
           {
             "group": "其他文档",
             "icon": "book",
-            "pages": [
-              "ja/products/adp-skills",
-              "ja/products/n8n-nodes-adp"
-            ]
+            "pages": ["en/products/adp-skills", "en/products/n8n-nodes-adp"]
           }
         ]
       }
@@ -82,15 +80,15 @@
   },
   "contextual": {
     "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
   },
   "footer": {
     "socials": {
@@ -101,13 +99,7 @@
   "description": "基于大语言模型与视觉语言模型，结合智能体技术，提供端到端的自动化文档处理能力",
   "api": {
     "examples": {
-      "languages": [
-        "JavaScript",
-        "Python",
-        "Java",
-        "Nodejs",
-        "Go"
-      ],
+      "languages": ["JavaScript", "Python", "Java", "Nodejs", "Go"],
       "autogenerate": true,
       "prefill": true
     }
