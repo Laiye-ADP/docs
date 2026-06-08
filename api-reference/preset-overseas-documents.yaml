@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
-  title: 海外发票、收据和采购订单
+  title: 海外发票和收据
   version: 1.0.0
-  description: ADP 预置应用接口，适用于海外发票、收据和采购订单抽取场景。
+  description: ADP 预置应用接口，适用于海外发票和收据抽取场景。
   license:
     name: MIT
     identifier: MIT
@@ -11,13 +11,13 @@ servers:
     description: ADP 生产环境
 tags:
   - name: 海外票据抽取
-    description: 抽取海外发票、收据和采购订单字段。
+    description: 抽取海外发票和收据字段。
 paths:
   /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract:
     post:
       tags: [海外票据抽取]
       summary: 海外票据抽取（同步接口）
-      description: 针对海外发票、收据和采购订单文件进行字段抽取。返回字段由预置应用配置决定。
+      description: 针对海外发票和收据文件进行字段抽取。返回字段由预置应用配置决定。
       operationId: extractOverseasDocuments
       security:
         - ApiKeyAuth: []
@@ -35,7 +35,7 @@ paths:
     post:
       tags: [海外票据抽取]
       summary: 创建海外票据抽取异步任务
-      description: 创建海外发票、收据或采购订单抽取任务，并立即返回 task_id。
+      description: 创建海外发票或收据抽取任务，并立即返回 task_id。
       operationId: createOverseasDocumentExtractTask
       security:
         - ApiKeyAuth: []
@@ -53,7 +53,7 @@ paths:
     get:
       tags: [海外票据抽取]
       summary: 查询海外票据抽取任务结果
-      description: 根据 task_id 查询海外发票、收据或采购订单抽取任务结果。
+      description: 根据 task_id 查询海外发票或收据抽取任务结果。
       operationId: queryOverseasDocumentExtractTask
       security:
         - ApiKeyAuth: []

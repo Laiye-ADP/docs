@@ -1,11 +1,11 @@
 ---
-title: "海外发票、收据和采购订单"
-description: "使用 ADP 预置应用抽取海外发票、收据和采购订单字段。"
+title: "海外发票和收据"
+description: "使用 ADP 预置应用抽取海外发票和收据字段。"
 ---
 
 ## 概述
 
-海外发票、收据和采购订单使用文档抽取接口。
+海外发票和收据使用文档抽取接口。
 
 ```http
 POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract
@@ -71,25 +71,3 @@ GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{tas
 | 数量 | Quantity | 表格子字段 |
 | 单价 | Unit Price | 表格子字段 |
 | 总金额 | Total Amount | 表格子字段 |
-
-## 采购订单字段
-
-| 中文名 | 英文名 | 类型 |
-| --- | --- | --- |
-| 订单编号 | PO Number | 文本 |
-| 订单日期 | Order Date | 日期 |
-| 卖方名称 | Seller Name | 文本 |
-| 买方/客户名称 | Buyer Name | 文本 |
-| 买方/客户地址 | Buyer Address | 文本 |
-| 客户收货地址 | Delivery Address | 文本 |
-| 收货方名称 | Receiver Name | 文本 |
-| 币种 | Currency | 文本 |
-| 总金额 | Total Amount | 文本 |
-| 商品明细表格 | Line Items | 表格 |
-| 物料代码 | Material Code | 表格子字段 |
-| 税率 | Tax Rate | 表格子字段 |
-| 描述 | Description | 表格子字段 |
-| 数量 | Quantity | 表格子字段 |
-| 单价（含税） | Unit Price (Inc. Tax) | 表格子字段 |
-| 总金额（含税） | Total Amount (Inc. Tax) | 表格子字段 |
-| 交货日期 | Delivery Date | 表格子字段 |

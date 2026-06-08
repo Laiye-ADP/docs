@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
-  title: Global Invoices and receipts
+  title: Purchase orders
   version: 1.0.0
-  description: ADP preset application APIs for extracting Global Invoices and receipts.
+  description: ADP preset application APIs for extracting purchase orders.
   license:
     name: MIT
     identifier: MIT
@@ -10,15 +10,15 @@ servers:
   - url: https://adp-global.laiye.com
     description: ADP global production endpoint
 tags:
-  - name: Overseas document extraction
-    description: Extract fields from Global Invoices and receipts.
+  - name: Purchase order extraction
+    description: Extract fields from purchase orders.
 paths:
   /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract:
     post:
-      tags: [Overseas document extraction]
-      summary: Extract overseas document (sync)
-      description: Extract fields from Global Invoices and receipts. Returned fields depend on the preset application configuration.
-      operationId: extractOverseasDocuments
+      tags: [Purchase order extraction]
+      summary: Extract purchase order (sync)
+      description: Extract fields from purchase orders. Returned fields depend on the preset application configuration.
+      operationId: extractPurchaseOrder
       security:
         - ApiKeyAuth: []
       parameters:
@@ -33,10 +33,10 @@ paths:
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task:
     post:
-      tags: [Overseas document extraction]
-      summary: Create overseas extraction task
-      description: Create an async extraction task for Global Invoices or receipts.
-      operationId: createOverseasDocumentExtractTask
+      tags: [Purchase order extraction]
+      summary: Create purchase order extraction task
+      description: Create an async extraction task for a purchase order.
+      operationId: createPurchaseOrderExtractTask
       security:
         - ApiKeyAuth: []
       parameters:
@@ -51,10 +51,10 @@ paths:
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}:
     get:
-      tags: [Overseas document extraction]
-      summary: Query overseas extraction result
-      description: Query async extraction results for Global Invoices or receipts.
-      operationId: queryOverseasDocumentExtractTask
+      tags: [Purchase order extraction]
+      summary: Query purchase order extraction result
+      description: Query async extraction results for a purchase order.
+      operationId: queryPurchaseOrderExtractTask
       security:
         - ApiKeyAuth: []
       parameters:
@@ -103,6 +103,10 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/DocumentExtractRequest'
+          example:
+            app_id: app_abc123
+            file_url: https://example.com/purchase-order.pdf
+            with_rec_result: false
   responses:
     DocumentExtractResponse:
       description: Extraction result.

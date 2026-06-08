@@ -1,0 +1,51 @@
+---
+title: "Purchase orders"
+description: "Use ADP preset applications to extract fields from purchase orders."
+---
+
+## Overview
+
+Purchase orders use the document extraction API.
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract
+```
+
+Async tasks use the same request body:
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task
+GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}
+```
+
+## Request parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `tenant_name` | string | Yes | Tenant name. Default: `laiye`. |
+| `app_id` | string | Yes | Unique ID of the preset application. View it in **View API**. |
+| `file_base64` | string | Optional | Base64 content of the file. Use either `file_base64` or `file_url`. |
+| `file_url` | string | Optional | Online file URL. Use either `file_url` or `file_base64`. Only HTTP URLs are supported. |
+| `with_rec_result` | boolean | No | Whether to return document recognition results. Default: `false`. |
+
+## Purchase order fields
+
+| Field | Type |
+| --- | --- |
+| PO Number | Text |
+| Order Date | Date |
+| Seller Name | Text |
+| Buyer Name | Text |
+| Buyer Address | Text |
+| Delivery Address | Text |
+| Receiver Name | Text |
+| Currency | Text |
+| Total Amount | Text |
+| Line Items | Table |
+| Material Code | Table subfield |
+| Tax Rate | Table subfield |
+| Description | Table subfield |
+| Quantity | Table subfield |
+| Unit Price (Inc. Tax) | Table subfield |
+| Total Amount (Inc. Tax) | Table subfield |
+| Delivery Date | Table subfield |

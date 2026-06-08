@@ -1,11 +1,11 @@
 ---
-title: "Overseas invoices, receipts, and purchase orders"
-description: "Use ADP preset applications to extract fields from overseas invoices, receipts, and purchase orders."
+title: "Global Invoices and receipts"
+description: "Use ADP preset applications to extract fields from Global Invoices and receipts."
 ---
 
 ## Overview
 
-Overseas invoices, receipts, and purchase orders use the document extraction API.
+Global Invoices and receipts use the document extraction API.
 
 ```http
 POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract
@@ -28,7 +28,7 @@ GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{tas
 | `file_url` | string | Optional | Online file URL. Use either `file_url` or `file_base64`. Only HTTP URLs are supported. |
 | `with_rec_result` | boolean | No | Whether to return document recognition results. Default: `false`. |
 
-## Overseas invoice fields
+## Global Invoice fields
 
 | Field | Type |
 | --- | --- |
@@ -71,25 +71,3 @@ GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{tas
 | Quantity | Table subfield |
 | Unit Price | Table subfield |
 | Total Amount | Table subfield |
-
-## Purchase order fields
-
-| Field | Type |
-| --- | --- |
-| PO Number | Text |
-| Order Date | Date |
-| Seller Name | Text |
-| Buyer Name | Text |
-| Buyer Address | Text |
-| Delivery Address | Text |
-| Receiver Name | Text |
-| Currency | Text |
-| Total Amount | Text |
-| Line Items | Table |
-| Material Code | Table subfield |
-| Tax Rate | Table subfield |
-| Description | Table subfield |
-| Quantity | Table subfield |
-| Unit Price (Inc. Tax) | Table subfield |
-| Total Amount (Inc. Tax) | Table subfield |
-| Delivery Date | Table subfield |

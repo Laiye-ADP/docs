@@ -1,24 +1,24 @@
 openapi: 3.1.0
 info:
-  title: Global Invoices and receipts
+  title: 采购订单
   version: 1.0.0
-  description: ADP preset application APIs for extracting Global Invoices and receipts.
+  description: ADP 预置应用接口，适用于采购订单抽取场景。
   license:
     name: MIT
     identifier: MIT
 servers:
-  - url: https://adp-global.laiye.com
-    description: ADP global production endpoint
+  - url: https://adp.laiye.com
+    description: ADP 生产环境
 tags:
-  - name: Overseas document extraction
-    description: Extract fields from Global Invoices and receipts.
+  - name: 采购订单抽取
+    description: 抽取采购订单字段。
 paths:
   /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract:
     post:
-      tags: [Overseas document extraction]
-      summary: Extract overseas document (sync)
-      description: Extract fields from Global Invoices and receipts. Returned fields depend on the preset application configuration.
-      operationId: extractOverseasDocuments
+      tags: [采购订单抽取]
+      summary: 采购订单抽取（同步接口）
+      description: 针对采购订单文件进行字段抽取。返回字段由预置应用配置决定。
+      operationId: extractPurchaseOrder
       security:
         - ApiKeyAuth: []
       parameters:
@@ -33,10 +33,10 @@ paths:
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task:
     post:
-      tags: [Overseas document extraction]
-      summary: Create overseas extraction task
-      description: Create an async extraction task for Global Invoices or receipts.
-      operationId: createOverseasDocumentExtractTask
+      tags: [采购订单抽取]
+      summary: 创建采购订单抽取异步任务
+      description: 创建采购订单抽取任务，并立即返回 task_id。
+      operationId: createPurchaseOrderExtractTask
       security:
         - ApiKeyAuth: []
       parameters:
@@ -51,10 +51,10 @@ paths:
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}:
     get:
-      tags: [Overseas document extraction]
-      summary: Query overseas extraction result
-      description: Query async extraction results for Global Invoices or receipts.
-      operationId: queryOverseasDocumentExtractTask
+      tags: [采购订单抽取]
+      summary: 查询采购订单抽取任务结果
+      description: 根据 task_id 查询采购订单抽取任务结果。
+      operationId: queryPurchaseOrderExtractTask
       security:
         - ApiKeyAuth: []
       parameters:
@@ -76,7 +76,7 @@ components:
       name: tenant_name
       in: path
       required: true
-      description: "Tenant name. Default: laiye."
+      description: 租户名称，默认 laiye。
       schema:
         type: string
         default: laiye
@@ -84,18 +84,18 @@ components:
       name: task_id
       in: path
       required: true
-      description: Task ID.
+      description: 任务 ID。
       schema:
         type: string
     AcceptLanguage:
       name: accept-language
       in: header
       required: false
-      description: Field name language. Use zh for Chinese or en for English.
+      description: 返回字段名称的语言。默认 zh 返回中文字段名；设置为 en 返回英文字段名。
       schema:
         type: string
         enum: [zh, en]
-        default: en
+        default: zh
   requestBodies:
     DocumentExtractRequest:
       required: true
@@ -103,21 +103,25 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/DocumentExtractRequest'
+          example:
+            app_id: app_abc123
+            file_url: https://example.com/purchase-order.pdf
+            with_rec_result: false
   responses:
     DocumentExtractResponse:
-      description: Extraction result.
+      description: 抽取结果。
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/DocumentExtractResponse'
     TaskCreateResponse:
-      description: Task creation result.
+      description: 任务创建结果。
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/TaskCreateResponse'
     ValidationError:
-      description: Validation error.
+      description: 参数校验错误。
       content:
         application/json:
           schema:
@@ -128,14 +132,18 @@ components:
       properties:
         app_id:
           type: string
+          description: 预置应用的唯一标识。
         file_base64:
           type: string
+          description: 待抽取文件 Base64，与 file_url 二选一。
         file_url:
           type: string
           format: uri
+          description: 待抽取文件 URL，与 file_base64 二选一。
         with_rec_result:
           type: boolean
           default: false
+          description: 是否返回文档解析结果。
       required: [app_id]
       anyOf:
         - required: [file_base64]
@@ -171,3 +179,23 @@ components:
             data:
               type: object
               additionalProperties: true
+              properties:
+                task_id:
+                  type: string
+                file_url:
+                  type: string
+                status:
+                  type: integer
+                doc_recognize_result:
+                  type: array
+                  items:
+                    type: object
+                    additionalProperties: true
+                extraction_result:
+                  type: array
+                  items:
+                    type: object
+                    additionalProperties: true
+                classify_result:
+                  type: object
+                  additionalProperties: true

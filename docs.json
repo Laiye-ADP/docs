@@ -25,7 +25,7 @@
         "navbar": {
           "links": [
             {
-              "href": "https://laiye-tech.feishu.cn/share/base/form/shrcnqALO4a52Q15i2BebtYktzb",
+              "href": "https://laiye-tech.feishu.cn/share/base/form/shrcn4jagFj6q2ZdER4T9hGS3Ug",
               "label": "使用反馈"
             }
           ],
@@ -54,7 +54,7 @@
                 "icon": "file-lines",
                 "pages": [
                   {
-                    "group": "海外发票、收据和采购订单",
+                    "group": "海外发票和收据",
                     "root": "api-reference/preset-overseas-documents",
                     "pages": [
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
@@ -64,6 +64,19 @@
                     "openapi": {
                       "source": "/api-reference/preset-overseas-documents.yaml",
                       "directory": "api-reference/preset-overseas-documents"
+                    }
+                  },
+                  {
+                    "group": "采购订单",
+                    "root": "api-reference/preset-purchase-orders",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+                    ],
+                    "openapi": {
+                      "source": "/api-reference/preset-purchase-orders.yaml",
+                      "directory": "api-reference/preset-purchase-orders"
                     }
                   },
                   {
@@ -107,6 +120,14 @@
                     ]
                   },
                   {
+                    "group": "工作流",
+                    "pages": [
+                      "POST /open/agentic_engine/laiye/v1/app/run",
+                      "POST /open/agentic_engine/laiye/v1/app/run/create/task",
+                      "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}"
+                    ]
+                  },
+                  {
                     "group": "应用管理",
                     "pages": [
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create",
@@ -124,15 +145,7 @@
                     ]
                   },
                   {
-                    "group": "工作流",
-                    "pages": [
-                      "POST /open/agentic_engine/laiye/v1/app/run",
-                      "POST /open/agentic_engine/laiye/v1/app/run/create/task",
-                      "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}"
-                    ]
-                  },
-                  {
-                    "group": "工作流文件",
+                    "group": "获取文件URL",
                     "pages": [
                       "POST /open/agentic_engine/laiye/files/upload",
                       "GET /open/agentic_engine/laiye/files/{file_id}",
@@ -161,7 +174,7 @@
         "navbar": {
           "links": [
             {
-              "href": "https://laiye-tech.feishu.cn/share/base/form/shrcnqALO4a52Q15i2BebtYktzb",
+              "href": "https://laiye-tech.feishu.cn/share/base/form/shrcnnA0Lmscjyixef5SprTTKke",
               "label": "Feedback"
             }
           ],
@@ -190,7 +203,7 @@
                 "icon": "file-lines",
                 "pages": [
                   {
-                    "group": "Overseas invoices, receipts, and purchase orders",
+                    "group": "Global Invoices and receipts",
                     "root": "en/api-reference/preset-overseas-documents",
                     "pages": [
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
@@ -203,27 +216,16 @@
                     }
                   },
                   {
-                    "group": "Domestic general bills",
-                    "root": "en/api-reference/preset-domestic-bills",
-                    "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract"
-                    ],
-                    "openapi": {
-                      "source": "/en/api-reference/preset-domestic-bills.yaml",
-                      "directory": "en/api-reference/preset-domestic-bills"
-                    }
-                  },
-                  {
-                    "group": "Cards and certificates",
-                    "root": "en/api-reference/preset-cards",
+                    "group": "Purchase orders",
+                    "root": "en/api-reference/preset-purchase-orders",
                     "pages": [
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
                       "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
                     ],
                     "openapi": {
-                      "source": "/en/api-reference/preset-cards.yaml",
-                      "directory": "en/api-reference/preset-cards"
+                      "source": "/en/api-reference/preset-purchase-orders.yaml",
+                      "directory": "en/api-reference/preset-purchase-orders"
                     }
                   },
                   {
@@ -240,6 +242,14 @@
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize/create/task",
                       "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize/query/task/{task_id}"
+                    ]
+                  },
+                  {
+                    "group": "Workflow",
+                    "pages": [
+                      "POST /open/agentic_engine/laiye/v1/app/run",
+                      "POST /open/agentic_engine/laiye/v1/app/run/create/task",
+                      "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}"
                     ]
                   },
                   {
@@ -260,15 +270,7 @@
                     ]
                   },
                   {
-                    "group": "Workflow",
-                    "pages": [
-                      "POST /open/agentic_engine/laiye/v1/app/run",
-                      "POST /open/agentic_engine/laiye/v1/app/run/create/task",
-                      "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}"
-                    ]
-                  },
-                  {
-                    "group": "Workflow files",
+                    "group": "Get file URL",
                     "pages": [
                       "POST /open/agentic_engine/laiye/files/upload",
                       "GET /open/agentic_engine/laiye/files/{file_id}",
@@ -313,7 +315,7 @@
   "description": "基于大语言模型与视觉语言模型，结合智能体技术，提供端到端的自动化文档处理能力",
   "api": {
     "examples": {
-      "languages": ["JavaScript", "Python", "Java", "Nodejs", "Go"],
+      "languages": ["curl","JavaScript", "Python", "Java", "Nodejs", "Go", "C#", "PHP"],
       "autogenerate": true,
       "prefill": true
     }
