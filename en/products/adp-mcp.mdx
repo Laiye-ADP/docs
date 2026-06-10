@@ -47,6 +47,22 @@ Visit [adp-global.laiye.com](https://adp-global.laiye.com/?utm_source=github), r
       }
     }
     ```
+
+    You can also run it locally over stdio via npx:
+
+    ```json
+    {
+      "mcpServers": {
+        "laiye-adp": {
+          "command": "npx",
+          "args": ["-y", "@laiye-adp/mcp"],
+          "env": {
+            "ADP_API_KEY": "your-adp-api-key"
+          }
+        }
+      }
+    }
+    ```
   </Tab>
   <Tab title="Other clients">
     Core parameters:
