@@ -188,8 +188,6 @@
           }
         },
         "pages": [
-          "en/index",
-          "en/updatelog",
           {
             "group": "Product docs",
             "icon": "book",
