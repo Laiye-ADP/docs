@@ -4,7 +4,6 @@
   "name": "Laiye ADP 文档中心",
   "colors": {
     "primary": "#a78bfa",
-    "light": "#c49ef4",
     "dark": "#5656d9"
   },
   "favicon": {
@@ -42,8 +41,6 @@
           }
         },
         "pages": [
-          "index",
-          "updatelog",
           {
             "group": "产品文档",
             "icon": "book",
@@ -322,5 +319,11 @@
   },
   "interaction": {
     "drilldown": false
+  },
+  "icons": {
+    "library": "lucide"
+  },
+  "background": {
+    "decoration": "gradient"
   }
 }
