@@ -49,7 +49,7 @@
               {
                 "group": "ADP API",
                 "root": "products/adp-api",
-                "icon": "file-lines",
+                "icon": "astroid",
                 "pages": [
                   {
                     "group": "海外发票和收据",
@@ -206,7 +206,7 @@
               {
                 "group": "ADP API",
                 "root": "en/products/adp-api",
-                "icon": "file-lines",
+                "icon": "astroid",
                 "pages": [
                   {
                     "group": "Global Invoices and receipts",
@@ -260,7 +260,8 @@
                       "POST /open/agentic_engine/laiye/v1/app/run",
                       "POST /open/agentic_engine/laiye/v1/app/run/create/task",
                       "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}"
-                    ]
+                    ],
+                    "icon": "network"
                   },
                   {
                     "group": "Application management",
@@ -271,13 +272,15 @@
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend"
-                    ]
+                    ],
+                    "icon": "asterisk"
                   },
                   {
                     "group": "Account",
                     "pages": [
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/user/payment"
-                    ]
+                    ],
+                    "icon": "circle-dollar-sign"
                   },
                   {
                     "group": "Get file URL",
@@ -339,7 +342,7 @@
   "background": {
     "decoration": "gradient",
     "color": {
-      "dark": "#3a367d"
+      "dark": "#232238"
     }
   }
 }
