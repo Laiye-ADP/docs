@@ -44,7 +44,7 @@
         "pages": [
           {
             "group": "技术连接文档",
-            "icon": "book",
+            "icon": "book-open",
             "pages": [
               {
                 "group": "ADP API",
@@ -62,7 +62,8 @@
                     "openapi": {
                       "source": "/api-reference/preset-overseas-documents.yaml",
                       "directory": "api-reference/preset-overseas-documents"
-                    }
+                    },
+                    "icon": "asterisk"
                   },
                   {
                     "group": "采购订单",
@@ -75,7 +76,8 @@
                     "openapi": {
                       "source": "/api-reference/preset-purchase-orders.yaml",
                       "directory": "api-reference/preset-purchase-orders"
-                    }
+                    },
+                    "icon": "asterisk"
                   },
                   {
                     "group": "国内通用票据",
@@ -86,7 +88,8 @@
                     "openapi": {
                       "source": "/api-reference/preset-domestic-bills.yaml",
                       "directory": "api-reference/preset-domestic-bills"
-                    }
+                    },
+                    "icon": "asterisk"
                   },
                   {
                     "group": "卡证",
@@ -99,7 +102,8 @@
                     "openapi": {
                       "source": "/api-reference/preset-cards.yaml",
                       "directory": "api-reference/preset-cards"
-                    }
+                    },
+                    "icon": "asterisk"
                   },
                   {
                     "group": "文档抽取",
@@ -107,7 +111,8 @@
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
                       "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
-                    ]
+                    ],
+                    "icon": "asterisk"
                   },
                   {
                     "group": "文档解析",
@@ -115,7 +120,8 @@
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize/create/task",
                       "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize/query/task/{task_id}"
-                    ]
+                    ],
+                    "icon": "asterisk"
                   },
                   {
                     "group": "工作流",
@@ -123,7 +129,8 @@
                       "POST /open/agentic_engine/laiye/v1/app/run",
                       "POST /open/agentic_engine/laiye/v1/app/run/create/task",
                       "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}"
-                    ]
+                    ],
+                    "icon": "asterisk"
                   },
                   {
                     "group": "应用管理",
@@ -134,13 +141,15 @@
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend"
-                    ]
+                    ],
+                    "icon": "book-open-text"
                   },
                   {
                     "group": "账户",
                     "pages": [
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/user/payment"
-                    ]
+                    ],
+                    "icon": "circle-dollar-sign"
                   },
                   {
                     "group": "获取文件URL",
@@ -148,7 +157,8 @@
                       "POST /open/agentic_engine/laiye/files/upload",
                       "GET /open/agentic_engine/laiye/files/{file_id}",
                       "POST /open/agentic_engine/laiye/files/{file_id}/delete"
-                    ]
+                    ],
+                    "icon": "a-arrow-down"
                   }
                 ],
                 "openapi": {
@@ -162,7 +172,7 @@
           },
           {
             "group": "其他文档",
-            "icon": "book",
+            "icon": "book-open",
             "pages": ["products/adp-skills", "products/n8n-nodes-adp"]
           }
         ]
@@ -191,7 +201,7 @@
         "pages": [
           {
             "group": "Product docs",
-            "icon": "book",
+            "icon": "book-open",
             "pages": [
               {
                 "group": "ADP API",
@@ -209,7 +219,8 @@
                     "openapi": {
                       "source": "/en/api-reference/preset-overseas-documents.yaml",
                       "directory": "en/api-reference/preset-overseas-documents"
-                    }
+                    },
+                    "icon": "asterisk"
                   },
                   {
                     "group": "Purchase orders",
@@ -222,7 +233,8 @@
                     "openapi": {
                       "source": "/en/api-reference/preset-purchase-orders.yaml",
                       "directory": "en/api-reference/preset-purchase-orders"
-                    }
+                    },
+                    "icon": "asterisk"
                   },
                   {
                     "group": "Document extraction",
@@ -230,7 +242,8 @@
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
                       "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
-                    ]
+                    ],
+                    "icon": "asterisk"
                   },
                   {
                     "group": "Document recognition",
@@ -238,7 +251,8 @@
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize/create/task",
                       "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize/query/task/{task_id}"
-                    ]
+                    ],
+                    "icon": "asterisk"
                   },
                   {
                     "group": "Workflow",
@@ -285,7 +299,7 @@
           },
           {
             "group": "Other docs",
-            "icon": "book",
+            "icon": "book-open",
             "pages": ["en/products/adp-skills", "en/products/n8n-nodes-adp"]
           }
         ]
