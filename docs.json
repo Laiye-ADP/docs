@@ -124,15 +124,6 @@
                     "icon": "asterisk"
                   },
                   {
-                    "group": "工作流",
-                    "pages": [
-                      "POST /open/agentic_engine/laiye/v1/app/run",
-                      "POST /open/agentic_engine/laiye/v1/app/run/create/task",
-                      "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}"
-                    ],
-                    "icon": "asterisk"
-                  },
-                  {
                     "group": "应用管理",
                     "pages": [
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create",
@@ -143,6 +134,15 @@
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend"
                     ],
                     "icon": "book-open-text"
+                  },
+                  {
+                    "group": "工作流",
+                    "icon": "network",
+                    "pages": [
+                      "POST /open/agentic_engine/laiye/v1/app/run",
+                      "POST /open/agentic_engine/laiye/v1/app/run/create/task",
+                      "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}"
+                    ]
                   },
                   {
                     "group": "账户",
@@ -158,7 +158,7 @@
                       "GET /open/agentic_engine/laiye/files/{file_id}",
                       "POST /open/agentic_engine/laiye/files/{file_id}/delete"
                     ],
-                    "icon": "a-arrow-down"
+                    "icon": "file-output"
                   }
                 ],
                 "openapi": {
@@ -288,7 +288,8 @@
                       "POST /open/agentic_engine/laiye/files/upload",
                       "GET /open/agentic_engine/laiye/files/{file_id}",
                       "POST /open/agentic_engine/laiye/files/{file_id}/delete"
-                    ]
+                    ],
+                    "icon": "file-output"
                   }
                 ],
                 "openapi": {
