@@ -4,7 +4,8 @@
   "name": "Laiye ADP 文档中心",
   "colors": {
     "primary": "#a78bfa",
-    "dark": "#5656d9"
+    "dark": "#5656d9",
+    "light": "#e0e0ff"
   },
   "favicon": {
     "light": "/images/img_v3_02up_fe3d1af4-0716-4d31-ac7d-92529975b35g.png",
@@ -322,6 +323,9 @@
     "library": "lucide"
   },
   "background": {
-    "decoration": "gradient"
+    "decoration": "gradient",
+    "color": {
+      "dark": "#e0e0ff"
+    }
   }
 }
