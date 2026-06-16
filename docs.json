@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "willow",
+  "theme": "aspen",
   "name": "Laiye ADP 文档中心",
   "colors": {
     "primary": "#a78bfa",
