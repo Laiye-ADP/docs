@@ -124,16 +124,17 @@
                     "icon": "asterisk"
                   },
                   {
-                    "group": "应用管理",
+                    "group": "自定义抽取应用",
                     "pages": [
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend"
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend",
+                      "AGENTS"
                     ],
-                    "icon": "book-open-text"
+                    "icon": "asterisk"
                   },
                   {
                     "group": "工作流",
@@ -159,7 +160,8 @@
                       "POST /open/agentic_engine/laiye/files/{file_id}/delete"
                     ],
                     "icon": "file-output"
-                  }
+                  },
+                  "products/untitled-page"
                 ],
                 "openapi": {
                   "source": "/api-reference/adp-api.yaml",
