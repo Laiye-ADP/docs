@@ -132,7 +132,7 @@ paths:
     post:
       tags: [应用管理]
       summary: 创建抽取应用
-      description: 创建抽取应用，并设置标签、字段配置和抽取配置。
+      description: 创建抽取应用，并设置标签、字段配置和抽取配置。创建高速版自定义抽取应用时，复用该接口并设置 ai_function 为 1425，parse_mode 建议设置为 fast_vlm。
       operationId: createExtractionApp
       security:
         - ApiKeyAuth: []
@@ -469,6 +469,40 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ExtractionAppCreateRequest'
+          examples:
+            standardCustomExtractionApp:
+              summary: 创建标准版自定义抽取应用
+              value:
+                app_name: 采购单抽取应用
+                ai_function: 1406
+                app_label: [purchase-order]
+                extract_fields:
+                  - field_name: 订单号
+                    field_type: string
+                    field_prompt: 抽取采购订单编号。
+                  - field_name: 订单日期
+                    field_type: date
+                    field_prompt: 抽取订单日期。
+                parse_mode: standard
+                enable_long_doc: false
+            highSpeedCustomExtractionApp:
+              summary: 创建高速版自定义抽取应用
+              value:
+                app_name: 高速版发票抽取应用
+                ai_function: 1425
+                app_label: [invoice, high-speed]
+                extract_fields:
+                  - field_name: 发票号码
+                    field_type: string
+                    field_prompt: 抽取发票上的唯一发票号码。
+                  - field_name: 开票日期
+                    field_type: date
+                    field_prompt: 抽取发票开具日期。
+                  - field_name: 供应商名称
+                    field_type: string
+                    field_prompt: 抽取销售方或供应商名称。
+                parse_mode: fast_vlm
+                enable_long_doc: false
     ExtractionAppUpdateRequest:
       required: true
       content:
@@ -574,6 +608,15 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ExtractionAppResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              app_id: app_abc123
+              app_name: 高速版发票抽取应用
+              app_label: [invoice, high-speed]
+              config_version: v1
     AppConfigResponse:
       description: 应用配置结果。
       content:
@@ -793,13 +836,17 @@ components:
       properties:
         field_name:
           type: string
+          description: 字段名称。
         field_type:
           type: string
           enum: [string, date, table]
+          description: 字段类型。表格字段使用 table。
         field_prompt:
           type: string
+          description: 字段抽取提示词。
         sub_fields:
           type: array
+          description: 表格子字段。field_type 为 table 时必须至少提供 1 个有效子字段。
           items:
             $ref: '#/components/schemas/ExtractionSubFieldConfig'
       required: [field_name, field_type]
@@ -808,42 +855,62 @@ components:
       properties:
         field_name:
           type: string
+          description: 子字段名称。
         field_type:
           type: string
           enum: [string, date]
+          description: 子字段类型。表格内不允许再嵌套表格。
         field_prompt:
           type: string
-      required: [field_type]
+          description: 子字段抽取提示词。
+      required: [field_name, field_type]
     LongDocConfig:
       type: object
       properties:
         doc_type:
           type: string
+          description: 文档类型。
         doc_desc:
           type: string
+          description: 文档类型描述。
+      required: [doc_type]
     ExtractionAppCreateRequest:
       type: object
       properties:
         app_name:
           type: string
+          minLength: 1
+          maxLength: 100
+          description: 应用名称。
+        ai_function:
+          type: integer
+          enum: [1406, 1425]
+          default: 1406
+          description: 应用类型。1406 表示标准自定义抽取应用；1425 表示高速版自定义抽取应用。
         app_label:
           type: array
           maxItems: 5
+          description: 应用标签列表，最多 5 个。
           items:
             type: string
         extract_fields:
           type: array
+          maxItems: 20
+          description: 抽取字段配置列表，最多 20 个字段。
           items:
             $ref: '#/components/schemas/ExtractionFieldConfig'
         parse_mode:
           type: string
-          enum: [standard, advance, agentic]
+          enum: [standard, advance, agentic, fast_vlm]
+          description: 解析模式。创建高速版自定义抽取应用时，建议传 fast_vlm。
         enable_long_doc:
           type: boolean
           default: false
+          description: 是否开启长文档支持。
         long_doc_config:
           type: array
           maxItems: 5
+          description: 长文档配置，仅 enable_long_doc 为 true 时使用。
           items:
             $ref: '#/components/schemas/LongDocConfig'
       required: [app_name, extract_fields, parse_mode]

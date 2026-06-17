@@ -127,6 +127,7 @@
                     "group": "自定义抽取应用",
                     "pages": [
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create",
+                      "api-reference/high-speed-extraction-app-create",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config",
