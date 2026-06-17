@@ -1,3 +1,63 @@
 ---
-title: "untitled-page"
+title: "删除高速版抽取应用"
+description: "通过删除抽取应用 OpenAPI 删除高速版自定义抽取应用。"
+api: "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete"
 ---
+
+删除高速版自定义抽取应用时，复用标准的删除抽取应用接口。你只需要传入高速版应用的 `app_id`，不需要传 `ai_function`。
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete
+```
+
+<Warning>
+  删除后无法恢复。该操作会删除应用及其关联的配置、抽取数据和转换文件记录。
+</Warning>
+
+## 请求参数
+
+| 名称 | 类型 | 是否必填 | 描述 |
+| --- | --- | --- | --- |
+| `tenant_name` | string | 是 | 租户名称，默认 `laiye`。 |
+| `app_id` | string | 是 | 高速版自定义抽取应用 ID。创建应用接口返回该值。 |
+
+## 请求示例
+
+```bash
+curl --request POST \
+  --url 'https://adp.laiye.com/open/agentic_doc_processor/laiye/v1/app-manage/delete' \
+  --header 'Content-Type: application/json' \
+  --header 'X-API-KEY: {api_key}' \
+  --data '{
+    "app_id": "app_1425"
+  }'
+```
+
+## 响应示例
+
+```json
+{
+  "code": "success",
+  "message": "",
+  "tips": null,
+  "data": {
+    "success": true,
+    "message": "App deleted successfully"
+  }
+}
+```
+
+## 业务规则
+
+1. 高速版自定义抽取应用没有独立的删除路由。
+2. 删除接口按 `app_id` 定位应用；服务会根据应用记录处理删除逻辑。
+3. 当 `app_id` 不存在或删除失败时，响应中的 `data.success` 为 `false`。
+4. 该接口会删除应用记录、字段配置、配置版本、抽取数据和相关转换文件记录。
+
+## 相关接口
+
+| 目标 | OpenAPI |
+| --- | --- |
+| 创建高速版抽取应用 | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create` |
+| 查询应用配置 | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config` |
+| 更新应用配置 | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update` |
