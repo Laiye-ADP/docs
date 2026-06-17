@@ -149,7 +149,8 @@
                     "icon": "asterisk",
                     "pages": [
                       "create",
-                      "untitled-page"
+                      "untitled-page",
+                      "file"
                     ]
                   },
                   {
