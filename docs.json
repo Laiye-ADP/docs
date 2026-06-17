@@ -131,8 +131,7 @@
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend",
-                      "AGENTS"
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend"
                     ],
                     "icon": "asterisk"
                   },
@@ -143,6 +142,14 @@
                       "POST /open/agentic_engine/laiye/v1/app/run",
                       "POST /open/agentic_engine/laiye/v1/app/run/create/task",
                       "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}"
+                    ]
+                  },
+                  {
+                    "group": "自定义抽取高速版应用",
+                    "icon": "asterisk",
+                    "pages": [
+                      "create",
+                      "untitled-page"
                     ]
                   },
                   {
@@ -160,8 +167,7 @@
                       "POST /open/agentic_engine/laiye/files/{file_id}/delete"
                     ],
                     "icon": "file-output"
-                  },
-                  "products/untitled-page"
+                  }
                 ],
                 "openapi": {
                   "source": "/api-reference/adp-api.yaml",
