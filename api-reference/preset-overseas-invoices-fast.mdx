@@ -28,46 +28,44 @@ GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{tas
 | `file_url` | string | 可选 | 待抽取文件 URL，与 `file_base64` 二选一。仅支持 HTTP 开头的线上地址。 |
 | `enable_multi_ticket` | boolean | 否 | 是否启用多票据识别，默认 `true`。 |
 
-## 海外发票字段
+## 字段
 
-| 中文名 | 英文名 | 类型 |
-| --- | --- | --- |
-| 发票号码 | Invoice Number | 文本 |
-| 发票日期 | Invoice Date | 日期 |
-| 供应商名称 | Supplier Name | 文本 |
-| 供应商增值税号 | Supplier VAT Number | 文本 |
-| 客户名称 | Customer Name | 文本 |
-| 客户增值税号 | Customer VAT Number | 文本 |
-| 币种 | Currency | 文本 |
-| 总额（未税） | Total Without Tax | 文本 |
-| 增值税税率 | VAT Rate | 文本 |
-| 总金额（含税） | Total Amount (Inc. Tax) | 文本 |
-| 应付金额 | Amount Due | 文本 |
-| 商品明细表格 | Line Items | 表格 |
-| 项目代码 | Item Code | 表格子字段 |
-| 描述 | Description | 表格子字段 |
-| 数量 | Quantity | 表格子字段 |
-| 单价 | Unit Price | 表格子字段 |
-| 总金额 | Total Amount | 表格子字段 |
-
-## 收据字段
-
-| 中文名 | 英文名 | 类型 |
-| --- | --- | --- |
-| 发票号码 | Receipt Number | 文本 |
-| 发票日期 | Receipt Date | 日期 |
-| 供应商名称 | Supplier Name | 文本 |
-| 供应商增值税号 | Supplier VAT Number | 文本 |
-| 客户名称 | Customer Name | 文本 |
-| 客户增值税号 | Customer VAT Number | 文本 |
-| 币种 | Currency | 文本 |
-| 总额（未税） | Total Without Tax | 文本 |
-| 增值税税率 | VAT Rate | 文本 |
-| 总金额（含税） | Total Amount (Inc. Tax) | 文本 |
-| 应付金额 | Amount Due | 文本 |
-| 商品明细表格 | Line Items | 表格 |
-| 项目代码 | Item Code | 表格子字段 |
-| 描述 | Description | 表格子字段 |
-| 数量 | Quantity | 表格子字段 |
-| 单价 | Unit Price | 表格子字段 |
-| 总金额 | Total Amount | 表格子字段 |
+| 中文名 | 英文名 | 类型 | 备注 |
+| --- | --- | --- | --- |
+| 国家 | Country Code | 文本 |  |
+| 发票号码 | Invoice Number | 文本 |  |
+| 发票日期 | Invoice Date | 文本 |  |
+| 供应商名称 | Supplier Name | 文本 |  |
+| 供应商地址 | Supplier Address | 文本 |  |
+| 供应商增值税号 | Supplier VAT Number | 文本 |  |
+| 供应商电话 | Supplier Phone | 文本 |  |
+| 客户名称 | Customer Name | 文本 |  |
+| 客户地址 | Customer Address | 文本 |  |
+| 客户增值税号 | Customer VAT Number | 文本 |  |
+| 客户电话 | Customer Phone | 文本 |  |
+| 付款方国家 | Payer Country | 文本 |  |
+| 币种 | Currency | 文本 |  |
+| 总额（未税） | Total Without Tax | 文本 |  |
+| 增值税税率 | VAT Rate | 文本 |  |
+| 增值税金额 | VAT Amount | 文本 |  |
+| 总税额 | Total Tax | 文本 |  |
+| 总金额 | Total Amount | 文本 |  |
+| 应付金额 | Amount Due | 文本 |  |
+| 供应商开户行 | Supplier Bank Name | 文本 |  |
+| 供应商账号 | Supplier Account Number | 文本 |  |
+| 预扣税类型 | WHT Type | 文本 | 东南亚版特有 |
+| 预扣税税率 | WHT Rate | 文本 | 东南亚版特有 |
+| 预扣税金额 | WHT Amount | 文本 | 东南亚版特有 |
+| 商品明细表格 | Line Items | 表格 |  |
+| 项目代码 | Item Code | 表格子字段 |  |
+| 描述 | Description | 表格子字段 |  |
+| 数量 | Quantity | 表格子字段 |  |
+| 单价 | Unit Price | 表格子字段 |  |
+| 税率 | Tax Rate | 表格子字段 |  |
+| 税金 | Tax Amount | 表格子字段 |  |
+| 行预扣税税率 | Line WHT Rate | 表格子字段 | 东南亚版特有 |
+| 行预扣税税金 | Line WHT Tax | 表格子字段 | 东南亚版特有 |
+| 总金额 | Total Amount | 表格子字段 |  |
+| 发票号码 | Receipt Number | 表格子字段 |  |
+| 发票日期 | Receipt Date | 表格子字段 |  |
+| 总金额（含税） | Total Amount (Inc. Tax) | 表格子字段 |  |
