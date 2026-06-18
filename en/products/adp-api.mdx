@@ -1,24 +1,44 @@
 ---
 title: "ADP API"
-description: "Laiye ADP official OpenAPI reference for document processing, application management, and workflow APIs."
+description: "本文档为来也 ADP 平台官方标准化 OpenAPI 接口规范。支持将文档解析、文档结构化抽取、智能工作流调度等核心智能能力通过标准 API 对外开放，支持企业各类业务系统快速对接集成。 "
 icon: "circle-user-round"
 ---
 
-# OpenAPI user guide
+## OpenAPI Usage Guide
 
-Applications in ADP can be integrated into third-party systems through APIs. Before calling the APIs, go to the [ADP platform](https://adp-global.laiye.com/) and get your API key. Click your profile avatar, then open **My API**.
+### Step 1: Obtain API Key and APP ID
 
-![My API entry in the ADP platform](/images/en/products/adp-api/adp-api-001.png)
+The `API Key` serves as the global identity credential for invoking the entire set of ADP OpenAPIs. It verifies the access permissions of the calling enterprise or account. This credential must be included for all API requests; any request without a valid API Key will be directly blocked by the gateway.
 
-## API reference
+The `APP ID` is the unique identifier of a single application within ADP. It identifies the target application you intend to operate and invoke. As a core business parameter for document extraction, workflow execution and application configuration APIs, it defines the ownership of capabilities.
 
-Use the **ADP API** section in the sidebar to browse APIs by scenario and by underlying endpoint. Each endpoint page includes request parameters, response schemas, and examples.
+#### How to get your API Key?
 
-## Authentication
+You need to log in to the [ADP platform](adp-global.laiye.com/?utm_source=apidoc) to retrieve your API Key. Click your personal avatar and go to My APIs to view your token. Alternatively, click the "..." icon in the upper-right corner of the target application card you want to invoke.
 
-Document extraction, document recognition, application management, and credit usage APIs use the `X-API-KEY` request header.
+<Frame>
+  ![Screenshot 20260618 120010](/images/screenshot-20260618-120010.png)
+</Frame>
 
-Workflow APIs use the `X-API-Key` request header.
+#### How to get your APP ID?
+
+Method 1: Navigate to the ADP Platform ([https://adp-global.laiye.com/?utm\_source=apidoc](https://adp-global.laiye.com/?utm_source=apidoc)), click the "..." icon in the upper right corner of the target application card to view your `APP ID` and `API Key`.
+
+Method 2: Query the full list of your applications via API. [API for querying application list](https://adp-doc.laiye.com/en/api-reference/adp-api/application-management/list-applications-or-get-application-configuration)
+
+<Frame>
+  ![Image](/images/image.png)
+</Frame>
+
+<Frame>
+  ![Image](/images/image-1.png)
+</Frame>
+
+## Authentication Method
+
+APIs for document extraction, document parsing, application management and point query use the `X-API-KEY` request header.
+
+Workflow APIs also adopt the `X-API-Key` request header for authentication.
 
 ## Base URL
 
@@ -26,11 +46,15 @@ Workflow APIs use the `X-API-Key` request header.
 https://adp-global.laiye.com
 ```
 
-## File input
+## API Reference
 
-Document extraction and recognition APIs support two file input methods:
+All APIs are available under the ADP API section in the left navigation bar. Each API page includes request parameters, response schemas and code samples. You can also search for target APIs via the top search bar.
 
-- `file_url`: An online file URL. Only HTTP URLs are supported.
-- `file_base64`: The Base64 content of a local file.
+## File Upload Methods
 
-Use either `file_url` or `file_base64`.
+ADP provides two mutually exclusive file upload methods. Use either `file_url` or `file_base64`.
+
+- `file_url`: Public online file URL, only addresses starting with HTTP are supported.
+- `file_base64`: Base64 encoded content of local files.
+
+ADP provides users with a free [File URL Acquisition API](https://adp-doc.laiye.com/en/api-reference/adp-api/workflow-files/upload-file), which can upload local files to the ADP server. Meanwhile, we offer the [Uploaded File Deletion API](https://adp-doc.laiye.com/en/api-reference/adp-api/workflow-files/delete-file). For documents with high security requirements, you may call the deletion API to remove files after the processing task is finished.
