@@ -66,6 +66,20 @@
                     "icon": "asterisk"
                   },
                   {
+                    "group": "海外发票和收据-高速版",
+                    "icon": "asterisk",
+                    "root": "api-reference/preset-overseas-invoices-fast",
+                    "openapi": {
+                      "source": "/api-reference/preset-overseas-invoices-fast.yaml",
+                      "directory": "api-reference/preset-overseas-invoices-fast"
+                    },
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+                    ]
+                  },
+                  {
                     "group": "采购订单",
                     "root": "api-reference/preset-purchase-orders",
                     "pages": [
@@ -136,15 +150,6 @@
                     "icon": "asterisk"
                   },
                   {
-                    "group": "工作流",
-                    "icon": "network",
-                    "pages": [
-                      "POST /open/agentic_engine/laiye/v1/app/run",
-                      "POST /open/agentic_engine/laiye/v1/app/run/create/task",
-                      "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}"
-                    ]
-                  },
-                  {
                     "group": "自定义抽取高速版应用",
                     "icon": "asterisk",
                     "pages": [
@@ -153,6 +158,15 @@
                       "file",
                       "file-1",
                       "file-2"
+                    ]
+                  },
+                  {
+                    "group": "工作流",
+                    "icon": "network",
+                    "pages": [
+                      "POST /open/agentic_engine/laiye/v1/app/run",
+                      "POST /open/agentic_engine/laiye/v1/app/run/create/task",
+                      "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}"
                     ]
                   },
                   {
