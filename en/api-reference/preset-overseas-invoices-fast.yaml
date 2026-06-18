@@ -1,0 +1,178 @@
+openapi: 3.1.0
+info:
+  title: Global Invoices and receipts - high-speed
+  version: 1.0.0
+  description: ADP preset application APIs for high-speed Global Invoices and receipts extraction.
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: https://adp-global.laiye.com
+    description: ADP global production endpoint
+tags:
+  - name: Global Invoices and receipts high-speed extraction
+    description: Extract fields from Global Invoices and receipts.
+paths:
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract:
+    post:
+      tags: [Global Invoices and receipts high-speed extraction]
+      summary: Extract Global Invoices and receipts high-speed (sync)
+      description: Extract fields from Global Invoices and receipts with the high-speed preset application.
+      operationId: extractGlobalInvoiceFast
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentExtractRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentExtractResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task:
+    post:
+      tags: [Global Invoices and receipts high-speed extraction]
+      summary: Create Global Invoices and receipts high-speed extraction task
+      description: Create an async extraction task for the Global Invoices and receipts high-speed preset application.
+      operationId: createGlobalInvoiceFastExtractTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentExtractRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TaskCreateResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}:
+    get:
+      tags: [Global Invoices and receipts high-speed extraction]
+      summary: Query Global Invoices and receipts high-speed extraction result
+      description: Query async extraction results for the Global Invoices and receipts high-speed preset application.
+      operationId: queryGlobalInvoiceFastExtractTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentExtractResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+  parameters:
+    TenantName:
+      name: tenant_name
+      in: path
+      required: true
+      description: "Tenant name. Default: laiye."
+      schema:
+        type: string
+        default: laiye
+    TaskId:
+      name: task_id
+      in: path
+      required: true
+      description: Task ID.
+      schema:
+        type: string
+    AcceptLanguage:
+      name: accept-language
+      in: header
+      required: false
+      description: Field name language. Use zh for Chinese or en for English.
+      schema:
+        type: string
+        enum: [zh, en]
+        default: en
+  requestBodies:
+    DocumentExtractRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentExtractRequest'
+          example:
+            app_id: app_abc123
+            file_url: https://example.com/invoice.pdf
+            enable_multi_ticket: true
+  responses:
+    DocumentExtractResponse:
+      description: Extraction result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentExtractResponse'
+    TaskCreateResponse:
+      description: Task creation result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TaskCreateResponse'
+    ValidationError:
+      description: Validation error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SimpleResponse'
+  schemas:
+    DocumentExtractRequest:
+      type: object
+      properties:
+        app_id:
+          type: string
+        file_base64:
+          type: string
+        file_url:
+          type: string
+          format: uri
+        enable_multi_ticket:
+          type: boolean
+          default: true
+          description: Whether to enable multi-ticket recognition.
+      required: [app_id]
+      anyOf:
+        - required: [file_base64]
+        - required: [file_url]
+    SimpleResponse:
+      type: object
+      properties:
+        code:
+          oneOf:
+            - type: string
+            - type: integer
+        message:
+          type: string
+        tips:
+          type:
+            - string
+            - 'null'
+    TaskCreateResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                task_id:
+                  type: string
+    DocumentExtractResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: true

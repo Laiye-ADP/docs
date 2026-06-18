@@ -289,7 +289,7 @@
                     "icon": "network"
                   },
                   {
-                    "group": "Application management",
+                    "group": "Custom Extraction",
                     "pages": [
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete",

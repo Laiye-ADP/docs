@@ -1,0 +1,73 @@
+---
+title: "Global Invoices and receipts - high-speed"
+description: "Use ADP preset applications to extract fields from Global Invoices and receipts at high speed."
+---
+
+## Overview
+
+Global Invoices and receipts - high-speed uses the document extraction API.
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract
+```
+
+Async tasks use the same request body:
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task
+GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}
+```
+
+## Request parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `tenant_name` | string | Yes | Tenant name. Default: `laiye`. |
+| `app_id` | string | Yes | Unique ID of the preset application. View it in **View API**. |
+| `file_base64` | string | Optional | Base64 content of the file. Use either `file_base64` or `file_url`. |
+| `file_url` | string | Optional | Online file URL. Use either `file_url` or `file_base64`. Only HTTP URLs are supported. |
+| `enable_multi_ticket` | boolean | No | Whether to enable multi-ticket recognition. Default: `true`. |
+
+## Global invoice fields
+
+| Field | Type |
+| --- | --- |
+| Invoice Number | Text |
+| Invoice Date | Date |
+| Supplier Name | Text |
+| Supplier VAT Number | Text |
+| Customer Name | Text |
+| Customer VAT Number | Text |
+| Currency | Text |
+| Total Without Tax | Text |
+| VAT Rate | Text |
+| Total Amount (Inc. Tax) | Text |
+| Amount Due | Text |
+| Line Items | Table |
+| Item Code | Table subfield |
+| Description | Table subfield |
+| Quantity | Table subfield |
+| Unit Price | Table subfield |
+| Total Amount | Table subfield |
+
+## Receipt fields
+
+| Field | Type |
+| --- | --- |
+| Receipt Number | Text |
+| Receipt Date | Date |
+| Supplier Name | Text |
+| Supplier VAT Number | Text |
+| Customer Name | Text |
+| Customer VAT Number | Text |
+| Currency | Text |
+| Total Without Tax | Text |
+| VAT Rate | Text |
+| Total Amount (Inc. Tax) | Text |
+| Amount Due | Text |
+| Line Items | Table |
+| Item Code | Table subfield |
+| Description | Table subfield |
+| Quantity | Table subfield |
+| Unit Price | Table subfield |
+| Total Amount | Table subfield |

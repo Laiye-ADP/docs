@@ -1,0 +1,181 @@
+openapi: 3.1.0
+info:
+  title: 海外发票和收据-高速版
+  version: 1.0.0
+  description: ADP 预置应用接口，适用于海外发票和收据高速版抽取场景。
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: https://adp.laiye.com
+    description: ADP 生产环境
+tags:
+  - name: 海外发票和收据高速版抽取
+    description: 抽取海外发票和收据字段。
+paths:
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract:
+    post:
+      tags: [海外发票和收据高速版抽取]
+      summary: 海外发票和收据-高速版抽取（同步接口）
+      description: 针对海外发票和收据文件进行高速版字段抽取。返回字段由预置应用配置决定。
+      operationId: extractOverseasInvoiceFast
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentExtractRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentExtractResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task:
+    post:
+      tags: [海外发票和收据高速版抽取]
+      summary: 创建海外发票和收据-高速版抽取异步任务
+      description: 创建海外发票和收据-高速版抽取任务，并立即返回 task_id。
+      operationId: createOverseasInvoiceFastExtractTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentExtractRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TaskCreateResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}:
+    get:
+      tags: [海外发票和收据高速版抽取]
+      summary: 查询海外发票和收据-高速版抽取任务结果
+      description: 根据 task_id 查询海外发票和收据-高速版抽取任务结果。
+      operationId: queryOverseasInvoiceFastExtractTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentExtractResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+  parameters:
+    TenantName:
+      name: tenant_name
+      in: path
+      required: true
+      description: 租户名称，默认 laiye。
+      schema:
+        type: string
+        default: laiye
+    TaskId:
+      name: task_id
+      in: path
+      required: true
+      description: 任务 ID。
+      schema:
+        type: string
+    AcceptLanguage:
+      name: accept-language
+      in: header
+      required: false
+      description: 返回字段名称的语言。默认 zh 返回中文字段名；设置为 en 返回英文字段名。
+      schema:
+        type: string
+        enum: [zh, en]
+        default: zh
+  requestBodies:
+    DocumentExtractRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentExtractRequest'
+          example:
+            app_id: app_abc123
+            file_url: https://example.com/invoice.pdf
+            enable_multi_ticket: true
+  responses:
+    DocumentExtractResponse:
+      description: 抽取结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentExtractResponse'
+    TaskCreateResponse:
+      description: 任务创建结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TaskCreateResponse'
+    ValidationError:
+      description: 参数校验错误。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SimpleResponse'
+  schemas:
+    DocumentExtractRequest:
+      type: object
+      properties:
+        app_id:
+          type: string
+          description: 预置应用的唯一标识。
+        file_base64:
+          type: string
+          description: 待抽取文件 Base64，与 file_url 二选一。
+        file_url:
+          type: string
+          format: uri
+          description: 待抽取文件 URL，与 file_base64 二选一。
+        enable_multi_ticket:
+          type: boolean
+          default: true
+          description: 是否启用多票据识别。
+      required: [app_id]
+      anyOf:
+        - required: [file_base64]
+        - required: [file_url]
+    SimpleResponse:
+      type: object
+      properties:
+        code:
+          oneOf:
+            - type: string
+            - type: integer
+        message:
+          type: string
+        tips:
+          type:
+            - string
+            - 'null'
+    TaskCreateResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                task_id:
+                  type: string
+    DocumentExtractResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: true

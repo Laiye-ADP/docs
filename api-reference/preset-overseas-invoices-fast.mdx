@@ -1,0 +1,73 @@
+---
+title: "海外发票和收据-高速版"
+description: "使用 ADP 预置应用高速抽取海外发票和收据字段。"
+---
+
+## 概述
+
+海外发票和收据-高速版使用文档抽取接口。
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract
+```
+
+异步任务使用相同的请求体：
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task
+GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}
+```
+
+## 请求参数
+
+| 名称 | 类型 | 是否必填 | 描述 |
+| --- | --- | --- | --- |
+| `tenant_name` | string | 是 | 租户名称，默认 `laiye`。 |
+| `app_id` | string | 是 | 预置应用的唯一标识，在应用的 **查看 API** 中查看。 |
+| `file_base64` | string | 可选 | 待抽取文件的 Base64，与 `file_url` 二选一。 |
+| `file_url` | string | 可选 | 待抽取文件 URL，与 `file_base64` 二选一。仅支持 HTTP 开头的线上地址。 |
+| `enable_multi_ticket` | boolean | 否 | 是否启用多票据识别，默认 `true`。 |
+
+## 海外发票字段
+
+| 中文名 | 英文名 | 类型 |
+| --- | --- | --- |
+| 发票号码 | Invoice Number | 文本 |
+| 发票日期 | Invoice Date | 日期 |
+| 供应商名称 | Supplier Name | 文本 |
+| 供应商增值税号 | Supplier VAT Number | 文本 |
+| 客户名称 | Customer Name | 文本 |
+| 客户增值税号 | Customer VAT Number | 文本 |
+| 币种 | Currency | 文本 |
+| 总额（未税） | Total Without Tax | 文本 |
+| 增值税税率 | VAT Rate | 文本 |
+| 总金额（含税） | Total Amount (Inc. Tax) | 文本 |
+| 应付金额 | Amount Due | 文本 |
+| 商品明细表格 | Line Items | 表格 |
+| 项目代码 | Item Code | 表格子字段 |
+| 描述 | Description | 表格子字段 |
+| 数量 | Quantity | 表格子字段 |
+| 单价 | Unit Price | 表格子字段 |
+| 总金额 | Total Amount | 表格子字段 |
+
+## 收据字段
+
+| 中文名 | 英文名 | 类型 |
+| --- | --- | --- |
+| 发票号码 | Receipt Number | 文本 |
+| 发票日期 | Receipt Date | 日期 |
+| 供应商名称 | Supplier Name | 文本 |
+| 供应商增值税号 | Supplier VAT Number | 文本 |
+| 客户名称 | Customer Name | 文本 |
+| 客户增值税号 | Customer VAT Number | 文本 |
+| 币种 | Currency | 文本 |
+| 总额（未税） | Total Without Tax | 文本 |
+| 增值税税率 | VAT Rate | 文本 |
+| 总金额（含税） | Total Amount (Inc. Tax) | 文本 |
+| 应付金额 | Amount Due | 文本 |
+| 商品明细表格 | Line Items | 表格 |
+| 项目代码 | Item Code | 表格子字段 |
+| 描述 | Description | 表格子字段 |
+| 数量 | Quantity | 表格子字段 |
+| 单价 | Unit Price | 表格子字段 |
+| 总金额 | Total Amount | 表格子字段 |
