@@ -149,7 +149,7 @@ paths:
     post:
       tags: [应用管理]
       summary: 删除抽取应用
-      description: 删除抽取应用，删除后无法恢复。
+      description: 删除抽取应用，删除后无法恢复。删除高速版自定义抽取应用时，复用该接口并传入高速版应用的 app_id。
       operationId: deleteExtractionApp
       security:
         - ApiKeyAuth: []
@@ -159,14 +159,14 @@ paths:
         $ref: '#/components/requestBodies/AppIdRequest'
       responses:
         '200':
-          $ref: '#/components/responses/SimpleResponse'
+          $ref: '#/components/responses/ExtractionAppDeleteResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update:
     post:
       tags: [应用管理]
       summary: 修改抽取应用
-      description: 更新抽取应用的名称、标签、字段配置和抽取配置。
+      description: 更新抽取应用的名称、标签、字段配置和抽取配置，并创建新的配置版本。修改高速版自定义抽取应用时，复用该接口并传入高速版应用的 app_id；请求体不需要传 ai_function。
       operationId: updateExtractionApp
       security:
         - ApiKeyAuth: []
@@ -176,15 +176,15 @@ paths:
         $ref: '#/components/requestBodies/ExtractionAppUpdateRequest'
       responses:
         '200':
-          $ref: '#/components/responses/ExtractionAppResponse'
+          $ref: '#/components/responses/ExtractionAppUpdateResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config:
     post:
       tags: [应用管理]
-      summary: 查询应用列表或应用配置
-      description: 原文档中“查询应用列表”和“查询应用配置”使用相同路径。传入 app_id 时查询指定应用配置；不传 app_id 时可按名称、能力、应用类型和分页参数查询应用列表。
-      operationId: listOrGetExtractionAppConfig
+      summary: 查询应用配置
+      description: 根据 app_id 查询抽取应用配置。查询高速版自定义抽取应用配置时，传入高速版应用的 app_id；不传 config_version 时返回最新配置版本。
+      operationId: getExtractionAppConfig
       security:
         - ApiKeyAuth: []
       parameters:
@@ -193,43 +193,93 @@ paths:
         $ref: '#/components/requestBodies/AppConfigQueryRequest'
       responses:
         '200':
-          description: 应用列表或应用配置。
+          description: 应用配置。
           content:
             application/json:
               schema:
-                anyOf:
-                  - $ref: '#/components/schemas/AppListResponse'
-                  - $ref: '#/components/schemas/AppConfigResponse'
+                $ref: '#/components/schemas/AppConfigResponse'
               examples:
-                list:
+                highSpeedConfig:
                   value:
                     code: 200
                     message: success
                     data:
-                      list:
-                        - id: app_abc123
-                          app_name: 采购单抽取
-                          app_label: [finance]
-                      total: 1
-                config:
-                  value:
-                    code: 200
-                    message: success
-                    data:
-                      app_id: app_abc123
-                      app_name: 采购单抽取
-                      app_label: [finance]
+                      app_id: app_1425
+                      app_name: 高速版发票抽取应用
+                      app_label: [invoice, high-speed]
                       config_version: v1
-                      extract_fields: []
+                      extract_fields:
+                        - field_name: 发票号码
+                          field_type: string
+                          field_prompt: 抽取发票上的唯一发票号码。
                       parse_mode: standard
                       enable_long_doc: false
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app-list:
+    get:
+      tags: [应用管理]
+      summary: 查询应用列表
+      description: 查询应用列表。查询高速版自定义抽取应用列表时，设置 ai_function=1425。
+      operationId: listExtractionApps
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - name: app_name
+          in: query
+          required: false
+          description: 按应用名称过滤，支持模糊匹配。
+          schema:
+            type: string
+        - name: ai_function
+          in: query
+          required: false
+          description: 按 AI 能力过滤。高速版自定义抽取应用传 1425；标准自定义抽取应用传 1406。
+          schema:
+            type: integer
+            enum: [1406, 1425]
+        - name: app_type
+          in: query
+          required: false
+          description: 应用类型。1=自定义应用，0=系统预设。
+          schema:
+            type: integer
+            enum: [0, 1]
+        - name: with_extra
+          in: query
+          required: false
+          description: 是否查询扩展信息。
+          schema:
+            type: integer
+            enum: [0, 1]
+            default: 1
+        - name: offset
+          in: query
+          required: false
+          description: 分页偏移量。
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: limit
+          in: query
+          required: false
+          description: 每页数量。
+          schema:
+            type: integer
+            default: 1000
+            minimum: 1
+      responses:
+        '200':
+          $ref: '#/components/responses/AppListResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete:
     post:
       tags: [应用管理]
       summary: 删除抽取应用的配置
-      description: 删除应用下某一个版本的字段配置信息。
+      description: 删除应用下某一个版本的字段配置信息。删除高速版自定义抽取应用的配置时，复用该接口并传入高速版应用的 app_id 和要删除的 config_version。
       operationId: deleteExtractionAppVersion
       security:
         - ApiKeyAuth: []
@@ -239,7 +289,7 @@ paths:
         $ref: '#/components/requestBodies/AppVersionDeleteRequest'
       responses:
         '200':
-          $ref: '#/components/responses/SimpleResponse'
+          $ref: '#/components/responses/ExtractionAppVersionDeleteResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend:
@@ -452,17 +502,27 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/AppIdRequest'
-          example:
-            app_id: app_abc123
+          examples:
+            standardCustomExtractionApp:
+              summary: 删除标准版自定义抽取应用
+              value:
+                app_id: app_abc123
+            highSpeedCustomExtractionApp:
+              summary: 删除高速版自定义抽取应用
+              value:
+                app_id: app_1425
     AppVersionDeleteRequest:
       required: true
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/AppVersionDeleteRequest'
-          example:
-            app_id: app_abc123
-            config_version: v1
+          examples:
+            highSpeedConfigVersion:
+              summary: 删除高速版自定义抽取应用配置版本
+              value:
+                app_id: app_1425
+                config_version: v2
     ExtractionAppCreateRequest:
       required: true
       content:
@@ -509,12 +569,42 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ExtractionAppUpdateRequest'
+          examples:
+            highSpeedCustomExtractionApp:
+              summary: 修改高速版自定义抽取应用
+              value:
+                app_id: app_1425
+                app_name: 高速版发票抽取应用（新版）
+                config_version: v1
+                app_label: [invoice, high-speed]
+                extract_fields:
+                  - field_name: 发票号码
+                    field_type: string
+                    field_prompt: 抽取发票上的唯一发票号码。
+                  - field_name: 开票日期
+                    field_type: date
+                    field_prompt: 抽取发票开具日期。
+                  - field_name: 价税合计
+                    field_type: string
+                    field_prompt: 抽取发票价税合计金额。
+                parse_mode: fast_vlm
+                enable_long_doc: false
     AppConfigQueryRequest:
-      required: false
+      required: true
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/AppConfigQueryRequest'
+          examples:
+            highSpeedConfig:
+              summary: 查询高速版自定义抽取应用配置
+              value:
+                app_id: app_1425
+            highSpeedConfigVersion:
+              summary: 查询高速版指定配置版本
+              value:
+                app_id: app_1425
+                config_version: v1
     AiRecommendRequest:
       required: true
       content:
@@ -617,12 +707,68 @@ components:
               app_name: 高速版发票抽取应用
               app_label: [invoice, high-speed]
               config_version: v1
+    ExtractionAppDeleteResponse:
+      description: 抽取应用删除结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExtractionAppDeleteResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              success: true
+              message: App deleted successfully
+    ExtractionAppUpdateResponse:
+      description: 抽取应用修改结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExtractionAppUpdateResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              app_id: app_1425
+              config_version: v2
+    ExtractionAppVersionDeleteResponse:
+      description: 抽取应用配置版本删除结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExtractionAppVersionDeleteResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              success: true
+              message: Version deleted successfully
     AppConfigResponse:
       description: 应用配置结果。
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/AppConfigResponse'
+    AppListResponse:
+      description: 应用列表。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppListResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              list:
+                - id: app_1425
+                  app_name: 高速版发票抽取应用
+                  ai_function: 1425
+                  app_label: [invoice, high-speed]
+              total: 1
     UserPaymentResponse:
       description: 用户积分信息。
       content:
@@ -915,49 +1061,71 @@ components:
             $ref: '#/components/schemas/LongDocConfig'
       required: [app_name, extract_fields, parse_mode]
     ExtractionAppUpdateRequest:
-      allOf:
-        - $ref: '#/components/schemas/ExtractionAppCreateRequest'
-        - type: object
-          properties:
-            app_id:
-              type: string
-            config_version:
-              type: string
-          required: [app_id, config_version]
+      type: object
+      properties:
+        app_id:
+          type: string
+          description: 应用 ID。修改高速版自定义抽取应用时，传入高速版应用的 app_id。
+        app_name:
+          type: string
+          description: 应用名称。不传或传空字符串时不更新应用名称。
+        config_version:
+          type: string
+          description: 当前配置版本。修改后会另存为新版本。
+        app_label:
+          type: array
+          maxItems: 5
+          description: 应用标签列表，最多 5 个。
+          items:
+            type: string
+        extract_fields:
+          type: array
+          maxItems: 20
+          description: 抽取字段配置列表，最多 20 个字段。
+          items:
+            $ref: '#/components/schemas/ExtractionFieldConfig'
+        parse_mode:
+          type: string
+          enum: [standard, advance, agentic, fast_vlm]
+          description: 解析模式。修改高速版自定义抽取应用时，建议传 fast_vlm。
+        enable_long_doc:
+          type: boolean
+          default: false
+          description: 是否开启长文档支持。
+        long_doc_config:
+          type: array
+          maxItems: 5
+          description: 长文档配置，仅 enable_long_doc 为 true 时使用。
+          items:
+            $ref: '#/components/schemas/LongDocConfig'
+      required: [app_id, config_version, extract_fields, parse_mode]
     AppIdRequest:
       type: object
       properties:
         app_id:
           type: string
+          description: 应用 ID。删除高速版自定义抽取应用时，传入高速版应用的 app_id。
       required: [app_id]
     AppVersionDeleteRequest:
       type: object
       properties:
         app_id:
           type: string
+          description: 应用 ID。删除高速版自定义抽取应用配置时，传入高速版应用的 app_id。
         config_version:
           type: string
+          description: 要删除的配置版本。
       required: [app_id, config_version]
     AppConfigQueryRequest:
       type: object
       properties:
         app_id:
           type: string
+          description: 应用 ID。查询高速版自定义抽取应用配置时，传入高速版应用的 app_id。
         config_version:
           type: string
-        app_name:
-          type: string
-        ai_function:
-          type: integer
-        app_type:
-          type: integer
-          description: 1=自定义，0=系统预设。
-        with_extra:
-          type: integer
-        offset:
-          type: integer
-        limit:
-          type: integer
+          description: 配置版本。可选，默认返回最新版本。
+      required: [app_id]
     AiRecommendRequest:
       allOf:
         - type: object
@@ -980,6 +1148,48 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/AppConfigData'
+    ExtractionAppDeleteResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  description: 是否删除成功。
+                message:
+                  type: string
+                  description: 操作消息。
+    ExtractionAppUpdateResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                app_id:
+                  type: string
+                  description: 应用 ID。
+                config_version:
+                  type: string
+                  description: 新配置版本号。
+    ExtractionAppVersionDeleteResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  description: 是否删除成功。
+                message:
+                  type: string
+                  description: 操作消息。
     AppListResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'

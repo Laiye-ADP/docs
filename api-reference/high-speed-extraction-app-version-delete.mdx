@@ -1,0 +1,66 @@
+---
+title: "删除高速版抽取应用的配置"
+description: "通过删除配置版本 OpenAPI 删除高速版自定义抽取应用的指定配置版本。"
+api: "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete"
+---
+
+删除高速版自定义抽取应用的配置时，复用标准的删除配置版本接口。你需要传入高速版应用的 `app_id` 和要删除的 `config_version`。
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete
+```
+
+<Warning>
+  已发布的配置版本不允许删除。删除配置版本会同时删除该版本下的字段规则和抽取规则。
+</Warning>
+
+## 请求参数
+
+| 名称 | 类型 | 是否必填 | 描述 |
+| --- | --- | --- | --- |
+| `tenant_name` | string | 是 | 租户名称，默认 `laiye`。 |
+| `app_id` | string | 是 | 高速版自定义抽取应用 ID。 |
+| `config_version` | string | 是 | 要删除的配置版本。 |
+
+## 请求示例
+
+```bash
+curl --request POST \
+  --url 'https://adp.laiye.com/open/agentic_doc_processor/laiye/v1/app-manage/version/delete' \
+  --header 'Content-Type: application/json' \
+  --header 'X-API-KEY: {api_key}' \
+  --data '{
+    "app_id": "app_1425",
+    "config_version": "v2"
+  }'
+```
+
+## 响应示例
+
+```json
+{
+  "code": "success",
+  "message": "",
+  "tips": null,
+  "data": {
+    "success": true,
+    "message": "Version deleted successfully"
+  }
+}
+```
+
+## 业务规则
+
+1. 高速版自定义抽取应用没有独立的配置删除路由。
+2. 删除接口按 `app_id` 和 `config_version` 定位配置版本。
+3. 已发布的配置版本不允许删除。
+4. 配置版本不存在时，接口返回版本不存在错误。
+5. 删除成功后，该版本下的字段规则、抽取规则和配置版本记录会被删除。
+
+## 相关接口
+
+| 目标 | OpenAPI |
+| --- | --- |
+| 查询高速版应用配置 | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config` |
+| 修改高速版抽取应用 | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update` |
+| 删除高速版抽取应用 | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete` |
