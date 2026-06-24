@@ -132,7 +132,7 @@ paths:
     post:
       tags: [应用管理]
       summary: 创建抽取应用
-      description: 创建抽取应用，并设置标签、字段配置和抽取配置。
+      description: 创建标准版或高速版自定义抽取应用，并设置标签、字段配置和抽取配置。创建高速版自定义抽取应用时，设置 ai_function 为 1425，且字段和表格子字段需要提供 field_key。
       operationId: createExtractionApp
       security:
         - ApiKeyAuth: []
@@ -149,7 +149,7 @@ paths:
     post:
       tags: [应用管理]
       summary: 删除抽取应用
-      description: 删除抽取应用，删除后无法恢复。
+      description: 删除抽取应用，删除后无法恢复。删除高速版自定义抽取应用时，复用该接口并传入高速版应用的 app_id。
       operationId: deleteExtractionApp
       security:
         - ApiKeyAuth: []
@@ -159,14 +159,14 @@ paths:
         $ref: '#/components/requestBodies/AppIdRequest'
       responses:
         '200':
-          $ref: '#/components/responses/SimpleResponse'
+          $ref: '#/components/responses/ExtractionAppDeleteResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update:
     post:
       tags: [应用管理]
       summary: 修改抽取应用
-      description: 更新抽取应用的名称、标签、字段配置和抽取配置。
+      description: 更新抽取应用的名称、标签、字段配置和抽取配置，并创建新的配置版本。修改高速版自定义抽取应用时，复用该接口并传入高速版应用的 app_id；请求体不需要传 ai_function。高速版自定义抽取应用不支持设置 parse_mode 和 enable_long_doc。
       operationId: updateExtractionApp
       security:
         - ApiKeyAuth: []
@@ -176,15 +176,15 @@ paths:
         $ref: '#/components/requestBodies/ExtractionAppUpdateRequest'
       responses:
         '200':
-          $ref: '#/components/responses/ExtractionAppResponse'
+          $ref: '#/components/responses/ExtractionAppUpdateResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config:
     post:
       tags: [应用管理]
-      summary: 查询应用列表或应用配置
-      description: 原文档中“查询应用列表”和“查询应用配置”使用相同路径。传入 app_id 时查询指定应用配置；不传 app_id 时可按名称、能力、应用类型和分页参数查询应用列表。
-      operationId: listOrGetExtractionAppConfig
+      summary: 查询应用配置
+      description: 根据 app_id 查询抽取应用配置。查询高速版自定义抽取应用配置时，传入高速版应用的 app_id；不传 config_version 时返回最新配置版本。
+      operationId: getExtractionAppConfig
       security:
         - ApiKeyAuth: []
       parameters:
@@ -193,43 +193,93 @@ paths:
         $ref: '#/components/requestBodies/AppConfigQueryRequest'
       responses:
         '200':
-          description: 应用列表或应用配置。
+          description: 应用配置。
           content:
             application/json:
               schema:
-                anyOf:
-                  - $ref: '#/components/schemas/AppListResponse'
-                  - $ref: '#/components/schemas/AppConfigResponse'
+                $ref: '#/components/schemas/AppConfigResponse'
               examples:
-                list:
+                highSpeedConfig:
                   value:
                     code: 200
                     message: success
                     data:
-                      list:
-                        - id: app_abc123
-                          app_name: 采购单抽取
-                          app_label: [finance]
-                      total: 1
-                config:
-                  value:
-                    code: 200
-                    message: success
-                    data:
-                      app_id: app_abc123
-                      app_name: 采购单抽取
-                      app_label: [finance]
+                      app_id: app_1425
+                      app_name: 高速版发票抽取应用
+                      app_label: [invoice, high-speed]
                       config_version: v1
-                      extract_fields: []
+                      extract_fields:
+                        - field_name: 发票号码
+                          field_type: string
+                          field_prompt: 抽取发票上的唯一发票号码。
                       parse_mode: standard
                       enable_long_doc: false
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app-list:
+    get:
+      tags: [应用管理]
+      summary: 查询应用列表
+      description: 查询应用列表。查询高速版自定义抽取应用列表时，设置 ai_function=1425。
+      operationId: listExtractionApps
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - name: app_name
+          in: query
+          required: false
+          description: 按应用名称过滤，支持模糊匹配。
+          schema:
+            type: string
+        - name: ai_function
+          in: query
+          required: false
+          description: 按 AI 能力过滤。高速版自定义抽取应用传 1425；标准自定义抽取应用传 1406。
+          schema:
+            type: integer
+            enum: [1406, 1425]
+        - name: app_type
+          in: query
+          required: false
+          description: 应用类型。1=自定义应用，0=系统预设。
+          schema:
+            type: integer
+            enum: [0, 1]
+        - name: with_extra
+          in: query
+          required: false
+          description: 是否查询扩展信息。
+          schema:
+            type: integer
+            enum: [0, 1]
+            default: 1
+        - name: offset
+          in: query
+          required: false
+          description: 分页偏移量。
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: limit
+          in: query
+          required: false
+          description: 每页数量。
+          schema:
+            type: integer
+            default: 1000
+            minimum: 1
+      responses:
+        '200':
+          $ref: '#/components/responses/AppListResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete:
     post:
       tags: [应用管理]
       summary: 删除抽取应用的配置
-      description: 删除应用下某一个版本的字段配置信息。
+      description: 删除应用下某一个版本的字段配置信息。删除高速版自定义抽取应用的配置时，复用该接口并传入高速版应用的 app_id 和要删除的 config_version。
       operationId: deleteExtractionAppVersion
       security:
         - ApiKeyAuth: []
@@ -239,14 +289,14 @@ paths:
         $ref: '#/components/requestBodies/AppVersionDeleteRequest'
       responses:
         '200':
-          $ref: '#/components/responses/SimpleResponse'
+          $ref: '#/components/responses/ExtractionAppVersionDeleteResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend:
     post:
       tags: [应用管理]
       summary: 智能体生成抽取字段提示词
-      description: 基于示例文档，AI 自动生成字段名称、字段类型和字段提示词等配置参考。
+      description: 基于示例文档或提示词，AI 自动生成字段名称、字段类型和字段提示词等配置参考。传入高速版自定义抽取应用的 app_id 时，会进入高速版自动生成配置服务，返回 common_rule、field_rule、table_rule 等配置预览；该接口不会保存配置版本，也不会自动回填到 Web 页面应用中。高速版应用必须提供 file_url 或 file_base64，prompt 仅作为辅助生成提示。
       operationId: recommendExtractionFields
       security:
         - ApiKeyAuth: []
@@ -256,7 +306,7 @@ paths:
         $ref: '#/components/requestBodies/AiRecommendRequest'
       responses:
         '200':
-          $ref: '#/components/responses/AppConfigResponse'
+          $ref: '#/components/responses/AiRecommendResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/user/payment:
@@ -374,7 +424,7 @@ components:
       type: apiKey
       in: header
       name: X-API-KEY
-      description: 用户接入 OpenAPI 的令牌，在应用 API 中查看。
+      description: 生产环境的用户 OpenAPI Accessor access_key，在 ADP 平台的「我的 API」中查看。key 被禁用、过期或不属于生产环境时会返回 Accessor not found。
     EngineApiKeyAuth:
       type: apiKey
       in: header
@@ -452,44 +502,148 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/AppIdRequest'
-          example:
-            app_id: app_abc123
+          examples:
+            standardCustomExtractionApp:
+              summary: 删除标准版自定义抽取应用
+              value:
+                app_id: app_abc123
+            highSpeedCustomExtractionApp:
+              summary: 删除高速版自定义抽取应用
+              value:
+                app_id: app_1425
     AppVersionDeleteRequest:
       required: true
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/AppVersionDeleteRequest'
-          example:
-            app_id: app_abc123
-            config_version: v1
+          examples:
+            highSpeedConfigVersion:
+              summary: 删除高速版自定义抽取应用配置版本
+              value:
+                app_id: app_1425
+                config_version: v2
     ExtractionAppCreateRequest:
       required: true
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ExtractionAppCreateRequest'
+          examples:
+            standardCustomExtractionApp:
+              summary: 创建标准版自定义抽取应用
+              value:
+                ai_function: 1406
+                app_name: 采购单抽取应用
+                app_label: [purchase-order]
+                extract_fields:
+                  - field_name: 订单号
+                    field_type: string
+                    field_prompt: 抽取采购订单编号。
+                  - field_name: 订单日期
+                    field_type: date
+                    field_prompt: 抽取订单日期。
+                parse_mode: standard
+                enable_long_doc: false
+            highSpeedCustomExtractionApp:
+              summary: 创建高速版自定义抽取应用
+              value:
+                ai_function: 1425
+                app_name: 高速版发票抽取应用
+                app_label: [invoice, high-speed]
+                extract_fields:
+                  - field_key: invoice_no
+                    field_name: 发票号码
+                    field_type: string
+                    field_prompt: 抽取发票上的唯一发票号码。
+                  - field_key: invoice_date
+                    field_name: 开票日期
+                    field_type: date
+                    field_prompt: 抽取发票开具日期。
+                  - field_key: line_items
+                    field_name: 明细
+                    field_type: table
+                    sub_fields:
+                      - field_key: item_name
+                        field_name: 商品名称
+                        field_type: string
+                      - field_key: item_date
+                        field_name: 日期
+                        field_type: date
+                enable_field_value_translation: false
     ExtractionAppUpdateRequest:
       required: true
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ExtractionAppUpdateRequest'
+          examples:
+            highSpeedCustomExtractionApp:
+              summary: 修改高速版自定义抽取应用
+              value:
+                app_id: app_1425
+                app_name: 高速版发票抽取应用（新版）
+                config_version: v1
+                app_label: [invoice, high-speed]
+                extract_fields:
+                  - field_key: invoice_no
+                    field_name: 发票号码
+                    field_type: string
+                    field_prompt: 抽取发票上的唯一发票号码。
+                  - field_key: invoice_date
+                    field_name: 开票日期
+                    field_type: date
+                    field_prompt: 抽取发票开具日期。
+                  - field_key: total_amount
+                    field_name: 价税合计
+                    field_type: string
+                    field_prompt: 抽取发票价税合计金额。
+                  - field_key: line_items
+                    field_name: 明细
+                    field_type: table
+                    sub_fields:
+                      - field_key: item_name
+                        field_name: 商品名称
+                        field_type: string
+                      - field_key: item_amount
+                        field_name: 金额
+                        field_type: string
+                enable_field_value_translation: false
     AppConfigQueryRequest:
-      required: false
+      required: true
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/AppConfigQueryRequest'
+          examples:
+            highSpeedConfig:
+              summary: 查询高速版自定义抽取应用配置
+              value:
+                app_id: app_1425
+            highSpeedConfigVersion:
+              summary: 查询高速版指定配置版本
+              value:
+                app_id: app_1425
+                config_version: v1
     AiRecommendRequest:
       required: true
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/AiRecommendRequest'
-          example:
-            app_id: app_abc123
-            file_url: https://example.com/sample.pdf
+          examples:
+            standardCustomExtractionApp:
+              summary: 标准版自定义抽取应用生成字段提示词
+              value:
+                app_id: app_1406
+                file_url: https://example.com/invoice.pdf
+                prompt: 请从发票中抽取发票号码、开票日期和价税合计。
+            highSpeedCustomExtractionApp:
+              summary: 高速版自定义抽取应用自动生成配置预览
+              value:
+                app_id: app_1425
+                file_url: https://example.com/invoice.pdf
+                prompt: 请根据票据版面生成字段配置，字段 key 使用英文下划线命名。
     DocFlowRunRequest:
       required: true
       content:
@@ -574,12 +728,150 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ExtractionAppResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              app_id: app_abc123
+              app_name: 高速版发票抽取应用
+              app_label: [invoice, high-speed]
+              config_version: v1
+    ExtractionAppDeleteResponse:
+      description: 抽取应用删除结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExtractionAppDeleteResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              success: true
+              message: App deleted successfully
+    ExtractionAppUpdateResponse:
+      description: 抽取应用修改结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExtractionAppUpdateResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              app_id: app_1425
+              config_version: v2
+    ExtractionAppVersionDeleteResponse:
+      description: 抽取应用配置版本删除结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExtractionAppVersionDeleteResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              success: true
+              message: Version deleted successfully
     AppConfigResponse:
       description: 应用配置结果。
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/AppConfigResponse'
+    AiRecommendResponse:
+      description: 智能体生成字段配置结果。高速版返回配置预览，不会保存配置版本。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AiRecommendResponse'
+          examples:
+            standardCustomExtractionApp:
+              summary: 标准版自定义抽取应用推荐字段
+              value:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  app_id: app_1406
+                  app_name: ''
+                  extract_fields:
+                    - field_name: 发票号码
+                      field_type: string
+                      field_prompt: 抽取税务发票的唯一标识编号。
+                    - field_name: 开票日期
+                      field_type: date
+                      field_prompt: 抽取发票开具日期。
+            highSpeedCustomExtractionApp:
+              summary: 高速版自定义抽取应用自动生成配置预览
+              value:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  app_id: app_1425
+                  app_name: 高速版发票抽取应用
+                  ai_function: 1425
+                  extract_fields:
+                    - field_key: invoice_number
+                      field_name: 发票号码
+                      field_type: string
+                      field_prompt: 税务发票的唯一标识编号。
+                      field_description: 税务发票的唯一标识编号。
+                    - field_key: invoice_date
+                      field_name: 开票日期
+                      field_type: date
+                      field_prompt: 发票开具日期。
+                      field_description: 发票开具日期。
+                  prompt_rule: 仅抽取票面中明确出现的字段。
+                  common_rule: 仅抽取票面中明确出现的字段。
+                  field_rule:
+                    - field_key: invoice_number
+                      field_name: 发票号码
+                      field_type: string
+                      field_description: 税务发票的唯一标识编号。
+                    - field_key: invoice_date
+                      field_name: 开票日期
+                      field_type: date
+                      field_description: 发票开具日期。
+                  table_rule:
+                    - field_key: line_items
+                      field_name: 明细
+                      field_type: table
+                      field_description: 发票明细表。
+                      field_parent_id: ''
+                    - field_key: item_name
+                      field_name: 商品名称
+                      field_type: string
+                      field_description: 明细中的商品或服务名称。
+                      field_parent_id: line_items
+                    - field_key: item_amount
+                      field_name: 金额
+                      field_type: string
+                      field_description: 明细金额。
+                      field_parent_id: line_items
+                  page_count: 2
+                  document_type: invoice
+    AppListResponse:
+      description: 应用列表。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppListResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              list:
+                - id: app_1425
+                  app_name: 高速版发票抽取应用
+                  ai_function: 1425
+                  app_label: [invoice, high-speed]
+              total: 1
     UserPaymentResponse:
       description: 用户积分信息。
       content:
@@ -665,7 +957,7 @@ components:
           properties:
             with_rec_result:
               type: boolean
-              description: 是否返回文档解析结果。
+              description: 是否返回文档解析结果。高速版抽取不返回解析结果。
               default: false
     DocumentExtractResponse:
       allOf:
@@ -791,121 +1083,343 @@ components:
     ExtractionFieldConfig:
       type: object
       properties:
+        field_key:
+          type: string
+          pattern: '^[A-Za-z][A-Za-z0-9_]{0,63}$'
+          description: 字段唯一标识。创建高速版自定义抽取应用时必填；标准版不要求传入。
         field_name:
           type: string
+          minLength: 1
+          maxLength: 50
+          description: 字段名称。
         field_type:
           type: string
           enum: [string, date, table]
+          description: 字段类型。表格字段使用 table。
         field_prompt:
           type: string
+          description: 字段抽取提示词。
         sub_fields:
           type: array
+          description: 表格子字段。field_type 为 table 时必须至少提供 1 个有效子字段。
           items:
             $ref: '#/components/schemas/ExtractionSubFieldConfig'
       required: [field_name, field_type]
     ExtractionSubFieldConfig:
       type: object
       properties:
+        field_key:
+          type: string
+          pattern: '^[A-Za-z][A-Za-z0-9_]{0,63}$'
+          description: 子字段唯一标识。创建高速版自定义抽取应用时必填；标准版不要求传入。
         field_name:
           type: string
+          minLength: 1
+          maxLength: 50
+          description: 子字段名称。
         field_type:
           type: string
           enum: [string, date]
+          description: 子字段类型。表格内不允许再嵌套表格。
         field_prompt:
           type: string
-      required: [field_type]
+          description: 子字段抽取提示词。
+      required: [field_name, field_type]
     LongDocConfig:
       type: object
       properties:
         doc_type:
           type: string
+          description: 文档类型。
         doc_desc:
           type: string
+          description: 文档类型描述。
+      required: [doc_type]
     ExtractionAppCreateRequest:
+      description: 先设置 ai_function。ai_function 为 1406 时使用标准版自定义抽取应用参数；为 1425 时使用高速版自定义抽取应用参数。
+      discriminator:
+        propertyName: ai_function
+        mapping:
+          '1406': '#/components/schemas/StandardExtractionAppCreateRequest'
+          '1425': '#/components/schemas/HighSpeedExtractionAppCreateRequest'
+      oneOf:
+        - $ref: '#/components/schemas/StandardExtractionAppCreateRequest'
+        - $ref: '#/components/schemas/HighSpeedExtractionAppCreateRequest'
+    StandardExtractionAppCreateRequest:
       type: object
+      title: 创建标准版自定义抽取应用
       properties:
+        ai_function:
+          type: integer
+          enum: [1406]
+          default: 1406
+          description: 应用类型。创建标准自定义抽取应用传 1406；不传时默认按 1406 处理。
         app_name:
           type: string
+          minLength: 1
+          maxLength: 100
+          description: 应用名称。
         app_label:
           type: array
           maxItems: 5
+          description: 应用标签列表，最多 5 个。
           items:
             type: string
         extract_fields:
           type: array
+          maxItems: 20
+          description: 抽取字段配置列表，最多 20 个字段。
           items:
             $ref: '#/components/schemas/ExtractionFieldConfig'
         parse_mode:
           type: string
-          enum: [standard, advance, agentic]
+          enum: [standard, advance, agentic, fast_vlm]
+          description: 解析模式。标准版自定义抽取应用必填。
+        enable_field_value_translation:
+          type: boolean
+          default: false
+          description: 是否开启抽取结果翻译，默认关闭。
         enable_long_doc:
           type: boolean
           default: false
+          description: 是否开启长文档支持。
         long_doc_config:
           type: array
           maxItems: 5
+          description: 长文档配置，仅 enable_long_doc 为 true 时使用。
           items:
             $ref: '#/components/schemas/LongDocConfig'
-      required: [app_name, extract_fields, parse_mode]
-    ExtractionAppUpdateRequest:
+      required: [ai_function, app_name, extract_fields, parse_mode]
+    HighSpeedExtractionAppCreateRequest:
+      type: object
+      title: 创建高速版抽取应用
+      properties:
+        ai_function:
+          type: integer
+          enum: [1425]
+          default: 1425
+          description: 应用类型。创建高速版自定义抽取应用固定传 1425。
+        app_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: 应用名称。
+        app_label:
+          type: array
+          maxItems: 5
+          description: 应用标签列表，最多 5 个。
+          items:
+            type: string
+        extract_fields:
+          type: array
+          minItems: 1
+          maxItems: 20
+          description: 高速版抽取字段配置列表，最多 20 个字段。每个字段都需要提供 field_key。
+          items:
+            $ref: '#/components/schemas/HighSpeedExtractionFieldConfig'
+        enable_field_value_translation:
+          type: boolean
+          default: false
+          description: 是否开启抽取结果翻译，默认关闭。
+      required: [ai_function, app_name, extract_fields]
+    HighSpeedExtractionFieldConfig:
+      type: object
+      title: 高速版字段
+      description: 高速版字段配置。普通字段的 field_type 为 string 或 date，不要传 sub_fields；表格字段的 field_type 为 table，必须传 sub_fields。
+      properties:
+        field_key:
+          type: string
+          pattern: '^[A-Za-z][A-Za-z0-9_]{0,63}$'
+          description: 字段唯一标识。必须以英文字母开头，只能包含英文字母、数字和下划线，最多 64 个字符。
+        field_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: 字段名称。
+        field_type:
+          type: string
+          enum: [string, date, table]
+          description: 字段类型。普通字段使用 string 或 date；表格字段使用 table。
+        field_prompt:
+          type: string
+          maxLength: 200
+          description: 字段抽取提示词。
+        sub_fields:
+          type: array
+          maxItems: 50
+          description: 表格子字段。仅 field_type 为 table 时填写，且必须至少提供 1 个有效子字段；普通字段不要传该参数。
+          items:
+            $ref: '#/components/schemas/HighSpeedExtractionSubFieldConfig'
+          examples:
+            - - field_key: item_name
+                field_name: 商品名称
+                field_type: string
+      required: [field_key, field_name, field_type]
       allOf:
-        - $ref: '#/components/schemas/ExtractionAppCreateRequest'
-        - type: object
-          properties:
-            app_id:
-              type: string
-            config_version:
-              type: string
-          required: [app_id, config_version]
+        - if:
+            properties:
+              field_type:
+                const: table
+            required: [field_type]
+          then:
+            required: [sub_fields]
+            properties:
+              sub_fields:
+                minItems: 1
+    HighSpeedExtractionSubFieldConfig:
+      type: object
+      properties:
+        field_key:
+          type: string
+          pattern: '^[A-Za-z][A-Za-z0-9_]{0,63}$'
+          description: 子字段唯一标识。必须以英文字母开头，只能包含英文字母、数字和下划线，最多 64 个字符。
+        field_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: 子字段名称。
+        field_type:
+          type: string
+          enum: [string, date]
+          description: 子字段类型。表格内不允许再嵌套表格。
+        field_prompt:
+          type: string
+          maxLength: 200
+          description: 子字段抽取提示词。
+      required: [field_key, field_name, field_type]
+    ExtractionAppUpdateRequest:
+      oneOf:
+        - $ref: '#/components/schemas/StandardExtractionAppUpdateRequest'
+        - $ref: '#/components/schemas/HighSpeedExtractionAppUpdateRequest'
+    StandardExtractionAppUpdateRequest:
+      type: object
+      title: 修改标准版自定义抽取应用
+      properties:
+        app_id:
+          type: string
+          description: 应用 ID。
+        app_name:
+          type: string
+          description: 应用名称。不传或传空字符串时不更新应用名称。
+        config_version:
+          type: string
+          description: 当前配置版本。修改后会另存为新版本。
+        app_label:
+          type: array
+          maxItems: 5
+          description: 应用标签列表，最多 5 个。
+          items:
+            type: string
+        extract_fields:
+          type: array
+          maxItems: 20
+          description: 抽取字段配置列表，最多 20 个字段。
+          items:
+            $ref: '#/components/schemas/ExtractionFieldConfig'
+        parse_mode:
+          type: string
+          enum: [standard, advance, agentic, fast_vlm]
+          description: 解析模式。标准版自定义抽取应用必填；高速版自定义抽取应用不支持该参数的设置。
+        enable_field_value_translation:
+          type: boolean
+          default: false
+          description: 是否开启抽取结果翻译，默认关闭。
+        enable_long_doc:
+          type: boolean
+          default: false
+          description: 是否开启长文档支持。标准版自定义抽取应用支持该参数；高速版自定义抽取应用不支持该参数的设置。
+        long_doc_config:
+          type: array
+          maxItems: 5
+          description: 长文档配置，仅 enable_long_doc 为 true 时使用。
+          items:
+            $ref: '#/components/schemas/LongDocConfig'
+      required: [app_id, config_version, extract_fields, parse_mode]
+    HighSpeedExtractionAppUpdateRequest:
+      type: object
+      title: 修改高速版抽取应用
+      properties:
+        app_id:
+          type: string
+          description: 高速版自定义抽取应用 ID。
+        app_name:
+          type: string
+          description: 应用名称。不传或传空字符串时不更新应用名称。
+        config_version:
+          type: string
+          description: 当前配置版本。修改后会另存为新版本。
+        app_label:
+          type: array
+          maxItems: 5
+          description: 应用标签列表，最多 5 个。
+          items:
+            type: string
+        extract_fields:
+          type: array
+          minItems: 1
+          maxItems: 20
+          description: 高速版抽取字段配置列表，最多 20 个字段。每个字段都需要提供 field_key。
+          items:
+            $ref: '#/components/schemas/HighSpeedExtractionFieldConfig'
+        enable_field_value_translation:
+          type: boolean
+          default: false
+          description: 是否开启抽取结果翻译，默认关闭。
+      required: [app_id, config_version, extract_fields]
     AppIdRequest:
       type: object
       properties:
         app_id:
           type: string
+          description: 应用 ID。删除高速版自定义抽取应用时，传入高速版应用的 app_id。
       required: [app_id]
     AppVersionDeleteRequest:
       type: object
       properties:
         app_id:
           type: string
+          description: 应用 ID。删除高速版自定义抽取应用配置时，传入高速版应用的 app_id。
         config_version:
           type: string
+          description: 要删除的配置版本。
       required: [app_id, config_version]
     AppConfigQueryRequest:
       type: object
       properties:
         app_id:
           type: string
+          description: 应用 ID。查询高速版自定义抽取应用配置时，传入高速版应用的 app_id。
         config_version:
           type: string
-        app_name:
-          type: string
-        ai_function:
-          type: integer
-        app_type:
-          type: integer
-          description: 1=自定义，0=系统预设。
-        with_extra:
-          type: integer
-        offset:
-          type: integer
-        limit:
-          type: integer
+          description: 配置版本。可选，默认返回最新版本。
+      required: [app_id]
     AiRecommendRequest:
-      allOf:
-        - type: object
-          properties:
-            app_id:
-              type: string
-            file_base64:
-              type: string
-            file_url:
-              type: string
-              format: uri
-          required: [app_id]
-        - anyOf:
-            - required: [file_base64]
-            - required: [file_url]
+      type: object
+      description: 智能体生成字段配置请求。请求体需提供 file_url 或 file_base64；prompt 可作为辅助生成提示。
+      properties:
+        app_id:
+          type: string
+          description: 应用 ID。传入高速版自定义抽取应用时，返回高速版自动生成配置预览。
+        file_base64:
+          type: string
+          description: 文件 Base64 编码。高速版应用与 file_url 二选一必填。
+        file_url:
+          type: string
+          format: uri
+          description: 文件 URL。高速版应用与 file_base64 二选一必填。
+        prompt:
+          type: string
+          description: 用户提供的生成提示。需要同时提供文件，并将 prompt 作为辅助说明。
+        doc_type:
+          type: string
+          description: 文档类型。标准版自动生成建议时可传入；高速版会根据文档自动识别。
+        doc_type_description:
+          type: string
+          description: 文档类型描述。标准版自动生成建议时可传入。
+      required: [app_id]
+      anyOf:
+        - required: [file_base64]
+        - required: [file_url]
     ExtractionAppResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -913,6 +1427,48 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/AppConfigData'
+    ExtractionAppDeleteResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  description: 是否删除成功。
+                message:
+                  type: string
+                  description: 操作消息。
+    ExtractionAppUpdateResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                app_id:
+                  type: string
+                  description: 应用 ID。
+                config_version:
+                  type: string
+                  description: 新配置版本号。
+    ExtractionAppVersionDeleteResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  description: 是否删除成功。
+                message:
+                  type: string
+                  description: 操作消息。
     AppListResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -961,6 +1517,139 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LongDocConfig'
+    AiRecommendResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AiRecommendData'
+    AiRecommendData:
+      type: object
+      additionalProperties: true
+      properties:
+        app_id:
+          type: string
+          description: 应用 ID。
+        app_name:
+          type: string
+          description: 应用名称。
+        ai_function:
+          type: integer
+          enum: [1406, 1425]
+          description: 应用类型。1406 表示标准版自定义抽取；1425 表示高速版自定义抽取。
+        extract_fields:
+          type: array
+          description: 兼容字段列表。标准版返回推荐字段；高速版当前返回普通字段预览，完整配置请使用 field_rule 和 table_rule。
+          items:
+            $ref: '#/components/schemas/AiRecommendFieldConfig'
+        prompt_rule:
+          type: string
+          description: 高速版自动生成配置的整体规则，兼容字段。
+        common_rule:
+          type: string
+          description: 高速版自动生成配置的整体规则。
+        field_rule:
+          type: array
+          description: 高速版自动生成的普通字段配置预览。该字段不会自动保存到应用配置中。
+          items:
+            $ref: '#/components/schemas/AiRecommendGeneratedRuleField'
+        table_rule:
+          type: array
+          description: 高速版自动生成的表格字段配置预览，采用平铺结构。field_parent_id 为空的记录为表格父字段，field_parent_id 指向父字段 field_key 的记录为表格子字段。
+          items:
+            $ref: '#/components/schemas/AiRecommendGeneratedRuleField'
+        page_count:
+          type: integer
+          description: 高速版自动生成配置时使用的页数。
+        document_type:
+          type: string
+          description: 高速版自动识别的文档类型。
+    AiRecommendFieldConfig:
+      type: object
+      additionalProperties: true
+      properties:
+        field_key:
+          type: string
+          description: 字段唯一标识。高速版自动生成配置时返回。
+        field_name:
+          type: string
+          description: 字段名称。
+        field_type:
+          type: string
+          enum: [string, date, table]
+          description: 字段类型。
+        field_prompt:
+          type:
+            - string
+            - 'null'
+          description: 字段提示词。
+        field_description:
+          type:
+            - string
+            - 'null'
+          description: 字段描述。
+        sub_fields:
+          type: array
+          description: 表格子字段列表。标准版表格字段可能返回该字段；高速版表格字段请查看 table_rule。
+          items:
+            $ref: '#/components/schemas/AiRecommendSubFieldConfig'
+      required: [field_name, field_type]
+    AiRecommendSubFieldConfig:
+      type: object
+      additionalProperties: true
+      properties:
+        field_key:
+          type: string
+          description: 子字段唯一标识。
+        field_name:
+          type: string
+          description: 子字段名称。
+        field_type:
+          type: string
+          enum: [string, date]
+          description: 子字段类型。
+        field_prompt:
+          type:
+            - string
+            - 'null'
+          description: 子字段提示词。
+        field_description:
+          type:
+            - string
+            - 'null'
+          description: 子字段描述。
+      required: [field_name, field_type]
+    AiRecommendGeneratedRuleField:
+      type: object
+      additionalProperties: true
+      properties:
+        field_key:
+          type: string
+          description: 字段唯一标识。表格子字段的 field_parent_id 会引用表格父字段的 field_key。
+        field_name:
+          type: string
+          description: 字段名称。
+        field_type:
+          type: string
+          enum: [string, date, table]
+          description: 字段类型。table 表示表格父字段。
+        field_description:
+          type: string
+          description: 字段描述。
+        field_parent_id:
+          type: string
+          description: 表格子字段所属的父字段 field_key。为空时表示普通字段或表格父字段。
+        config:
+          type: object
+          additionalProperties: true
+          description: 字段扩展配置。
+        source:
+          type: integer
+          description: 字段来源。
+        _field_key_source:
+          type: string
+          description: 模型生成的原始字段 key，仅在服务保留调试信息时返回。
     UserPaymentResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
