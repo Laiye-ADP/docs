@@ -127,18 +127,7 @@
                       "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
                     ],
                     "icon": "asterisk"
-                  },
-                  {
-                    "group": "自定义抽取应用-高速版",
-                    "icon": "asterisk",
-                    "pages": [
-                      "create",
-                      "untitled-page",
-                      "file",
-                      "file-1",
-                      "file-2"
-                    ]
-                  },
+                  },                
                   {
                     "group": "文档解析",
                     "pages": [
