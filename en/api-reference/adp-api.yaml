@@ -27,7 +27,7 @@ paths:
     post:
       tags: [Document extraction]
       summary: Extract document (sync)
-      description: Extract fields from an uploaded document by using the specified extraction application.
+      description: For a user-uploaded document, call the specified document extraction application and extract content from the file based on the application configuration and rules. The same endpoint applies to custom extraction applications, overseas invoices, receipts, purchase orders, domestic general bills, and cards.
       operationId: extractDocument
       security:
         - ApiKeyAuth: []
@@ -45,7 +45,7 @@ paths:
     post:
       tags: [Document extraction]
       summary: Create document extraction task
-      description: Create an async document extraction task and return task_id immediately.
+      description: Create a document extraction task and return task_id immediately. Use this endpoint for large documents or long-running extraction tasks.
       operationId: createDocumentExtractTask
       security:
         - ApiKeyAuth: []
@@ -63,7 +63,7 @@ paths:
     get:
       tags: [Document extraction]
       summary: Query document extraction result
-      description: Query document extraction status and results by task_id.
+      description: Query document extraction status and results by the task_id returned by the task creation endpoint.
       operationId: queryDocumentExtractTask
       security:
         - ApiKeyAuth: []
@@ -132,7 +132,7 @@ paths:
     post:
       tags: [Application management]
       summary: Create extraction application
-      description: Create an extraction application and configure labels, fields, and parsing options.
+      description: Create a standard or high-speed custom extraction application, and configure labels, fields, and extraction settings. To create a high-speed custom extraction application, set ai_function to 1425 and provide field_key for fields and table sub-fields.
       operationId: createExtractionApp
       security:
         - ApiKeyAuth: []
@@ -149,7 +149,7 @@ paths:
     post:
       tags: [Application management]
       summary: Delete extraction application
-      description: Delete an extraction application. This action cannot be undone.
+      description: Delete an extraction application. This action cannot be undone. To delete a high-speed custom extraction application, reuse this endpoint and pass the app_id of the high-speed application.
       operationId: deleteExtractionApp
       security:
         - ApiKeyAuth: []
@@ -159,14 +159,14 @@ paths:
         $ref: '#/components/requestBodies/AppIdRequest'
       responses:
         '200':
-          $ref: '#/components/responses/SimpleResponse'
+          $ref: '#/components/responses/ExtractionAppDeleteResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update:
     post:
       tags: [Application management]
       summary: Update extraction application
-      description: Update the name, labels, fields, and parsing configuration of an extraction application.
+      description: Update the name, labels, fields, and extraction configuration of an extraction application, and create a new configuration version. To update a high-speed custom extraction application, reuse this endpoint and pass the app_id of the high-speed application. The request body does not need ai_function. High-speed custom extraction applications do not support setting parse_mode or enable_long_doc.
       operationId: updateExtractionApp
       security:
         - ApiKeyAuth: []
@@ -176,15 +176,15 @@ paths:
         $ref: '#/components/requestBodies/ExtractionAppUpdateRequest'
       responses:
         '200':
-          $ref: '#/components/responses/ExtractionAppResponse'
+          $ref: '#/components/responses/ExtractionAppUpdateResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config:
     post:
       tags: [Application management]
-      summary: List applications or get application configuration
-      description: List extraction applications, or pass app_id to get the configuration of a specific application.
-      operationId: listOrGetExtractionAppConfig
+      summary: Get application configuration
+      description: Get an extraction application configuration by app_id. To get a high-speed custom extraction application configuration, pass the app_id of the high-speed application. If config_version is omitted, the latest configuration version is returned.
+      operationId: getExtractionAppConfig
       security:
         - ApiKeyAuth: []
       parameters:
@@ -193,14 +193,93 @@ paths:
         $ref: '#/components/requestBodies/AppConfigQueryRequest'
       responses:
         '200':
-          $ref: '#/components/responses/AppConfigResponse'
+          description: Application configuration.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppConfigResponse'
+              examples:
+                highSpeedConfig:
+                  value:
+                    code: 200
+                    message: success
+                    data:
+                      app_id: app_1425
+                      app_name: High-speed invoice extraction app
+                      app_label: [invoice, high-speed]
+                      config_version: v1
+                      extract_fields:
+                        - field_name: Invoice number
+                          field_type: string
+                          field_prompt: Extract the unique invoice number from the invoice.
+                      parse_mode: standard
+                      enable_long_doc: false
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app-list:
+    get:
+      tags: [Application management]
+      summary: List applications
+      description: List applications. To list high-speed custom extraction applications, set ai_function=1425.
+      operationId: listExtractionApps
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - name: app_name
+          in: query
+          required: false
+          description: Filter by application name. Fuzzy matching is supported.
+          schema:
+            type: string
+        - name: ai_function
+          in: query
+          required: false
+          description: Filter by AI capability. Use 1425 for high-speed custom extraction applications and 1406 for standard custom extraction applications.
+          schema:
+            type: integer
+            enum: [1406, 1425]
+        - name: app_type
+          in: query
+          required: false
+          description: Application type. 1 means custom application. 0 means system preset.
+          schema:
+            type: integer
+            enum: [0, 1]
+        - name: with_extra
+          in: query
+          required: false
+          description: Whether to query extra information.
+          schema:
+            type: integer
+            enum: [0, 1]
+            default: 1
+        - name: offset
+          in: query
+          required: false
+          description: Pagination offset.
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: limit
+          in: query
+          required: false
+          description: Page size.
+          schema:
+            type: integer
+            default: 1000
+            minimum: 1
+      responses:
+        '200':
+          $ref: '#/components/responses/AppListResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete:
     post:
       tags: [Application management]
       summary: Delete extraction application configuration
-      description: Delete a field configuration version under an application.
+      description: Delete a field configuration version under an application. To delete the configuration of a high-speed custom extraction application, reuse this endpoint and pass the high-speed application app_id and the config_version to delete.
       operationId: deleteExtractionAppVersion
       security:
         - ApiKeyAuth: []
@@ -210,14 +289,14 @@ paths:
         $ref: '#/components/requestBodies/AppVersionDeleteRequest'
       responses:
         '200':
-          $ref: '#/components/responses/SimpleResponse'
+          $ref: '#/components/responses/ExtractionAppVersionDeleteResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend:
     post:
       tags: [Application management]
       summary: Generate extraction field prompts
-      description: Generate field names, field types, and prompts from sample documents.
+      description: Generate field names, field types, field prompts, and other configuration references from a sample document or prompt. When you pass the app_id of a high-speed custom extraction application, the high-speed auto-configuration service returns a configuration preview such as common_rule, field_rule, and table_rule. This endpoint does not save a configuration version or automatically populate the Web application. High-speed applications must provide file_url or file_base64. prompt is only used as an auxiliary instruction.
       operationId: recommendExtractionFields
       security:
         - ApiKeyAuth: []
@@ -227,7 +306,7 @@ paths:
         $ref: '#/components/requestBodies/AiRecommendRequest'
       responses:
         '200':
-          $ref: '#/components/responses/AppConfigResponse'
+          $ref: '#/components/responses/AiRecommendResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/user/payment:
@@ -345,10 +424,12 @@ components:
       type: apiKey
       in: header
       name: X-API-KEY
+      description: Production OpenAPI Accessor access_key. You can find it in My API in the ADP platform. If the key is disabled, expired, or does not belong to the production environment, the API returns Accessor not found.
     EngineApiKeyAuth:
       type: apiKey
       in: header
       name: X-API-Key
+      description: Workflow engine API access key.
   parameters:
     TenantName:
       name: tenant_name
@@ -395,48 +476,174 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/DocumentFileRequest'
+          example:
+            app_id: app_abc123
+            file_url: https://example.com/invoice.pdf
     DocumentExtractRequest:
       required: true
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/DocumentExtractRequest'
+          examples:
+            fileUrl:
+              value:
+                app_id: app_abc123
+                file_url: https://example.com/purchase_order.pdf
+                with_rec_result: false
+            fileBase64:
+              value:
+                app_id: app_abc123
+                file_base64: JVBERi0xLjQKJcfs...
+                with_rec_result: true
     AppIdRequest:
       required: true
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/AppIdRequest'
+          examples:
+            standardCustomExtractionApp:
+              summary: Delete standard custom extraction application
+              value:
+                app_id: app_abc123
+            highSpeedCustomExtractionApp:
+              summary: Delete high-speed custom extraction application
+              value:
+                app_id: app_1425
     AppVersionDeleteRequest:
       required: true
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/AppVersionDeleteRequest'
+          examples:
+            highSpeedConfigVersion:
+              summary: Delete high-speed custom extraction application configuration version
+              value:
+                app_id: app_1425
+                config_version: v2
     ExtractionAppCreateRequest:
       required: true
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ExtractionAppCreateRequest'
+          examples:
+            standardCustomExtractionApp:
+              summary: Create standard custom extraction application
+              value:
+                ai_function: 1406
+                app_name: Purchase order extraction app
+                app_label: [purchase-order]
+                extract_fields:
+                  - field_name: Order number
+                    field_type: string
+                    field_prompt: Extract the purchase order number.
+                  - field_name: Order date
+                    field_type: date
+                    field_prompt: Extract the order date.
+                parse_mode: standard
+                enable_long_doc: false
+            highSpeedCustomExtractionApp:
+              summary: Create high-speed custom extraction application
+              value:
+                ai_function: 1425
+                app_name: High-speed invoice extraction app
+                app_label: [invoice, high-speed]
+                extract_fields:
+                  - field_key: invoice_no
+                    field_name: Invoice number
+                    field_type: string
+                    field_prompt: Extract the unique invoice number from the invoice.
+                  - field_key: invoice_date
+                    field_name: Invoice date
+                    field_type: date
+                    field_prompt: Extract the invoice issue date.
+                  - field_key: line_items
+                    field_name: Line items
+                    field_type: table
+                    sub_fields:
+                      - field_key: item_name
+                        field_name: Item name
+                        field_type: string
+                      - field_key: item_date
+                        field_name: Date
+                        field_type: date
+                enable_field_value_translation: false
     ExtractionAppUpdateRequest:
       required: true
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ExtractionAppUpdateRequest'
+          examples:
+            highSpeedCustomExtractionApp:
+              summary: Update high-speed custom extraction application
+              value:
+                app_id: app_1425
+                app_name: High-speed invoice extraction app (new version)
+                config_version: v1
+                app_label: [invoice, high-speed]
+                extract_fields:
+                  - field_key: invoice_no
+                    field_name: Invoice number
+                    field_type: string
+                    field_prompt: Extract the unique invoice number from the invoice.
+                  - field_key: invoice_date
+                    field_name: Invoice date
+                    field_type: date
+                    field_prompt: Extract the invoice issue date.
+                  - field_key: total_amount
+                    field_name: Total amount
+                    field_type: string
+                    field_prompt: Extract the total amount including tax.
+                  - field_key: line_items
+                    field_name: Line items
+                    field_type: table
+                    sub_fields:
+                      - field_key: item_name
+                        field_name: Item name
+                        field_type: string
+                      - field_key: item_amount
+                        field_name: Amount
+                        field_type: string
+                enable_field_value_translation: false
     AppConfigQueryRequest:
-      required: false
+      required: true
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/AppConfigQueryRequest'
+          examples:
+            highSpeedConfig:
+              summary: Get high-speed custom extraction application configuration
+              value:
+                app_id: app_1425
+            highSpeedConfigVersion:
+              summary: Get a specified high-speed configuration version
+              value:
+                app_id: app_1425
+                config_version: v1
     AiRecommendRequest:
       required: true
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/AiRecommendRequest'
+          examples:
+            standardCustomExtractionApp:
+              summary: Generate field prompts for a standard custom extraction application
+              value:
+                app_id: app_1406
+                file_url: https://example.com/invoice.pdf
+                prompt: Extract the invoice number, invoice date, and total amount from the invoice.
+            highSpeedCustomExtractionApp:
+              summary: Generate a high-speed custom extraction configuration preview
+              value:
+                app_id: app_1425
+                file_url: https://example.com/invoice.pdf
+                prompt: Generate field configuration based on the document layout. Use English snake_case field keys.
     WorkflowRunRequest:
       required: true
       content:
@@ -450,6 +657,9 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/SimpleResponse'
+          example:
+            code: success
+            message: success
     ValidationError:
       description: Validation error.
       content:
@@ -461,31 +671,199 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/TaskCreateResponse'
+            allOf:
+              - $ref: '#/components/schemas/SimpleResponse'
+              - type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      task_id:
+                        type: string
+          example:
+            code: success
+            message: ''
+            data:
+              task_id: 94fe9b74e0e311f091505e345594c618
     DocumentExtractResponse:
       description: Document extraction result.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/DocumentExtractResponse'
+          example:
+            code: success
+            message: ''
+            data:
+              task_id: 94fe9b74e0e311f091505e345594c618
+              file_url: ''
+              status: 4
+              doc_recognize_result: []
+              extraction_result: []
     DocumentRecognizeResponse:
       description: Document recognition result.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/DocumentRecognizeResponse'
+          example:
+            code: success
+            message: ''
+            data:
+              task_id: 94fe9b74e0e311f091505e345594c618
+              file_url: ''
+              status: 4
+              doc_recognize_result: []
     ExtractionAppResponse:
       description: Extraction application result.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/AppConfigResponse'
+            $ref: '#/components/schemas/ExtractionAppResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              app_id: app_abc123
+              app_name: High-speed invoice extraction app
+              app_label: [invoice, high-speed]
+              config_version: v1
+    ExtractionAppDeleteResponse:
+      description: Extraction application deletion result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExtractionAppDeleteResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              success: true
+              message: App deleted successfully
+    ExtractionAppUpdateResponse:
+      description: Extraction application update result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExtractionAppUpdateResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              app_id: app_1425
+              config_version: v2
+    ExtractionAppVersionDeleteResponse:
+      description: Extraction application configuration version deletion result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExtractionAppVersionDeleteResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              success: true
+              message: Version deleted successfully
     AppConfigResponse:
       description: Application configuration result.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/AppConfigResponse'
+    AiRecommendResponse:
+      description: Field configuration generation result. High-speed applications return a configuration preview and do not save a configuration version.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AiRecommendResponse'
+          examples:
+            standardCustomExtractionApp:
+              summary: Recommended fields for a standard custom extraction application
+              value:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  app_id: app_1406
+                  app_name: ''
+                  extract_fields:
+                    - field_name: Invoice number
+                      field_type: string
+                      field_prompt: Extract the unique identifier of the tax invoice.
+                    - field_name: Invoice date
+                      field_type: date
+                      field_prompt: Extract the invoice issue date.
+            highSpeedCustomExtractionApp:
+              summary: Generated high-speed custom extraction configuration preview
+              value:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  app_id: app_1425
+                  app_name: High-speed invoice extraction app
+                  ai_function: 1425
+                  extract_fields:
+                    - field_key: invoice_number
+                      field_name: Invoice number
+                      field_type: string
+                      field_prompt: Unique identifier of the tax invoice.
+                      field_description: Unique identifier of the tax invoice.
+                    - field_key: invoice_date
+                      field_name: Invoice date
+                      field_type: date
+                      field_prompt: Invoice issue date.
+                      field_description: Invoice issue date.
+                  prompt_rule: Extract only fields that clearly appear in the document.
+                  common_rule: Extract only fields that clearly appear in the document.
+                  field_rule:
+                    - field_key: invoice_number
+                      field_name: Invoice number
+                      field_type: string
+                      field_description: Unique identifier of the tax invoice.
+                    - field_key: invoice_date
+                      field_name: Invoice date
+                      field_type: date
+                      field_description: Invoice issue date.
+                  table_rule:
+                    - field_key: line_items
+                      field_name: Line items
+                      field_type: table
+                      field_description: Invoice line item table.
+                      field_parent_id: ''
+                    - field_key: item_name
+                      field_name: Item name
+                      field_type: string
+                      field_description: Product or service name in the line item.
+                      field_parent_id: line_items
+                    - field_key: item_amount
+                      field_name: Amount
+                      field_type: string
+                      field_description: Line item amount.
+                      field_parent_id: line_items
+                  page_count: 2
+                  document_type: invoice
+    AppListResponse:
+      description: Application list.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppListResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              list:
+                - id: app_1425
+                  app_name: High-speed invoice extraction app
+                  ai_function: 1425
+                  app_label: [invoice, high-speed]
+              total: 1
     UserPaymentResponse:
       description: Credit usage.
       content:
@@ -518,26 +896,33 @@ components:
           oneOf:
             - type: string
             - type: integer
+          description: Business code. A successful response is usually success or 200.
         message:
           type: string
+          description: Response message.
         tips:
           type:
             - string
             - 'null'
+          description: Details. Defaults to null.
     DocumentFileRequest:
-      type: object
-      properties:
-        app_id:
-          type: string
-        file_base64:
-          type: string
-        file_url:
-          type: string
-          format: uri
-      required: [app_id]
-      anyOf:
-        - required: [file_base64]
-        - required: [file_url]
+      allOf:
+        - type: object
+          properties:
+            app_id:
+              type: string
+              description: Unique application ID.
+            file_base64:
+              type: string
+              description: Base64-encoded file. Use either file_base64 or file_url.
+            file_url:
+              type: string
+              format: uri
+              description: File URL. Use either file_url or file_base64.
+          required: [app_id]
+        - anyOf:
+            - required: [file_base64]
+            - required: [file_url]
     DocumentExtractRequest:
       allOf:
         - $ref: '#/components/schemas/DocumentFileRequest'
@@ -545,6 +930,7 @@ components:
           properties:
             with_rec_result:
               type: boolean
+              description: Whether to return document recognition results. High-speed extraction does not return recognition results.
               default: false
     TaskCreateResponse:
       allOf:
@@ -575,81 +961,573 @@ components:
     ExtractionFieldConfig:
       type: object
       properties:
+        field_key:
+          type: string
+          pattern: '^[A-Za-z][A-Za-z0-9_]{0,63}$'
+          description: Unique field identifier. Required when you create a high-speed custom extraction application. Standard applications do not require this field.
         field_name:
           type: string
+          minLength: 1
+          maxLength: 50
+          description: Field name.
         field_type:
           type: string
           enum: [string, date, table]
+          description: Field type. Use table for table fields.
         field_prompt:
           type: string
+          description: Field extraction prompt.
         sub_fields:
           type: array
+          description: Table sub-fields. When field_type is table, provide at least one valid sub-field.
           items:
-            type: object
-            additionalProperties: true
+            $ref: '#/components/schemas/ExtractionSubFieldConfig'
       required: [field_name, field_type]
-    ExtractionAppCreateRequest:
+    ExtractionSubFieldConfig:
       type: object
       properties:
+        field_key:
+          type: string
+          pattern: '^[A-Za-z][A-Za-z0-9_]{0,63}$'
+          description: Unique sub-field identifier. Required when you create a high-speed custom extraction application. Standard applications do not require this field.
+        field_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Sub-field name.
+        field_type:
+          type: string
+          enum: [string, date]
+          description: Sub-field type. Nested tables are not supported inside a table.
+        field_prompt:
+          type: string
+          description: Sub-field extraction prompt.
+      required: [field_name, field_type]
+    LongDocConfig:
+      type: object
+      properties:
+        doc_type:
+          type: string
+          description: Document type.
+        doc_desc:
+          type: string
+          description: Document type description.
+      required: [doc_type]
+    ExtractionAppCreateRequest:
+      description: Set ai_function first. Use the standard custom extraction application parameters when ai_function is 1406. Use the high-speed custom extraction application parameters when ai_function is 1425.
+      discriminator:
+        propertyName: ai_function
+        mapping:
+          '1406': '#/components/schemas/StandardExtractionAppCreateRequest'
+          '1425': '#/components/schemas/HighSpeedExtractionAppCreateRequest'
+      oneOf:
+        - $ref: '#/components/schemas/StandardExtractionAppCreateRequest'
+        - $ref: '#/components/schemas/HighSpeedExtractionAppCreateRequest'
+    StandardExtractionAppCreateRequest:
+      type: object
+      title: Create standard custom extraction application
+      properties:
+        ai_function:
+          type: integer
+          enum: [1406]
+          default: 1406
+          description: Application type. Use 1406 to create a standard custom extraction application. If omitted, the API handles the request as 1406 by default.
         app_name:
           type: string
+          minLength: 1
+          maxLength: 100
+          description: Application name.
         app_label:
           type: array
+          maxItems: 5
+          description: Application labels. Up to 5 labels.
           items:
             type: string
         extract_fields:
           type: array
+          maxItems: 20
+          description: Extraction field configuration list. Up to 20 fields.
           items:
             $ref: '#/components/schemas/ExtractionFieldConfig'
         parse_mode:
           type: string
-          enum: [standard, advance, agentic]
+          enum: [standard, advance, agentic, fast_vlm]
+          description: Parsing mode. Required for standard custom extraction applications.
+        enable_field_value_translation:
+          type: boolean
+          default: false
+          description: Whether to enable extracted value translation. Disabled by default.
         enable_long_doc:
           type: boolean
+          default: false
+          description: Whether to enable long document support.
         long_doc_config:
           type: array
+          maxItems: 5
+          description: Long document configuration. Used only when enable_long_doc is true.
           items:
-            type: object
-            additionalProperties: true
-      required: [app_name, extract_fields, parse_mode]
-    ExtractionAppUpdateRequest:
+            $ref: '#/components/schemas/LongDocConfig'
+      required: [ai_function, app_name, extract_fields, parse_mode]
+    HighSpeedExtractionAppCreateRequest:
+      type: object
+      title: Create high-speed extraction application
+      properties:
+        ai_function:
+          type: integer
+          enum: [1425]
+          default: 1425
+          description: Application type. Use 1425 to create a high-speed custom extraction application.
+        app_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Application name.
+        app_label:
+          type: array
+          maxItems: 5
+          description: Application labels. Up to 5 labels.
+          items:
+            type: string
+        extract_fields:
+          type: array
+          minItems: 1
+          maxItems: 20
+          description: High-speed extraction field configuration list. Up to 20 fields. Every field must provide field_key.
+          items:
+            $ref: '#/components/schemas/HighSpeedExtractionFieldConfig'
+        enable_field_value_translation:
+          type: boolean
+          default: false
+          description: Whether to enable extracted value translation. Disabled by default.
+      required: [ai_function, app_name, extract_fields]
+    HighSpeedExtractionFieldConfig:
+      type: object
+      title: High-speed field
+      description: High-speed field configuration. For ordinary fields, set field_type to string or date and do not pass sub_fields. For table fields, set field_type to table and pass sub_fields.
+      properties:
+        field_key:
+          type: string
+          pattern: '^[A-Za-z][A-Za-z0-9_]{0,63}$'
+          description: Unique field identifier. It must start with an English letter and can contain only English letters, numbers, and underscores. Maximum 64 characters.
+        field_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Field name.
+        field_type:
+          type: string
+          enum: [string, date, table]
+          description: Field type. Use string or date for ordinary fields. Use table for table fields.
+        field_prompt:
+          type: string
+          maxLength: 200
+          description: Field extraction prompt.
+        sub_fields:
+          type: array
+          maxItems: 50
+          description: Table sub-fields. Fill this only when field_type is table, and provide at least one valid sub-field. Do not pass this parameter for ordinary fields.
+          items:
+            $ref: '#/components/schemas/HighSpeedExtractionSubFieldConfig'
+          examples:
+            - - field_key: item_name
+                field_name: Item name
+                field_type: string
+      required: [field_key, field_name, field_type]
       allOf:
-        - $ref: '#/components/schemas/ExtractionAppCreateRequest'
-        - type: object
-          properties:
-            app_id:
-              type: string
-            config_version:
-              type: string
-          required: [app_id, config_version]
+        - if:
+            properties:
+              field_type:
+                const: table
+            required: [field_type]
+          then:
+            required: [sub_fields]
+            properties:
+              sub_fields:
+                minItems: 1
+    HighSpeedExtractionSubFieldConfig:
+      type: object
+      properties:
+        field_key:
+          type: string
+          pattern: '^[A-Za-z][A-Za-z0-9_]{0,63}$'
+          description: Unique sub-field identifier. It must start with an English letter and can contain only English letters, numbers, and underscores. Maximum 64 characters.
+        field_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Sub-field name.
+        field_type:
+          type: string
+          enum: [string, date]
+          description: Sub-field type. Nested tables are not supported inside a table.
+        field_prompt:
+          type: string
+          maxLength: 200
+          description: Sub-field extraction prompt.
+      required: [field_key, field_name, field_type]
+    ExtractionAppUpdateRequest:
+      oneOf:
+        - $ref: '#/components/schemas/StandardExtractionAppUpdateRequest'
+        - $ref: '#/components/schemas/HighSpeedExtractionAppUpdateRequest'
+    StandardExtractionAppUpdateRequest:
+      type: object
+      title: Update standard custom extraction application
+      properties:
+        app_id:
+          type: string
+          description: Application ID.
+        app_name:
+          type: string
+          description: Application name. If omitted or passed as an empty string, the name is not updated.
+        config_version:
+          type: string
+          description: Current configuration version. The update is saved as a new version.
+        app_label:
+          type: array
+          maxItems: 5
+          description: Application labels. Up to 5 labels.
+          items:
+            type: string
+        extract_fields:
+          type: array
+          maxItems: 20
+          description: Extraction field configuration list. Up to 20 fields.
+          items:
+            $ref: '#/components/schemas/ExtractionFieldConfig'
+        parse_mode:
+          type: string
+          enum: [standard, advance, agentic, fast_vlm]
+          description: Parsing mode. Required for standard custom extraction applications. High-speed custom extraction applications do not support setting this parameter.
+        enable_field_value_translation:
+          type: boolean
+          default: false
+          description: Whether to enable extracted value translation. Disabled by default.
+        enable_long_doc:
+          type: boolean
+          default: false
+          description: Whether to enable long document support. Standard custom extraction applications support this parameter. High-speed custom extraction applications do not support setting this parameter.
+        long_doc_config:
+          type: array
+          maxItems: 5
+          description: Long document configuration. Used only when enable_long_doc is true.
+          items:
+            $ref: '#/components/schemas/LongDocConfig'
+      required: [app_id, config_version, extract_fields, parse_mode]
+    HighSpeedExtractionAppUpdateRequest:
+      type: object
+      title: Update high-speed extraction application
+      properties:
+        app_id:
+          type: string
+          description: High-speed custom extraction application ID.
+        app_name:
+          type: string
+          description: Application name. If omitted or passed as an empty string, the name is not updated.
+        config_version:
+          type: string
+          description: Current configuration version. The update is saved as a new version.
+        app_label:
+          type: array
+          maxItems: 5
+          description: Application labels. Up to 5 labels.
+          items:
+            type: string
+        extract_fields:
+          type: array
+          minItems: 1
+          maxItems: 20
+          description: High-speed extraction field configuration list. Up to 20 fields. Every field must provide field_key.
+          items:
+            $ref: '#/components/schemas/HighSpeedExtractionFieldConfig'
+        enable_field_value_translation:
+          type: boolean
+          default: false
+          description: Whether to enable extracted value translation. Disabled by default.
+      required: [app_id, config_version, extract_fields]
     AppIdRequest:
       type: object
       properties:
         app_id:
           type: string
+          description: Application ID. To delete a high-speed custom extraction application, pass the app_id of the high-speed application.
       required: [app_id]
     AppVersionDeleteRequest:
       type: object
       properties:
         app_id:
           type: string
+          description: Application ID. To delete a high-speed custom extraction application configuration, pass the app_id of the high-speed application.
         config_version:
           type: string
+          description: Configuration version to delete.
       required: [app_id, config_version]
     AppConfigQueryRequest:
       type: object
-      additionalProperties: true
+      properties:
+        app_id:
+          type: string
+          description: Application ID. To query a high-speed custom extraction application configuration, pass the app_id of the high-speed application.
+        config_version:
+          type: string
+          description: Configuration version. Optional. Defaults to the latest version.
+      required: [app_id]
     AiRecommendRequest:
+      type: object
+      description: Field configuration generation request. The request body must provide file_url or file_base64. prompt can be used as an auxiliary generation instruction.
+      properties:
+        app_id:
+          type: string
+          description: Application ID. When you pass a high-speed custom extraction application, the response returns a high-speed auto-configuration preview.
+        file_base64:
+          type: string
+          description: Base64-encoded file. Required for high-speed applications if file_url is not provided.
+        file_url:
+          type: string
+          format: uri
+          description: File URL. Required for high-speed applications if file_base64 is not provided.
+        prompt:
+          type: string
+          description: User-provided generation instruction. Provide a file as well, and use prompt only as an auxiliary instruction.
+        doc_type:
+          type: string
+          description: Document type. You can provide this for standard application recommendations. High-speed applications detect the document type automatically.
+        doc_type_description:
+          type: string
+          description: Document type description. You can provide this for standard application recommendations.
+      required: [app_id]
+      anyOf:
+        - required: [file_base64]
+        - required: [file_url]
+    ExtractionAppResponse:
       allOf:
-        - $ref: '#/components/schemas/DocumentFileRequest'
-    AppConfigResponse:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AppConfigData'
+    ExtractionAppDeleteResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
         - type: object
           properties:
             data:
               type: object
-              additionalProperties: true
+              properties:
+                success:
+                  type: boolean
+                  description: Whether deletion succeeded.
+                message:
+                  type: string
+                  description: Operation message.
+    ExtractionAppUpdateResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                app_id:
+                  type: string
+                  description: Application ID.
+                config_version:
+                  type: string
+                  description: New configuration version.
+    ExtractionAppVersionDeleteResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  description: Whether deletion succeeded.
+                message:
+                  type: string
+                  description: Operation message.
+    AppListResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                list:
+                  type: array
+                  items:
+                    type: object
+                    additionalProperties: true
+                total:
+                  type: integer
+    AppConfigResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AppConfigData'
+    AppConfigData:
+      type: object
+      additionalProperties: true
+      properties:
+        app_id:
+          type: string
+        app_name:
+          type: string
+        app_label:
+          type: array
+          items:
+            type: string
+        config_version:
+          type: string
+        extract_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtractionFieldConfig'
+        parse_mode:
+          type: string
+        enable_long_doc:
+          type: boolean
+        long_doc_config:
+          type: array
+          items:
+            $ref: '#/components/schemas/LongDocConfig'
+    AiRecommendResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AiRecommendData'
+    AiRecommendData:
+      type: object
+      additionalProperties: true
+      properties:
+        app_id:
+          type: string
+          description: Application ID.
+        app_name:
+          type: string
+          description: Application name.
+        ai_function:
+          type: integer
+          enum: [1406, 1425]
+          description: Application type. 1406 means standard custom extraction. 1425 means high-speed custom extraction.
+        extract_fields:
+          type: array
+          description: Compatibility field list. Standard applications return recommended fields. High-speed applications currently return an ordinary field preview here. Use field_rule and table_rule for the full configuration.
+          items:
+            $ref: '#/components/schemas/AiRecommendFieldConfig'
+        prompt_rule:
+          type: string
+          description: Overall rule for high-speed auto-configuration. Compatibility field.
+        common_rule:
+          type: string
+          description: Overall rule for high-speed auto-configuration.
+        field_rule:
+          type: array
+          description: Ordinary field configuration preview generated for high-speed applications. This field is not automatically saved to the application configuration.
+          items:
+            $ref: '#/components/schemas/AiRecommendGeneratedRuleField'
+        table_rule:
+          type: array
+          description: Table field configuration preview generated for high-speed applications. This uses a flat structure. Records whose field_parent_id is empty are table parent fields. Records whose field_parent_id points to a parent field_key are table sub-fields.
+          items:
+            $ref: '#/components/schemas/AiRecommendGeneratedRuleField'
+        page_count:
+          type: integer
+          description: Number of pages used for high-speed auto-configuration.
+        document_type:
+          type: string
+          description: Document type detected automatically by the high-speed service.
+    AiRecommendFieldConfig:
+      type: object
+      additionalProperties: true
+      properties:
+        field_key:
+          type: string
+          description: Unique field identifier. Returned for high-speed auto-configuration.
+        field_name:
+          type: string
+          description: Field name.
+        field_type:
+          type: string
+          enum: [string, date, table]
+          description: Field type.
+        field_prompt:
+          type:
+            - string
+            - 'null'
+          description: Field prompt.
+        field_description:
+          type:
+            - string
+            - 'null'
+          description: Field description.
+        sub_fields:
+          type: array
+          description: Table sub-field list. Standard table fields may return this field. For high-speed table fields, use table_rule.
+          items:
+            $ref: '#/components/schemas/AiRecommendSubFieldConfig'
+      required: [field_name, field_type]
+    AiRecommendSubFieldConfig:
+      type: object
+      additionalProperties: true
+      properties:
+        field_key:
+          type: string
+          description: Unique sub-field identifier.
+        field_name:
+          type: string
+          description: Sub-field name.
+        field_type:
+          type: string
+          enum: [string, date]
+          description: Sub-field type.
+        field_prompt:
+          type:
+            - string
+            - 'null'
+          description: Sub-field prompt.
+        field_description:
+          type:
+            - string
+            - 'null'
+          description: Sub-field description.
+      required: [field_name, field_type]
+    AiRecommendGeneratedRuleField:
+      type: object
+      additionalProperties: true
+      properties:
+        field_key:
+          type: string
+          description: Unique field identifier. A table sub-field's field_parent_id references the table parent field's field_key.
+        field_name:
+          type: string
+          description: Field name.
+        field_type:
+          type: string
+          enum: [string, date, table]
+          description: Field type. table means a table parent field.
+        field_description:
+          type: string
+          description: Field description.
+        field_parent_id:
+          type: string
+          description: Parent field_key for a table sub-field. Empty means an ordinary field or a table parent field.
+        config:
+          type: object
+          additionalProperties: true
+          description: Field extension configuration.
+        source:
+          type: integer
+          description: Field source.
+        _field_key_source:
+          type: string
+          description: Original field key generated by the model. Returned only when the service keeps debug information.
     UserPaymentResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'

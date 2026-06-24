@@ -284,6 +284,7 @@
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app-list",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend"
