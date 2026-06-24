@@ -127,16 +127,11 @@
                     "group": "自定义抽取应用",
                     "pages": [
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create",
-                      "api-reference/high-speed-extraction-app-create",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete",
-                      "api-reference/high-speed-extraction-app-delete",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update",
-                      "api-reference/high-speed-extraction-app-update",
-                      "api-reference/high-speed-extraction-app-query",
                       "GET /open/agentic_doc_processor/{tenant_name}/v1/app-list",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete",
-                      "api-reference/high-speed-extraction-app-version-delete",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend",
                       "AGENTS"
                     ],
@@ -166,8 +161,7 @@
                       "POST /open/agentic_engine/laiye/files/{file_id}/delete"
                     ],
                     "icon": "file-output"
-                  },
-                  "products/untitled-page"
+                  }
                 ],
                 "openapi": {
                   "source": "/api-reference/adp-api.yaml",
