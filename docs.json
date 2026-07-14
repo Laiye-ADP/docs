@@ -8,8 +8,8 @@
     "light": "#dfd1ff"
   },
   "favicon": {
-    "light": "/images/img_v3_02up_fe3d1af4-0716-4d31-ac7d-92529975b35g.png",
-    "dark": "/images/259055827.png"
+    "light": "/images/ADP-yellow.svg",
+    "dark": "/images/ADP-yellow.svg"
   },
   "groups": [
     {
@@ -328,7 +328,7 @@
   },
   "logo": {
     "light": "/images/adplogo.png",
-    "dark": "/images/ADP-huang.svg"
+    "dark": "/images/ADP-yellow.svg"
   },
   "contextual": {
     "options": [
