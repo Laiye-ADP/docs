@@ -238,6 +238,20 @@
                     "icon": "asterisk"
                   },
                   {
+                    "group": "Global Invoices and receipts - high-speed",
+                    "icon": "asterisk",
+                    "root": "en/api-reference/preset-overseas-invoices-fast",
+                    "openapi": {
+                      "source": "/en/api-reference/preset-overseas-invoices-fast.yaml",
+                      "directory": "en/api-reference/preset-overseas-invoices-fast"
+                    },
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+                    ]
+                  },
+                  {
                     "group": "Purchase orders",
                     "root": "en/api-reference/preset-purchase-orders",
                     "pages": [
@@ -248,6 +262,32 @@
                     "openapi": {
                       "source": "/en/api-reference/preset-purchase-orders.yaml",
                       "directory": "en/api-reference/preset-purchase-orders"
+                    },
+                    "icon": "asterisk"
+                  },
+                  {
+                    "group": "Domestic general bills",
+                    "root": "en/api-reference/preset-domestic-bills",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract"
+                    ],
+                    "openapi": {
+                      "source": "/en/api-reference/preset-domestic-bills.yaml",
+                      "directory": "en/api-reference/preset-domestic-bills"
+                    },
+                    "icon": "asterisk"
+                  },
+                  {
+                    "group": "Cards and certificates",
+                    "root": "en/api-reference/preset-cards",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+                    ],
+                    "openapi": {
+                      "source": "/en/api-reference/preset-cards.yaml",
+                      "directory": "en/api-reference/preset-cards"
                     },
                     "icon": "asterisk"
                   },
