@@ -117,10 +117,10 @@ components:
           schema:
             $ref: '#/components/schemas/DocumentExtractRequest'
           examples:
-            fileBase64:
-              $ref: '#/components/examples/CardsFileBase64'
             fileUrl:
               $ref: '#/components/examples/CardsFileUrl'
+            fileBase64:
+              $ref: '#/components/examples/CardsFileBase64'
   responses:
     DocumentExtractResponse:
       description: 抽取结果。
@@ -195,21 +195,6 @@ components:
         - 车辆合格证: ootb_d9m2p5q8r1t4v7w0x3y6z9a2b5c
     DocumentExtractRequest:
       oneOf:
-        - title: 使用文件 Base64
-          type: object
-          additionalProperties: false
-          properties:
-            file_base64:
-              default: *cardsFileBase64
-              type: string
-              description: 待抽取文件 Base64，与 file_url 二选一。
-            app_id:
-              $ref: '#/components/schemas/CardAppId'
-            with_rec_result:
-              type: boolean
-              default: false
-              description: 是否返回文档解析结果。
-          required: [app_id, file_base64]
         - title: 使用文件 URL
           type: object
           additionalProperties: false
@@ -226,6 +211,21 @@ components:
               default: false
               description: 是否返回文档解析结果。
           required: [app_id, file_url]
+        - title: 使用文件 Base64
+          type: object
+          additionalProperties: false
+          properties:
+            file_base64:
+              default: *cardsFileBase64
+              type: string
+              description: 待抽取文件 Base64，与 file_url 二选一。
+            app_id:
+              $ref: '#/components/schemas/CardAppId'
+            with_rec_result:
+              type: boolean
+              default: false
+              description: 是否返回文档解析结果。
+          required: [app_id, file_base64]
     SimpleResponse:
       type: object
       properties:

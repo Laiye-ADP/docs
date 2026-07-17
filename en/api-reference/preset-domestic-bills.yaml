@@ -64,10 +64,10 @@ components:
           schema:
             $ref: '#/components/schemas/DocumentExtractRequest'
           examples:
-            fileBase64:
-              $ref: '#/components/examples/DomesticBillsFileBase64'
             fileUrl:
               $ref: '#/components/examples/DomesticBillsFileUrl'
+            fileBase64:
+              $ref: '#/components/examples/DomesticBillsFileBase64'
   responses:
     DocumentExtractResponse:
       description: Extraction result.
@@ -84,19 +84,6 @@ components:
   schemas:
     DocumentExtractRequest:
       oneOf:
-        - title: Use file Base64
-          type: object
-          additionalProperties: false
-          properties:
-            file_base64:
-              default: *domesticBillsFileBase64
-              type: string
-              description: Base64-encoded file. Use either file_base64 or file_url.
-            app_id:
-              default: *domesticBillsAppId
-              type: string
-              description: Unique identifier of the domestic general bills preset application.
-          required: [app_id, file_base64]
         - title: Use file URL
           type: object
           additionalProperties: false
@@ -111,6 +98,19 @@ components:
               type: string
               description: Unique identifier of the domestic general bills preset application.
           required: [app_id, file_url]
+        - title: Use file Base64
+          type: object
+          additionalProperties: false
+          properties:
+            file_base64:
+              default: *domesticBillsFileBase64
+              type: string
+              description: Base64-encoded file. Use either file_base64 or file_url.
+            app_id:
+              default: *domesticBillsAppId
+              type: string
+              description: Unique identifier of the domestic general bills preset application.
+          required: [app_id, file_base64]
     SimpleResponse:
       type: object
       properties:

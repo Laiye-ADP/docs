@@ -117,10 +117,10 @@ components:
           schema:
             $ref: '#/components/schemas/DocumentExtractRequest'
           examples:
-            fileBase64:
-              $ref: '#/components/examples/OverseasInvoicesFastFileBase64'
             fileUrl:
               $ref: '#/components/examples/OverseasInvoicesFastFileUrl'
+            fileBase64:
+              $ref: '#/components/examples/OverseasInvoicesFastFileBase64'
   responses:
     DocumentExtractResponse:
       description: 抽取结果。
@@ -143,23 +143,6 @@ components:
   schemas:
     DocumentExtractRequest:
       oneOf:
-        - title: 使用文件 Base64
-          type: object
-          additionalProperties: false
-          properties:
-            file_base64:
-              default: *overseasInvoicesFastFileBase64
-              type: string
-              description: 待抽取文件 Base64，与 file_url 二选一。
-            app_id:
-              default: *overseasInvoicesFastAppId
-              type: string
-              description: 预置应用的唯一标识。
-            enable_multi_ticket:
-              type: boolean
-              default: true
-              description: 是否启用多票据识别。
-          required: [app_id, file_base64]
         - title: 使用文件 URL
           type: object
           additionalProperties: false
@@ -178,6 +161,23 @@ components:
               default: true
               description: 是否启用多票据识别。
           required: [app_id, file_url]
+        - title: 使用文件 Base64
+          type: object
+          additionalProperties: false
+          properties:
+            file_base64:
+              default: *overseasInvoicesFastFileBase64
+              type: string
+              description: 待抽取文件 Base64，与 file_url 二选一。
+            app_id:
+              default: *overseasInvoicesFastAppId
+              type: string
+              description: 预置应用的唯一标识。
+            enable_multi_ticket:
+              type: boolean
+              default: true
+              description: 是否启用多票据识别。
+          required: [app_id, file_base64]
     SimpleResponse:
       type: object
       properties:

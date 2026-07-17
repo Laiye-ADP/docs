@@ -64,10 +64,10 @@ components:
           schema:
             $ref: '#/components/schemas/DocumentExtractRequest'
           examples:
-            fileBase64:
-              $ref: '#/components/examples/DomesticBillsFileBase64'
             fileUrl:
               $ref: '#/components/examples/DomesticBillsFileUrl'
+            fileBase64:
+              $ref: '#/components/examples/DomesticBillsFileBase64'
   responses:
     DocumentExtractResponse:
       description: 抽取结果。
@@ -84,19 +84,6 @@ components:
   schemas:
     DocumentExtractRequest:
       oneOf:
-        - title: 使用文件 Base64
-          type: object
-          additionalProperties: false
-          properties:
-            file_base64:
-              default: *domesticBillsFileBase64
-              type: string
-              description: 待抽取文件 Base64，与 file_url 二选一。
-            app_id:
-              default: *domesticBillsAppId
-              type: string
-              description: 国内通用票据预置应用的唯一标识。
-          required: [app_id, file_base64]
         - title: 使用文件 URL
           type: object
           additionalProperties: false
@@ -111,6 +98,19 @@ components:
               type: string
               description: 国内通用票据预置应用的唯一标识。
           required: [app_id, file_url]
+        - title: 使用文件 Base64
+          type: object
+          additionalProperties: false
+          properties:
+            file_base64:
+              default: *domesticBillsFileBase64
+              type: string
+              description: 待抽取文件 Base64，与 file_url 二选一。
+            app_id:
+              default: *domesticBillsAppId
+              type: string
+              description: 国内通用票据预置应用的唯一标识。
+          required: [app_id, file_base64]
     SimpleResponse:
       type: object
       properties:

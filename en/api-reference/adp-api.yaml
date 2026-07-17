@@ -488,10 +488,10 @@ components:
           schema:
             $ref: '#/components/schemas/DocumentFileRequest'
           examples:
-            fileBase64:
-              $ref: '#/components/examples/DocumentRecognitionFileBase64'
             fileUrl:
               $ref: '#/components/examples/DocumentRecognitionFileUrl'
+            fileBase64:
+              $ref: '#/components/examples/DocumentRecognitionFileBase64'
     DocumentExtractRequest:
       required: true
       content:
@@ -920,21 +920,6 @@ components:
           description: Details. Defaults to null.
     DocumentFileRequest:
       oneOf:
-        - title: Use file Base64
-          type: object
-          additionalProperties: false
-          properties:
-            app_id:
-              default: *documentRecognitionAppId
-              type: string
-              description: Unique application ID.
-            file_base64:
-              default: *documentRecognitionFileBase64
-              type: string
-              description: Base64-encoded file. Use either file_base64 or file_url.
-          required: [app_id, file_base64]
-          not:
-            required: [file_url]
         - title: Use file URL
           type: object
           additionalProperties: false
@@ -951,8 +936,41 @@ components:
           required: [app_id, file_url]
           not:
             required: [file_base64]
+        - title: Use file Base64
+          type: object
+          additionalProperties: false
+          properties:
+            app_id:
+              default: *documentRecognitionAppId
+              type: string
+              description: Unique application ID.
+            file_base64:
+              default: *documentRecognitionFileBase64
+              type: string
+              description: Base64-encoded file. Use either file_base64 or file_url.
+          required: [app_id, file_base64]
+          not:
+            required: [file_url]
     DocumentExtractRequest:
       oneOf:
+        - title: Use file URL
+          type: object
+          additionalProperties: false
+          properties:
+            app_id:
+              default: app_abc123
+              type: string
+              description: Unique application ID.
+            file_url:
+              default: *documentRecognitionFileUrl
+              type: string
+              format: uri
+              description: File URL. Use either file_url or file_base64.
+            with_rec_result:
+              type: boolean
+              description: Whether to return document recognition results. High-speed extraction does not return recognition results.
+              default: false
+          required: [app_id, file_url]
         - title: Use file Base64
           type: object
           additionalProperties: false
@@ -970,24 +988,6 @@ components:
               description: Whether to return document recognition results. High-speed extraction does not return recognition results.
               default: false
           required: [app_id, file_base64]
-        - title: Use file URL
-          type: object
-          additionalProperties: false
-          properties:
-            app_id:
-              default: app_abc123
-              type: string
-              description: Unique application ID.
-            file_url:
-              default: *documentRecognitionFileUrl
-              type: string
-              format: uri
-              description: File URL. Use either file_url or file_base64.
-            with_rec_result:
-              type: boolean
-              description: Whether to return document recognition results. High-speed extraction does not return recognition results.
-              default: false
-          required: [app_id, file_url]
     TaskCreateResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'

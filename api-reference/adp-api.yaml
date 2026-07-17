@@ -488,10 +488,10 @@ components:
           schema:
             $ref: '#/components/schemas/DocumentFileRequest'
           examples:
-            fileBase64:
-              $ref: '#/components/examples/DocumentRecognitionFileBase64'
             fileUrl:
               $ref: '#/components/examples/DocumentRecognitionFileUrl'
+            fileBase64:
+              $ref: '#/components/examples/DocumentRecognitionFileBase64'
     DocumentExtractRequest:
       required: true
       content:
@@ -947,21 +947,6 @@ components:
           description: 详细信息，默认为空。
     DocumentFileRequest:
       oneOf:
-        - title: 使用文件 Base64
-          type: object
-          additionalProperties: false
-          properties:
-            app_id:
-              default: *documentRecognitionAppId
-              type: string
-              description: 应用的唯一标识。
-            file_base64:
-              default: *documentRecognitionFileBase64
-              type: string
-              description: 待处理文件 Base64，与 file_url 二选一。
-          required: [app_id, file_base64]
-          not:
-            required: [file_url]
         - title: 使用文件 URL
           type: object
           additionalProperties: false
@@ -978,8 +963,41 @@ components:
           required: [app_id, file_url]
           not:
             required: [file_base64]
+        - title: 使用文件 Base64
+          type: object
+          additionalProperties: false
+          properties:
+            app_id:
+              default: *documentRecognitionAppId
+              type: string
+              description: 应用的唯一标识。
+            file_base64:
+              default: *documentRecognitionFileBase64
+              type: string
+              description: 待处理文件 Base64，与 file_url 二选一。
+          required: [app_id, file_base64]
+          not:
+            required: [file_url]
     DocumentExtractRequest:
       oneOf:
+        - title: 使用文件 URL
+          type: object
+          additionalProperties: false
+          properties:
+            app_id:
+              default: app_abc123
+              type: string
+              description: 应用的唯一标识。
+            file_url:
+              default: *documentRecognitionFileUrl
+              type: string
+              format: uri
+              description: 待处理文件 URL，与 file_base64 二选一。
+            with_rec_result:
+              type: boolean
+              description: 是否返回文档解析结果。高速版抽取不返回解析结果。
+              default: false
+          required: [app_id, file_url]
         - title: 使用文件 Base64
           type: object
           additionalProperties: false
@@ -997,24 +1015,6 @@ components:
               description: 是否返回文档解析结果。高速版抽取不返回解析结果。
               default: false
           required: [app_id, file_base64]
-        - title: 使用文件 URL
-          type: object
-          additionalProperties: false
-          properties:
-            app_id:
-              default: app_abc123
-              type: string
-              description: 应用的唯一标识。
-            file_url:
-              default: *documentRecognitionFileUrl
-              type: string
-              format: uri
-              description: 待处理文件 URL，与 file_base64 二选一。
-            with_rec_result:
-              type: boolean
-              description: 是否返回文档解析结果。高速版抽取不返回解析结果。
-              default: false
-          required: [app_id, file_url]
     DocumentExtractResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'

@@ -117,10 +117,10 @@ components:
           schema:
             $ref: '#/components/schemas/DocumentExtractRequest'
           examples:
-            fileBase64:
-              $ref: '#/components/examples/PurchaseOrderFileBase64'
             fileUrl:
               $ref: '#/components/examples/PurchaseOrderFileUrl'
+            fileBase64:
+              $ref: '#/components/examples/PurchaseOrderFileBase64'
   responses:
     DocumentExtractResponse:
       description: Extraction result.
@@ -143,23 +143,6 @@ components:
   schemas:
     DocumentExtractRequest:
       oneOf:
-        - title: Use file Base64
-          type: object
-          additionalProperties: false
-          properties:
-            file_base64:
-              default: *purchaseOrderFileBase64
-              type: string
-              description: Base64-encoded file. Use either file_base64 or file_url.
-            app_id:
-              default: *purchaseOrderAppId
-              type: string
-              description: Unique identifier of the preset application.
-            with_rec_result:
-              type: boolean
-              default: false
-              description: Whether to return the document recognition result.
-          required: [app_id, file_base64]
         - title: Use file URL
           type: object
           additionalProperties: false
@@ -178,6 +161,23 @@ components:
               default: false
               description: Whether to return the document recognition result.
           required: [app_id, file_url]
+        - title: Use file Base64
+          type: object
+          additionalProperties: false
+          properties:
+            file_base64:
+              default: *purchaseOrderFileBase64
+              type: string
+              description: Base64-encoded file. Use either file_base64 or file_url.
+            app_id:
+              default: *purchaseOrderAppId
+              type: string
+              description: Unique identifier of the preset application.
+            with_rec_result:
+              type: boolean
+              default: false
+              description: Whether to return the document recognition result.
+          required: [app_id, file_base64]
     SimpleResponse:
       type: object
       properties:
