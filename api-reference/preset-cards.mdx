@@ -30,19 +30,224 @@ GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{tas
 
 ## 支持的卡证类型
 
-| 卡证类型 | 典型字段 |
-| --- | --- |
-| 车辆合格证 | 合格证编号、车辆制造企业名称、车辆品牌、车辆型号、车辆识别代号/车架号、发动机号、车辆制造日期 |
-| 港澳通行证 | 姓名、英文姓名、出生日期、性别、有效期限、签发机关、证件号码 |
-| 户口本 | 户别、户主姓名、户号、住址、姓名、与户主关系、身份证号码、登记日期 |
-| 驾驶证 | 驾驶证证号、姓名、性别、国籍、出生日期、准驾车型、签发机构、档案编号 |
-| 开户许可证 | 核准号、编号、基本存款账户、法定代表人、开户银行、账号 |
-| 身份证 | 姓名、性别、民族、出生日期、住址、身份证号码、签发机构、有效期限 |
-| 行驶证 | 号牌号码、车辆类型、所有人、使用性质、品牌型号、车辆识别代号、发动机号码、注册日期 |
-| 银行卡 | 卡号、发卡机构、有效期、卡类型 |
-| 营业执照 | 统一社会信用代码、名称、类型、经营范围、注册资本、法定代表人 |
-| 护照-中国 | 姓名、英文姓名、性别、出生日期、出生地点、护照号码、签发地点、有效期 |
-| 组织机构代码证 | 组织机构代码、机构名称、机构类型、地址、有效期、颁发单位 |
+<AccordionGroup>
+  <Accordion title="车辆合格证">
+
+    | 中文名 | Field Name | 类型 |
+    | --- | --- | --- |
+    | 合格证编号 | `certificate_of_conformity_number` | 文本 |
+    | 发证日期 | `issuance_date` | 文本 |
+    | 车辆制造企业名称 | `vehicle_manufacturer_enterprise_name` | 文本 |
+    | 车辆品牌 | `vehicle_brand` | 文本 |
+    | 车辆名称 | `vehicle_name` | 文本 |
+    | 底盘类别 | `chassis_category` | 文本 |
+    | 车辆型号 | `vehicle_model` | 文本 |
+    | 底盘型号 | `chassis_model` | 文本 |
+    | 车身颜色 | `body_color` | 文本 |
+    | 车辆识别代号/车架号 | `vehicle_identification_number_frame_number` | 文本 |
+    | 发动机型号 | `engine_model` | 文本 |
+    | 发动机号 | `engine_number` | 文本 |
+    | 燃料种类 | `fuel_type` | 文本 |
+    | 排放标准 | `emission_standard` | 文本 |
+    | 转向形式 | `steering_form` | 文本 |
+    | 轮胎数 | `tire_count` | 文本 |
+    | 轮胎规格 | `tire_specification` | 文本 |
+    | 前轮轮距 | `front_wheel_track` | 文本 |
+    | 后轮轮距 | `rear_wheel_track` | 文本 |
+    | 轴距 | `wheelbase` | 文本 |
+    | 轴荷 | `axle_load` | 文本 |
+    | 轴数 | `axis_number` | 文本 |
+    | 外廓尺寸 | `overall_dimensions` | 文本 |
+    | 弹簧片数 | `spring_leaf_count` | 文本 |
+    | 总质量 | `total_mass` | 文本 |
+    | 整备质量 | `curb_mass` | 文本 |
+    | 半挂车鞍座最大允许总质量 | `semi_trailer_kingpin_max_allowed_total_mass` | 文本 |
+    | 牵引总质量 | `towing_total_mass` | 文本 |
+    | 驾驶室准乘人数 | `cab_occupancy` | 文本 |
+    | 最高设计车速 | `maximum_design_speed` | 文本 |
+    | 车辆制造日期 | `vehicle_manufacture_date` | 文本 |
+    | 备注 | `remark` | 文本 |
+    | 车辆制造企业信息 | `vehicle_manufacturing_enterprise_info` | 文本 |
+    | 排量 | `displacement` | 文本 |
+    | 功率 | `power` | 文本 |
+
+  </Accordion>
+  <Accordion title="港澳通行证">
+
+    | 中文名 | Field Name | 类型 |
+    | --- | --- | --- |
+    | 姓名 | `name` | 文本 |
+    | 英文姓名 | `english_name` | 文本 |
+    | 出生日期 | `date_of_birth` | 文本 |
+    | 性别 | `gender` | 文本 |
+    | 有效期限 | `validity_period` | 文本 |
+    | 签发机关 | `issuing_authority` | 文本 |
+    | 证件号码 | `certificate_number` | 文本 |
+    | 签发地点 | `issuance_place` | 文本 |
+    | 证件机读码 | `document_machine_readable_code` | 文本 |
+
+  </Accordion>
+  <Accordion title="户口本">
+
+    | 中文名 | Field Name | 类型 |
+    | --- | --- | --- |
+    | 户别 | `household_type` | 文本 |
+    | 户主姓名 | `householder_name` | 文本 |
+    | 户号 | `household_number` | 文本 |
+    | 住址 | `residential_address` | 文本 |
+    | 姓名 | `member_name` | 文本 |
+    | 与户主关系 | `relationship_with_head_of_household` | 文本 |
+    | 曾用名 | `previous_names` | 文本 |
+    | 性别 | `gender` | 文本 |
+    | 出生地 | `place_of_birth` | 文本 |
+    | 民族 | `nationality` | 文本 |
+    | 籍贯 | `hometown` | 文本 |
+    | 出生日期 | `date_of_birth` | 文本 |
+    | 本市其他住址 | `this_city_other_address` | 文本 |
+    | 宗教信仰 | `religious_belief` | 文本 |
+    | 身份证号码 | `id_number` | 文本 |
+    | 身高 | `height` | 文本 |
+    | 血型 | `blood_type` | 文本 |
+    | 文化程度 | `education_level` | 文本 |
+    | 婚姻状况 | `marital_status` | 文本 |
+    | 服务处所 | `service_place` | 文本 |
+    | 职业 | `occupation` | 文本 |
+    | 登记日期 | `registration_date` | 文本 |
+    | 编号 | `number` | 文本 |
+
+  </Accordion>
+  <Accordion title="驾驶证">
+
+    | 中文名 | Field Name | 类型 |
+    | --- | --- | --- |
+    | 驾驶证证号 | `driver_license_number` | 文本 |
+    | 姓名 | `name` | 文本 |
+    | 性别 | `gender` | 文本 |
+    | 国籍 | `nationality` | 文本 |
+    | 出生日期 | `date_of_birth` | 文本 |
+    | 初次领证日期 | `first_license_issue_date` | 文本 |
+    | 准驾车型 | `driving_permit_type` | 文本 |
+    | 有限期始(至) | `validity_period_start_end` | 文本 |
+    | 签发机构 | `issuing_agency` | 文本 |
+    | 住址 | `residential_address` | 文本 |
+    | 档案编号 | `file_number` | 文本 |
+
+  </Accordion>
+  <Accordion title="开户许可证">
+
+    | 中文名 | Field Name | 类型 |
+    | --- | --- | --- |
+    | 核准号 | `approval_number` | 文本 |
+    | 编号 | `number` | 文本 |
+    | 基本存款账户 | `basic_deposit_account` | 文本 |
+    | 法定代表人 | `legal_representative` | 文本 |
+    | 开户银行 | `opening_bank` | 文本 |
+    | 账号 | `account` | 文本 |
+
+  </Accordion>
+  <Accordion title="身份证">
+
+    | 中文名 | Field Name | 类型 |
+    | --- | --- | --- |
+    | 姓名 | `name` | 文本 |
+    | 性别 | `gender` | 文本 |
+    | 民族 | `ethnicity` | 文本 |
+    | 出生 | `birth_date` | 文本 |
+    | 住址 | `address` | 文本 |
+    | 身份证号码 | `id_number` | 文本 |
+    | 签发机构 | `issuing_authority` | 文本 |
+    | 有效期限 | `valid_period` | 文本 |
+
+  </Accordion>
+  <Accordion title="行驶证">
+
+    | 中文名 | Field Name | 类型 |
+    | --- | --- | --- |
+    | 号牌号码 | `license_plate_number` | 文本 |
+    | 车辆类型 | `vehicle_type` | 文本 |
+    | 所有人 | `all_people` | 文本 |
+    | 使用性质 | `usage_nature` | 文本 |
+    | 品牌型号 | `brand_model` | 文本 |
+    | 车辆识别代号 | `vehicle_identification_number` | 文本 |
+    | 发动机号码 | `engine_number` | 文本 |
+    | 注册日期 | `registration_date` | 文本 |
+    | 发证日期 | `issuance_date` | 文本 |
+    | 号牌号码(副页) | `license_plate_number_supplement` | 文本 |
+    | 档案编号 | `file_number` | 文本 |
+    | 核定载人数 | `rated_passenger_capacity` | 文本 |
+    | 总质量 | `total_mass` | 文本 |
+    | 整备质量 | `curb_weight` | 文本 |
+    | 核定载质量 | `rated_load_capacity` | 文本 |
+    | 外廓尺寸 | `overall_dimensions` | 文本 |
+    | 准牵引质量总质量 | `towing_mass_total_mass` | 文本 |
+    | 检验记录 | `inspection_record` | 文本 |
+    | 备注 | `remark` | 文本 |
+    | 燃料类型 | `fuel_type` | 文本 |
+    | 住址 | `residential_address` | 文本 |
+
+  </Accordion>
+  <Accordion title="银行卡">
+
+    | 中文名 | Field Name | 类型 |
+    | --- | --- | --- |
+    | 卡号 | `card_number` | 文本 |
+    | 发卡机构 | `issuing_institution` | 文本 |
+    | 有效期 | `validity_period` | 文本 |
+    | 卡类型 | `card_type` | 文本 |
+
+  </Accordion>
+  <Accordion title="营业执照">
+
+    | 中文名 | Field Name | 类型 |
+    | --- | --- | --- |
+    | 统一社会信用代码 | `unified_social_credit_code` | 文本 |
+    | 是否为副本 | `is_copy` | 文本 |
+    | 名称 | `name` | 文本 |
+    | 类型 | `type` | 文本 |
+    | 经营范围 | `business_scope` | 文本 |
+    | 注册资本 | `registered_capital` | 文本 |
+    | 营业期限 | `business_operation_period` | 文本 |
+    | 经营场所 | `business_place` | 文本 |
+    | 组成形式 | `composition_form` | 文本 |
+    | 经营者 | `operator` | 文本 |
+    | 注册日期 | `registration_date` | 文本 |
+    | 登记日期 | `registration_date` | 文本 |
+
+  </Accordion>
+  <Accordion title="护照-中国">
+
+    | 中文名 | Field Name | 类型 |
+    | --- | --- | --- |
+    | 类型 | `type` | 文本 |
+    | 国家码 | `country_code` | 文本 |
+    | 护照号码 | `passport_number` | 文本 |
+    | 姓名 | `name` | 文本 |
+    | 姓名拼音 | `name_pinyin` | 文本 |
+    | 性别 | `gender` | 文本 |
+    | 国籍 | `nationality` | 文本 |
+    | 出生日期 | `date_of_birth` | 文本 |
+    | 出生地点 | `birth_place` | 文本 |
+    | 签发日期 | `issuance_date` | 文本 |
+    | 签发地点 | `issuance_place` | 文本 |
+    | 有效期 | `validity_period` | 文本 |
+    | 签发机关 | `issuing_authority` | 文本 |
+
+  </Accordion>
+  <Accordion title="组织机构代码证">
+
+    | 中文名 | Field Name | 类型 |
+    | --- | --- | --- |
+    | 代码 | `code` | 文本 |
+    | 机构名称 | `institution_name` | 文本 |
+    | 机构类型 | `institution_type` | 文本 |
+    | 法定代表人 | `legal_representative` | 文本 |
+    | 地址 | `address` | 文本 |
+    | 有效期 | `validity_period` | 文本 |
+    | 颁发单位 | `issuing_organization` | 文本 |
+    | 登记号 | `registration_number` | 文本 |
+
+  </Accordion>
+</AccordionGroup>
 
 ## 返回结果
 

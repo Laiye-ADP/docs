@@ -24,43 +24,1396 @@ The API returns extracted fields and classification results based on the preset 
 
 ## Supported bill types
 
-| Bill type | Key |
-| --- | --- |
-| Air transport e-ticket itinerary | `air_transport` |
-| Customs declaration form | `custom_declaration_form` |
-| Customs payment form | `customs_payment_form` |
-| Electronic air transport e-ticket itinerary | `electronic_air_transport` |
-| Electronic motor vehicle sales invoice | `electronic_motor_vehicle_sale_invoice` |
-| Electronic train ticket | `electronic_train_ticket` |
-| Electronic used car sales invoice | `electronic_used_car_purchase_invoice` |
-| Fiscal paper | `fiscal_paper` |
-| Electronic fiscal paper | `fiscal_paper_electronic` |
-| General machine-printed invoice | `general_machine_invoice` |
-| Highway passenger invoice | `highway_passenger_invoice` |
-| Machine-printed electronic invoice | `machine_printed_invoice` |
-| Electronic medical invoice | `medical_electronic_invoice` |
-| Medical invoice | `medical_invoice` |
-| Motor vehicle sales invoice | `motor_vehicle_sale_invoice` |
-| Other invoice | `other` |
-| Quota invoice | `quota_invoice` |
-| Shipping invoice | `shipping_invoice` |
-| Tax clearance certificate | `tax_clearance_certificate` |
-| Taxi ticket | `taxi_ticket` |
-| Train ticket refund fee | `ticket_refund_fee` |
-| Train ticket | `train_ticket` |
-| Ride-hailing itinerary | `travel_transport` |
-| VAT invoice sales list | `vat_invoice_sales_list` |
-| Used car sales invoice | `used_car_purchase_invoice` |
-| VAT special invoice | `vat_special_invoice` |
-| VAT electronic special invoice | `vat_electronic_special_invoice` |
-| VAT electronic invoice | `vat_electronic_invoice` |
-| VAT common invoice | `vat_common_invoice` |
-| Blockchain electronic invoice | `blockchain_electronic_invoice` |
-| New VAT electronic invoice | `vat_electronic_invoice_new` |
-| New VAT electronic special invoice | `vat_electronic_special_invoice_new` |
-| VAT electronic toll invoice | `vat_electronic_toll_invoice` |
-| VAT roll invoice | `vat_roll_invoice` |
-| Vehicle toll invoice | `vehicle_toll` |
+<AccordionGroup>
+  <Accordion title="Air transport e-ticket itinerary (air_transport)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 销售单位代号 | `agentcode` | Text |
+    | 民航发展基金 | `civil_aviation_fund` | Text |
+    | 电子客票号码 | `e_ticket_no` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 票价 | `fare` | Text |
+    | 燃油附加费 | `fuel_surcharge` | Text |
+    | 身份证件号码 | `id_no` | Text |
+    | 保险费 | `insurance` | Text |
+    | 填开单位 | `issued_by` | Text |
+    | 填开日期 | `issued_date` | Text |
+    | 其他税费 | `other_taxes` | Text |
+    | 旅客姓名 | `passenger_name` | Text |
+    | 签注 | `restriction` | Text |
+    | 印刷序号 | `serial_number` | Text |
+    | 合计金额 | `total` | Text |
+    | 出发站 | `from` | Text |
+    | 到达站 | `to` | Text |
+    | 承运人 | `carrier` | Text |
+    | 航班号 | `flight_number` | Text |
+    | 座位等级 | `seat_class` | Text |
+    | 航班日期 | `date` | Text |
+    | 航班时间 | `time` | Text |
+    | 行李 | `allow` | Text |
+    | 条形码信息 | `bar_code` | Text |
+    | GP号码 | `flight_gp_number` | Text |
+    | 发票消费类型 | `quota_invoice_category` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 出发地（城市-机场名） | `flight_from_departure_full_name` | Text |
+    | 目的地（城市-机场名） | `flight_to_destination_full_name` | Text |
+    | 发票日期（YYYY-MM-DD） | `flight_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+  </Accordion>
+  <Accordion title="Customs declaration form (custom_declaration_form)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 随附单证及编号 | `invoice_attachment_no` | Text |
+    | 合同协议号 | `invoice_contract_id` | Text |
+    | 海关编号 | `invoice_customer_id` | Text |
+    | 成交方式 | `invoice_deal_mode` | Text |
+    | 申报日期 | `invoice_declaration_date` | Text |
+    | 启运港 | `invoice_department_port` | Text |
+    | 贸易国（地区） | `invoice_dispatch_country` | Text |
+    | 贸易国（地区）代码 | `invoice_dispatch_country_code` | Text |
+    | 境内发货人/收货人社会信用代码 | `invoice_domestic_operator_id` | Text |
+    | 境内发货人/收货人企业名称 | `invoice_demestic_operator_name` | Text |
+    | 入境/离境口岸 | `invoice_domestic_port` | Text |
+    | 运费 | `invoice_freight` | Text |
+    | 毛重 | `invoice_gross_weight` | Text |
+    | 出口日期/进口日期 | `invoice_import_export_date` | Text |
+    | 出境关别/入境关别 | `invoice_import_export_ports` | Text |
+    | 包装种类 | `invoice_kinds_of_package` | Text |
+    | 提运单号 | `invoice_lading_id` | Text |
+    | 许可证号 | `invoice_license_no` | Text |
+    | 净重 | `invoice_net_weight` | Text |
+    | 票据号码（右上角编号） | `invoice_number_right_side` | Text |
+    | 件数 | `invoice_number_of_goods` | Text |
+    | 预录入编号 | `invoice_number_of_prerecord` | Text |
+    | 境外发货人/收货人企业名称 | `invoice_overseas_operator_name` | Text |
+    | 保费 | `invoice_premiums` | Text |
+    | 生产销售/消费使用单位企业社会信用代码 | `invoice_produce_consumer_id` | Text |
+    | 生产销售/消费使用单位企业名称 | `invoice_produce_consumer_name` | Text |
+    | 二维码信息 | `invoice_qr_code` | Text |
+    | 备案号 | `invoice_registration_number` | Text |
+    | 标记唛码及备注 | `invoice_remarks` | Text |
+    | 启运国/运抵国(地区) | `invoice_start_arrival_country` | Text |
+    | 启运国/运抵国(地区)代码 | `invoice_start_arrival_country_code` | Text |
+    | 经停港/指运港 | `invoice_stop_over_destination_port` | Text |
+    | 货物存放地点 | `invoice_storage_location` | Text |
+    | 杂费 | `invoice_sundry_charges` | Text |
+    | 监管方式 | `invoice_supervision_mode` | Text |
+    | 标题 | `invoice_title` | Text |
+    | 运输方式 | `invoice_transport_mode` | Text |
+    | 运输工具名称及航次号 | `invoice_transport_tool` | Text |
+    | 征免性质 | `invoice_levy_exemption` | Text |
+    | 页码（当前页数/总页数） | `invoice_page_number` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+    **Table fields**
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 项号 | `invoice_item_no` | Text |
+    | 商品编号 | `invoice_goods_id` | Text |
+    | 商品名称 | `invoice_goods_name` | Text |
+    | 规格型号 | `invoice_model` | Text |
+    | 数量及单位 | `invoice_quantity` | Text |
+    | 单位/总价/币值 | `invoice_unit_price` | Text |
+    | 原产国（地区） | `invoice_origin_country` | Text |
+    | 最终目的国（地区） | `invoice_destination_country` | Text |
+    | 境内目的地/货源地 | `invoice_demostic_area` | Text |
+    | 征免 | `invoice_exemption` | Text |
+
+  </Accordion>
+  <Accordion title="Customs payment form (customs_payment_form)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 地址 | `invoice_address` | Text |
+    | 总金额 | `invoice_total_amount_digital` | Text |
+    | 申请单位编号 | `invoice_application_unit_id` | Text |
+    | 预算级次 | `invoice_beneficiary_budget_level` | Text |
+    | 收入机关 | `invoice_benefiary_name` | Text |
+    | 收款单位科目 | `invoice_beneficiary_subject` | Text |
+    | 收入系统 | `invoice_beneficiary_system` | Text |
+    | 大写金额 | `invoice_total_amount_capital` | Text |
+    | 合同（批文）号 | `invoice_contract_id` | Text |
+    | 报关单编号 | `invoice_custom_id` | Text |
+    | 收款国库名称 | `invoice_exchequer` | Text |
+    | 收款国库ID号 | `invoice_exchequer_id` | Text |
+    | 提/装货单号 | `invoice_lading_id` | Text |
+    | 号码 | `invoice_number` | Text |
+    | 缴款单位开户银行 | `invoice_payer_bank` | Text |
+    | 缴款单位账号 | `invoice_payer_bank_account` | Text |
+    | 缴款单位名称 | `invoice_payer_name` | Text |
+    | 缴款期限 | `invoice_payment_term` | Text |
+    | 二维码信息 | `invoice_qr_code` | Text |
+    | 日期 | `invoice_issue_date` | Text |
+    | 备注 | `invoice_remarks` | Text |
+    | 运输工具（号） | `invoice_transportation_id` | Text |
+    | 发票抬头 | `invoice_title` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+    **Table fields**
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 项目序号 | `invoice_tax_itemid` | Text |
+    | 税号 | `invoice_tax_id` | Text |
+    | 货物名称 | `invoice_name` | Text |
+    | 数量 | `invoice_quantity` | Text |
+    | 单位 | `invoice_unit` | Text |
+    | 完税价格 | `invoice_amount` | Text |
+    | 税率 | `invoice_tax_rate` | Text |
+    | 税款金额 | `invoice_tax_amount` | Text |
+
+  </Accordion>
+  <Accordion title="Electronic air transport e-ticket itinerary (electronic_air_transport)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 合计金额 | `total` | Text |
+    | 验证码 | `flight_correct_code` | Text |
+    | 民航发展基金 | `civil_aviation_fund` | Text |
+    | 电子客票号码 | `e_ticket_no` | Text |
+    | 填开日期 | `issued_date` | Text |
+    | 票价 | `fare` | Text |
+    | 免费行李 | `allow` | Text |
+    | 承运人 | `carrier` | Text |
+    | 航班日期 | `date` | Text |
+    | 座位等级 | `seat_class` | Text |
+    | 出发站 | `from` | Text |
+    | 出发地（城市-机场名） | `flight_from_departure_full_name` | Text |
+    | 到达站 | `to` | Text |
+    | 到达站（城市-机场名） | `flight_to_destination_full_name` | Text |
+    | 航班号 | `flight_number` | Text |
+    | 客票级别/客票类别 | `fare_basis` | Text |
+    | 有效截止日期 | `not_valid_after` | Text |
+    | 客票生效日期 | `not_valid_before` | Text |
+    | 航班时间 | `time` | Text |
+    | 燃油附加费 | `fuel_surcharge` | Text |
+    | GP单号 | `flight_gp_number` | Text |
+    | 发票消费类型 | `quota_invoice_category` | Text |
+    | 保险费 | `insurance_fare` | Text |
+    | 填开单位 | `issued_by` | Text |
+    | 发票号码 | `flight_invoice_number` | Text |
+    | 其他税费 | `other_taxes` | Text |
+    | 旅客姓名 | `passenger_name` | Text |
+    | 身份证件号码 | `id_no` | Text |
+    | 购买方纳税人识别号 | `flight_invoice_payer_id` | Text |
+    | 购买方名称 | `flight_invoice_payer_name` | Text |
+    | 签注 | `restriction` | Text |
+    | 子类型（国际国内标识） | `subtype` | Text |
+    | 税率 | `flight_invoice_tax_rate` | Text |
+    | 总税额 | `flight_invoice_tax_total` | Text |
+    | 二维码信息 | `flight_invoice_qr_code` | Text |
+    | 合计金额(OCR) | `total_raw` | Text |
+    | 填开日期(OCR) | `issued_date_raw` | Text |
+    | 发票号码(OCR) | `flight_invoice_number_raw` | Text |
+    | 发票标题 | `flight_invoice_title` | Text |
+    | 发票日期（YYYY-MM-DD） | `flight_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+  </Accordion>
+  <Accordion title="Electronic motor vehicle sales invoice (electronic_motor_vehicle_sale_invoice)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 类型 | `type` | Text |
+    | 购买方名称 | `vehicle_invoice_buyer` | Text |
+    | 购买方名称的身份证号码或组织机构代码 | `vehicle_invoice_buyer_id` | Text |
+    | 购方纳税人识别号 | `vehicle_invoice_buyer_tax_id` | Text |
+    | 产地 | `vehicle_invoice_car_made_place` | Text |
+    | 厂牌型号 | `vehicle_invoice_car_model` | Text |
+    | 车辆识别代号/车架号 | `vehicle_invoice_car_vin` | Text |
+    | 合格证号 | `vehicle_invoice_cert_id` | Text |
+    | 商检单号 | `vehicle_invoice_commodity_inspection_id` | Text |
+    | 销货单位 | `vehicle_invoice_dealer` | Text |
+    | 发动机号码 | `vehicle_invoice_engine_id` | Text |
+    | 发票号码 | `vehicle_invoice_haoma` | Text |
+    | 进口证明书号 | `vehicle_invoice_import_certificate_id` | Text |
+    | 开票日期 | `vehicle_invoice_issue_date` | Text |
+    | 开票人 | `vehicle_invoice_issued_by` | Text |
+    | 限乘人数 | `vehicle_invoice_limit_number` | Text |
+    | 不含税价 | `vehicle_invoice_price_without_tax` | Text |
+    | 二维码 | `vehicle_invoice_qr_code` | Text |
+    | 销售方地址 | `vehicle_invoice_seller_address` | Text |
+    | 账销售方号 | `vehicle_invoice_seller_bank_account` | Text |
+    | 销售方开户银行 | `vehicle_invoice_seller_bank_name` | Text |
+    | 销售方纳税人识别号 | `vehicle_invoice_seller_tax_id` | Text |
+    | 税额 | `vehicle_invoice_tax_amount` | Text |
+    | 主管税务代码 | `vehicle_invoice_tax_author_id` | Text |
+    | 主管税务机关 | `vehicle_invoice_tax_author_name` | Text |
+    | 完税凭证号 | `vehicle_invoice_tax_payment_certificate_number` | Text |
+    | 增值税税率 | `vehicle_invoice_tax_rate` | Text |
+    | 电话 | `vehicle_invoice_telephone` | Text |
+    | 吨位 | `vehicle_invoice_tonnage` | Text |
+    | 价税合计 | `vehicle_invoice_total_price` | Text |
+    | 价税合计小写 | `vehicle_invoice_total_price_digits` | Text |
+    | 车辆类型 | `vehicle_invoice_vehicle_type` | Text |
+    | 发票抬头 | `vehicle_invoice_title` | Text |
+    | 发票消费类型 | `vehicle_invoice_goods_type` | Text |
+    | 发票日期（YYYY-MM-DD） | `vehicle_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+  </Accordion>
+  <Accordion title="Electronic train ticket (electronic_train_ticket)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 发票号码 | `ticket_number` | Text |
+    | 电子客票号码 | `e_ticket_no` | Text |
+    | 开票日期 | `ticket_date` | Text |
+    | 出发地 | `departure_station` | Text |
+    | 车次号 | `train_number` | Text |
+    | 目的地 | `arrival_station` | Text |
+    | 乘车日期 | `departure_date` | Text |
+    | 座位类别 | `class` | Text |
+    | 座位号 | `seat_number` | Text |
+    | 合计金额 | `price` | Text |
+    | 不含税金额 | `fare` | Text |
+    | 税率 | `ticket_invoice_tax_rate` | Text |
+    | 总税额 | `ticket_invoice_tax_total` | Text |
+    | 发票消费类型 | `vat_invoice_goods_type_list` | Text |
+    | 二维码信息 | `ticket_invoice_qr_code` | Text |
+    | 乘客身份证 | `passenger_id` | Text |
+    | 乘客名称 | `passenger_name` | Text |
+    | 购买方纳税人识别号 | `ticket_invoice_payer_id` | Text |
+    | 购买方名称 | `ticket_invoice_payer_name` | Text |
+    | 发车时间 | `ticket_time` | Text |
+    | 备注信息 | `remarks` | Text |
+    | 是否为退票费 | `refund_fee_flag` | Text |
+    | 是否为改签费 | `change_fee_flag` | Text |
+    | 发票号码(OCR) | `ticket_number_raw` | Text |
+    | 开票日期(OCR) | `ticket_date_raw` | Text |
+    | 价格(OCR) | `price_raw` | Text |
+    | 发票标题 | `ticket_invoice_title` | Text |
+    | 发票日期（YYYY-MM-DD） | `ticket_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+  </Accordion>
+  <Accordion title="Electronic used car sales invoice (electronic_used_car_purchase_invoice)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 类型 | `type` | Text |
+    | 经营、拍卖单位 | `vehicle_invoice_auction_house` | Text |
+    | 经营、拍卖单位地址 | `vehicle_invoice_auction_house_addr` | Text |
+    | 经营、拍卖单位开户银行、账号 | `vehicle_invoice_auction_house_bank_account` | Text |
+    | 经营、拍卖单位电话 | `vehicle_invoice_auction_house_phone` | Text |
+    | 经营、拍卖单位纳税人识别号 | `vehicle_invoice_auction_house_tax_id` | Text |
+    | 购货单位(人) | `vehicle_invoice_buyer` | Text |
+    | 购买方地址 | `vehicle_invoice_buyer_addr` | Text |
+    | 购买身份证号码/组织机构代码 | `vehicle_invoice_buyer_id` | Text |
+    | 购买方电话号码 | `vehicle_invoice_buyer_phone` | Text |
+    | 厂牌型号 | `vehicle_invoice_car_model` | Text |
+    | 转入地车辆管理所名称 | `vehicle_invoice_dmv` | Text |
+    | 购车发票号码 | `vehicle_invoice_haoma` | Text |
+    | 购车发票开票日期 | `vehicle_invoice_issue_date` | Text |
+    | 二手车市场 | `vehicle_invoice_market` | Text |
+    | 二手车市场地址 | `vehicle_invoice_market_addr` | Text |
+    | 二手车市场开户银行、账号 | `vehicle_invoice_market_bank_acount` | Text |
+    | 二手车市场电话 | `vehicle_invoice_market_phone` | Text |
+    | 二手车市场纳税人识别号 | `vehicle_invoice_market_tax_id` | Text |
+    | 备注 | `vehicle_invoice_note` | Text |
+    | 车牌照号 | `vehicle_invoice_plate_num` | Text |
+    | 价税合计 | `vehicle_invoice_price_total_price` | Text |
+    | 登记证号 | `vehicle_invoice_register_num` | Text |
+    | 卖方单位(人) | `vehicle_invoice_seller` | Text |
+    | 卖方地址 | `vehicle_invoice_seller_addr` | Text |
+    | 卖方身份证号码/组织机构代码 | `vehicle_invoice_seller_id` | Text |
+    | 卖方电话号码 | `vehicle_invoice_seller_phone` | Text |
+    | 价税合计小写 | `vehicle_invoice_total_price_digits` | Text |
+    | 车辆类型 | `vehicle_invoice_vehicle_type` | Text |
+    | 车架号/车辆识别代码 | `vehicle_invoice_vin` | Text |
+    | 发票消费类型 | `vehicle_invoice_goods_type` | Text |
+    | 开票人 | `vehicle_invoice_issued_by` | Text |
+    | 二维码 | `vehicle_qr_code` | Text |
+    | 发票抬头 | `vehicle_invoice_title` | Text |
+    | 发票日期（YYYY-MM-DD） | `vehicle_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+  </Accordion>
+  <Accordion title="Fiscal paper (fiscal_paper)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 总金额 | `vat_invoice_total_cover_tax_digits` | Text |
+    | 收款单位 | `vat_invoice_beneficiary_name` | Text |
+    | 校验码 | `vat_invoice_correct_code` | Text |
+    | 大写金额 | `vat_invoice_total_cover_tax` | Text |
+    | 发票代码 | `vat_invoice_daima` | Text |
+    | 发票日期 | `vat_invoice_issue_date` | Text |
+    | 交款人统一社会信用代码 | `vat_invoice_payer_id` | Text |
+    | 交款人 | `vat_invoice_payer_name` | Text |
+    | 二维码信息 | `vat_invoice_qr_code` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 发票抬头 | `vat_invoice_title` | Text |
+    | 发票号码 | `vat_invoice_no_haoma` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+    **Table fields**
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 项目名称 | `vat_invoice_goods` | Text |
+    | 单位 | `vat_invoice_electrans_unit` | Text |
+    | 数量 | `vat_invoice_electrans_quantity` | Text |
+    | 金额 | `vat_invoice_price` | Text |
+
+  </Accordion>
+  <Accordion title="Electronic fiscal paper (fiscal_paper_electronic)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 总金额 | `vat_invoice_total_cover_tax_digits` | Text |
+    | 收款单位 | `vat_invoice_beneficiary_name` | Text |
+    | 校验码 | `vat_invoice_correct_code` | Text |
+    | 大写金额 | `vat_invoice_total_cover_tax` | Text |
+    | 发票代码 | `vat_invoice_daima` | Text |
+    | 发票日期 | `vat_invoice_issue_date` | Text |
+    | 交款人统一社会信用代码 | `vat_invoice_payer_id` | Text |
+    | 交款人 | `vat_invoice_payer_name` | Text |
+    | 二维码信息 | `vat_invoice_qr_code` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 发票抬头 | `vat_invoice_title` | Text |
+    | 发票号码 | `vat_invoice_no_haoma` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+    **Table fields**
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 项目名称 | `vat_invoice_goods` | Text |
+    | 数量 | `vat_invoice_electrans_quantity` | Text |
+    | 单位 | `vat_invoice_electrans_unit` | Text |
+    | 金额 | `vat_invoice_price` | Text |
+
+  </Accordion>
+  <Accordion title="General machine-printed invoice (general_machine_invoice)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 发票代码 | `invoice_code` | Text |
+    | 发票号码 | `invoice_number` | Text |
+    | 收款方名称 | `seller` | Text |
+    | 收款方证件号 | `seller_tax_id` | Text |
+    | 付款方名称 | `buyer` | Text |
+    | 付款方证件号 | `buyer_tax_id` | Text |
+    | 金额 | `money` | Text |
+    | 日期 | `date` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 省市 | `invoice_address` | Text |
+    | 发票联次 | `invoice_form_name` | Text |
+    | 行业分类 | `invoice_category` | Text |
+    | 税额 | `invoice_total_tax_amount` | Text |
+    | 发票抬头 | `invoice_title` | Text |
+    | 二维码 | `invoice_qr_code` | Text |
+    | 发票日期（YYYY-MM-DD） | `invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+    **Table fields**
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 项目名称 | `invoice_name` | Text |
+    | 规格型号 | `invoice_plate_specific` | Text |
+    | 单位 | `invoice_unit` | Text |
+    | 数量 | `invoice_quantity` | Text |
+    | 单价 | `invoice_unit_price` | Text |
+    | 金额 | `invoice_amount` | Text |
+    | 税率 | `invoice_tax_rate` | Text |
+    | 税额 | `invoice_tax` | Text |
+
+  </Accordion>
+  <Accordion title="Highway passenger invoice (highway_passenger_invoice)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 发票代码 | `invoice_code` | Text |
+    | 发票号码 | `invoice_number` | Text |
+    | 金额 | `money` | Text |
+    | 日期 | `date` | Text |
+    | 时间 | `time` | Text |
+    | 乘客姓名 | `passenger_name` | Text |
+    | 乘客身份证号码 | `passenger_id` | Text |
+    | 发票专用章 | `exist_invoice_seal` | Text |
+    | 终点站 | `invoice_end_station` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 起始站 | `invoice_start_station` | Text |
+    | 发票抬头 | `invoice_title` | Text |
+    | 发票消费类型 | `vat_invoice_goods_type_list` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+  </Accordion>
+  <Accordion title="Machine-printed electronic invoice (machine_printed_invoice)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 发票代码 | `vat_invoice_daima` | Text |
+    | 发票号码 | `vat_invoice_haoma_right_side` | Text |
+    | 开票日期 | `vat_invoice_issue_date` | Text |
+    | 价税合计大写 | `vat_invoice_total_cover_tax` | Text |
+    | 价税合计小写 | `vat_invoice_total_cover_tax_digits` | Text |
+    | 销售方名称 | `vat_invoice_seller_name` | Text |
+    | 销售方纳税人识别号 | `vat_invoice_seller_id` | Text |
+    | 销售方地址、电话 | `vat_invoice_seller_addr_tell` | Text |
+    | 销售方开户行及账号 | `vat_invoice_seller_bank_account` | Text |
+    | 购买方名称 | `vat_invoice_payer_name` | Text |
+    | 购买方纳税人识别号 | `vat_invoice_rate_payer_id` | Text |
+    | 购买方地址、电话 | `vat_invoice_payer_addr_tell` | Text |
+    | 购买方开户行及账号 | `vat_invoice_payer_bank_account` | Text |
+    | 税额合计 | `vat_invoice_tax_total` | Text |
+    | 合计（不含税金额） | `vat_invoice_total` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 盖章存在性判断 | `exist_stample` | Text |
+    | 类型 | `type` | Text |
+    | 校验码 | `vat_invoice_correct_code` | Text |
+    | 打印校验码 | `vat_invoice_corrent_code_print` | Text |
+    | 右侧打印发票代码 | `vat_invoice_daima_right_side` | Text |
+    | 开票人 | `vat_invoice_drawer` | Text |
+    | 发票消费类型 | `vat_invoice_goods_type_list` | Text |
+    | 发票号码（二维码） | `vat_invoice_haoma` | Text |
+    | 右侧打印开票日期 | `vat_invoice_issue_date_print` | Text |
+    | 收款人 | `vat_invoice_payee` | Text |
+    | 二维码 | `vat_invoice_qr_code` | Text |
+    | 是否为全电发票 | `vat_invoice_quandianfapiao_flag` | Text |
+    | 复核 | `vat_invoice_review` | Text |
+    | 备注 | `vat_invoice_total_note` | Text |
+    | 打印合计 | `vat_invoice_total_print` | Text |
+    | 发票类型 | `vat_invoice_type` | Text |
+    | 省市 | `vat_invoice_address` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 发票抬头 | `vat_invoice_title` | Text |
+    | 发票联次 | `vat_invoice_form_name` | Text |
+    | 是否为区块链发票 | `vat_invoice_block_chain` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+    **Table fields**
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 项目名称 | `vat_invoice_goods` | Text |
+    | 规格型号 | `vat_invoice_plate_specific` | Text |
+    | 单位 | `vat_invoice_electrans_unit` | Text |
+    | 数量 | `vat_invoice_electrans_quantity` | Text |
+    | 单价 | `vat_invoice_electrans_unit_price` | Text |
+    | 金额 | `vat_invoice_price` | Text |
+    | 税率 | `vat_invoice_tax_rate` | Text |
+    | 税额 | `vat_invoice_tax` | Text |
+
+  </Accordion>
+  <Accordion title="Electronic medical invoice (medical_electronic_invoice)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 总金额 | `vat_invoice_total_cover_tax_digits` | Text |
+    | 收款单位 | `vat_invoice_beneficiary_name` | Text |
+    | 大写金额 | `vat_invoice_total_cover_tax` | Text |
+    | 发票代码 | `vat_invoice_daima` | Text |
+    | 发票日期 | `vat_invoice_issue_date` | Text |
+    | 发票号码 | `vat_invoice_haoma` | Text |
+    | 交款人 | `vat_invoice_payer_name` | Text |
+    | 交款人统一社会信用代码 | `vat_invoice_payer_id` | Text |
+    | 个人自费 | `vat_invoice_personal_amount` | Text |
+    | 二维码信息 | `vat_invoice_qr_code` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 发票抬头 | `vat_invoice_title` | Text |
+    | 校验码 | `vat_invoice_correct_code` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+  </Accordion>
+  <Accordion title="Medical invoice (medical_invoice)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 金额 | `invoice_total_amount_digital` | Text |
+    | 条码信息 | `invoice_bar_code` | Text |
+    | 发票代码 | `invoice_code` | Text |
+    | 金额信息 | `invoice_content_info` | Text |
+    | 发票日期 | `invoice_date` | Text |
+    | 发票号码 | `invoice_number` | Text |
+    | 二维码信息 | `invoice_qr_code` | Text |
+    | 发票标题 | `invoice_title` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+  </Accordion>
+  <Accordion title="Motor vehicle sales invoice (motor_vehicle_sale_invoice)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 省市 | `vehicle_invoice_address` | Text |
+    | 价税合计小写 | `vehicle_invoice_total_price_digits` | Text |
+    | 价税合计 | `vehicle_invoice_total_price` | Text |
+    | 发票代码 | `vehicle_invoice_daima` | Text |
+    | 开票日期 | `vehicle_invoice_issue_date` | Text |
+    | 发动机号码 | `vehicle_invoice_engine_id` | Text |
+    | 发票联次 | `vehicle_invoice_page_number` | Text |
+    | 发票第X联 | `vehicle_invoice_form_type` | Text |
+    | 全电发票号码（税控码区内） | `vehicle_invoice_evat_number` | Text |
+    | 进口证明书号 | `vehicle_invoice_import_certificate_id` | Text |
+    | 发票消费类型 | `vehicle_invoice_goods_type` | Text |
+    | 商检单号 | `vehicle_invoice_commodity_inspection_id` | Text |
+    | 开票人 | `vehicle_invoice_issued_by` | Text |
+    | 机器编码 | `vehicle_invoice_machine_id` | Text |
+    | 限乘人数 | `vehicle_invoice_limit_number` | Text |
+    | 不含税价 | `vehicle_invoice_price_without_tax` | Text |
+    | 发票号码 | `vehicle_invoice_haoma` | Text |
+    | 购方纳税人识别号 | `vehicle_invoice_buyer_tax_id` | Text |
+    | 购买方名称的身份证号码或组织机构代码 | `vehicle_invoice_buyer_id` | Text |
+    | 购买方名称 | `vehicle_invoice_buyer` | Text |
+    | 机打代码 | `vehicle_invoice_jida_daima` | Text |
+    | 机打号码 | `vehicle_invoice_jida_haoma` | Text |
+    | 二维码 | `vehicle_invoice_qr_code` | Text |
+    | 合格证号 | `vehicle_invoice_cert_id` | Text |
+    | 销售方地址 | `vehicle_invoice_seller_address` | Text |
+    | 销售方开户银行 | `vehicle_invoice_seller_bank_name` | Text |
+    | 销售方账号 | `vehicle_invoice_seller_bank_account` | Text |
+    | 销售方纳税人识别号 | `vehicle_invoice_seller_tax_id` | Text |
+    | 销货单位 | `vehicle_invoice_dealer` | Text |
+    | 电话 | `vehicle_invoice_telephone` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 税额 | `vehicle_invoice_tax_amount` | Text |
+    | 主管税务机关 | `vehicle_invoice_tax_author_name` | Text |
+    | 主管税务代码 | `vehicle_invoice_tax_author_id` | Text |
+    | 完税凭证号 | `vehicle_invoice_tax_payment_certificate_number` | Text |
+    | 增值税税率 | `vehicle_invoice_tax_rate` | Text |
+    | 发票抬头 | `vehicle_invoice_title` | Text |
+    | 吨位 | `vehicle_invoice_tonnage` | Text |
+    | 类型 | `type` | Text |
+    | 车辆识别代号/车架号 | `vehicle_invoice_car_vin` | Text |
+    | 厂牌型号 | `vehicle_invoice_car_model` | Text |
+    | 产地 | `vehicle_invoice_car_made_place` | Text |
+    | 车辆类型 | `vehicle_invoice_vehicle_type` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+  </Accordion>
+  <Accordion title="Other invoice (other)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 总金额 | `invoice_total_amount_digital` | Text |
+    | 条码信息 | `invoice_bar_code` | Text |
+    | 发票代码 | `invoice_code` | Text |
+    | 金额信息 | `invoice_content_info` | Text |
+    | 发票日期 | `invoice_date` | Text |
+    | 号码 | `invoice_number` | Text |
+    | 二维码信息 | `invoice_qr_code` | Text |
+    | 标题 | `invoice_title` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+  </Accordion>
+  <Accordion title="Quota invoice (quota_invoice)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 发票代码 | `quota_invoice_code` | Text |
+    | 发票号码 | `quota_invoice_number` | Text |
+    | 发票所在地 | `location` | Text |
+    | 金额(小写) | `money_small` | Text |
+    | 金额(大写) | `money_big` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 发票消费类型 | `quota_invoice_category` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 发票抬头 | `quota_invoice_title` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+  </Accordion>
+  <Accordion title="Shipping invoice (shipping_invoice)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 发票代码 | `invoice_code` | Text |
+    | 发票号码 | `invoice_number` | Text |
+    | 金额 | `money` | Text |
+    | 日期 | `date` | Text |
+    | 时间 | `time` | Text |
+    | 发票专用章存在性判存 | `exist_invoice_seal` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+  </Accordion>
+  <Accordion title="Tax clearance certificate (tax_clearance_certificate)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 总金额 | `vat_invoice_total_cover_tax_digits` | Text |
+    | 大写金额 | `vat_invoice_total_cover_tax` | Text |
+    | 填发日期 | `vat_invoice_issue_date` | Text |
+    | 填票人 | `vat_invoice_drawer` | Text |
+    | 发票号码 | `vat_invoice_haoma` | Text |
+    | 纳税人识别号 | `vat_invoice_rate_payer_id` | Text |
+    | 纳税人名称 | `vat_invoice_payer_name` | Text |
+    | 备注 | `vat_invoice_total_note` | Text |
+    | 税务机关 | `vat_invoice_tax_authority` | Text |
+    | 发票抬头 | `vat_invoice_title` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+    **Table fields**
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 原凭证号 | `vat_invoice_tax_id` | Text |
+    | 税种 | `vat_invoice_tax_type` | Text |
+    | 品目名称 | `vat_invoice_goods` | Text |
+    | 税款所属时期 | `vat_invoice_during_period` | Text |
+    | 入（退）库日期 | `vat_invoice_ware_house_date` | Text |
+    | 实缴（退）金额 | `vat_invoice_amount` | Text |
+
+  </Accordion>
+  <Accordion title="Taxi ticket (taxi_ticket)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 发票代码 | `invoice_code` | Text |
+    | 发票号码 | `invoice_no` | Text |
+    | 发票所在地 | `location` | Text |
+    | 日期 | `date` | Text |
+    | 上车时间 | `boarding_time` | Text |
+    | 下车时间 | `landing_time` | Text |
+    | 单价 | `unit_price` | Text |
+    | 里程 | `mileage` | Text |
+    | 总金额 | `sum` | Text |
+    | 车号 | `taxi_no` | Text |
+    | 原始打车价格 | `taxi_fare` | Text |
+    | 燃油附加费 | `oil` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+  </Accordion>
+  <Accordion title="Train ticket refund fee (ticket_refund_fee)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 金额 | `vat_invoice_total_cover_tax_digits` | Text |
+    | 大写金额 | `vat_invoice_total_cover_tax` | Text |
+    | 开票人 | `vat_invoice_drawer` | Text |
+    | 发票号码 | `vat_invoice_haoma` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 发票抬头 | `vat_invoice_title` | Text |
+    | 发票消费类型 | `vat_invoice_goods_type_list` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+  </Accordion>
+  <Accordion title="Train ticket (train_ticket)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 发票号码 | `ticket_number` | Text |
+    | 出发地 | `departure_station` | Text |
+    | 车次号 | `train_number` | Text |
+    | 目的地 | `arrival_station` | Text |
+    | 乘车时间 | `departure_date` | Text |
+    | 座位号 | `seat_number` | Text |
+    | 价格 | `price` | Text |
+    | 座位类别 | `class` | Text |
+    | 乘客身份证 | `passenger_id` | Text |
+    | 乘客名称 | `passenger_name` | Text |
+    | 火车票ID | `ticket_id` | Text |
+    | 发票代码 | `code` | Text |
+    | 火车票红色编码 | `number` | Text |
+    | 发车时间 | `ticket_time` | Text |
+    | 备注信息 | `remarks` | Text |
+    | 是否为退票费 | `refund_fee_flag` | Text |
+    | 是否为改签费 | `change_fee_flag` | Text |
+    | 消费类型 | `vat_invoice_goods_type_list` | Text |
+    | 发票日期（YYYY-MM-DD） | `ticket_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+  </Accordion>
+  <Accordion title="Ride-hailing itinerary (travel_transport)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 总金额 | `vat_invoice_total_cover_tax_digits` | Text |
+    | 发票日期 | `vat_invoice_issue_date` | Text |
+    | 行程开始日期 | `vat_invoice_date_start` | Text |
+    | 行程结束日期 | `vat_invoice_date_end` | Text |
+    | 行程人手机号 | `vat_invoice_passenger_tel` | Text |
+    | 发票抬头 | `vat_invoice_title` | Text |
+    | 发票消费类型 | `vat_invoice_goods_type_list` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+    **Table fields**
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 项目名称 | `vat_invoice_goods` | Text |
+    | 车型 | `vat_invoice_car_type` | Text |
+    | 城市 | `vat_invoice_city` | Text |
+    | 里程 | `vat_invoice_distance` | Text |
+    | 起点 | `vat_invoice_start_station` | Text |
+    | 终点 | `vat_invoice_end_station` | Text |
+    | 上车日期 | `vat_invoice_boarding_date` | Text |
+    | 上车时间 | `vat_invoice_boarding_time` | Text |
+    | 上车时间/用车时间 | `vat_invoice_geton_time` | Text |
+    | 金额 | `vat_invoice_price` | Text |
+    | 服务商 | `vat_invoice_provider` | Text |
+
+  </Accordion>
+  <Accordion title="VAT invoice sales list (vat_invoice_sales_list)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 购买方名称 | `vat_invoice_payer_name` | Text |
+    | 销售方名称 | `vat_invoice_seller_name` | Text |
+    | 发票代码 | `vat_invoice_daima` | Text |
+    | 发票号码 | `vat_invoice_haoma` | Text |
+    | 页码（总页数/当前页数） | `vat_invoice_page_number` | Text |
+    | 金额总计 | `vat_invoice_total_cover_tax_digits` | Text |
+    | 当前页码金额 | `invoice_amount_per_page` | Text |
+    | 金额小计 | `vat_invoice_total_per_page` | Text |
+    | 税额总计 | `vat_invoice_tax_total` | Text |
+    | 当前页码税额 | `invoice_tax_amount_per_page` | Text |
+    | 税额小计 | `vat_invoice_tax_total_per_page` | Text |
+    | 填开日期 | `vat_invoice_issue_date` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 备注 | `vat_invoice_total_note` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 发票抬头 | `vat_invoice_title` | Text |
+    | 发票日期（YYYY-MM-DD） | `format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+    **Table fields**
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 项目序号 | `vat_invoice_itemid` | Text |
+    | 项目名称 | `vat_invoice_goods` | Text |
+    | 规格型号 | `vat_invoice_plate_specific` | Text |
+    | 单位 | `vat_invoice_electrans_unit` | Text |
+    | 数量 | `vat_invoice_electrans_quantity` | Text |
+    | 单价 | `vat_invoice_electrans_unit_price` | Text |
+    | 金额 | `vat_invoice_price` | Text |
+    | 税率 | `vat_invoice_tax_rate` | Text |
+    | 税额 | `vat_invoice_tax` | Text |
+
+  </Accordion>
+  <Accordion title="Used car sales invoice (used_car_purchase_invoice)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 类型 | `type` | Text |
+    | 经营、拍卖单位 | `vehicle_invoice_auction_house` | Text |
+    | 经营、拍卖单位地址 | `vehicle_invoice_auction_house_addr` | Text |
+    | 经营、拍卖单位开户银行、账号 | `vehicle_invoice_auction_house_bank_account` | Text |
+    | 经营、拍卖单位电话 | `vehicle_invoice_auction_house_phone` | Text |
+    | 经营、拍卖单位纳税人识别号 | `vehicle_invoice_auction_house_tax_id` | Text |
+    | 购货单位(人) | `vehicle_invoice_buyer` | Text |
+    | 购买方地址 | `vehicle_invoice_buyer_addr` | Text |
+    | 购买身份证号码/组织机构代码 | `vehicle_invoice_buyer_id` | Text |
+    | 购买方电话号码 | `vehicle_invoice_buyer_phone` | Text |
+    | 厂牌型号 | `vehicle_invoice_car_model` | Text |
+    | 购车发票代码 | `vehicle_invoice_daima` | Text |
+    | 转入地车辆管理所名称 | `vehicle_invoice_dmv` | Text |
+    | 购车发票号码 | `vehicle_invoice_haoma` | Text |
+    | 购车发票开票日期 | `vehicle_invoice_issue_date` | Text |
+    | 二手车市场 | `vehicle_invoice_market` | Text |
+    | 二手车市场地址 | `vehicle_invoice_market_addr` | Text |
+    | 二手车市场开户银行、账号 | `vehicle_invoice_market_bank_acount` | Text |
+    | 二手车市场电话 | `vehicle_invoice_market_phone` | Text |
+    | 二手车市场纳税人识别号 | `vehicle_invoice_market_tax_id` | Text |
+    | 备注 | `vehicle_invoice_note` | Text |
+    | 车牌照号 | `vehicle_invoice_plate_num` | Text |
+    | 价税合计 | `vehicle_invoice_price_total_price` | Text |
+    | 登记证号 | `vehicle_invoice_register_num` | Text |
+    | 卖方单位(人) | `vehicle_invoice_seller` | Text |
+    | 卖方地址 | `vehicle_invoice_seller_addr` | Text |
+    | 卖方身份证号码/组织机构代码 | `vehicle_invoice_seller_id` | Text |
+    | 卖方电话号码 | `vehicle_invoice_seller_phone` | Text |
+    | 价税合计小写 | `vehicle_invoice_total_price_digits` | Text |
+    | 车辆类型 | `vehicle_invoice_vehicle_type` | Text |
+    | 车架号/车辆识别代码 | `vehicle_invoice_vin` | Text |
+    | 省市 | `vehicle_invoice_address` | Text |
+    | 发票联次 | `vehicle_invoice_page_number` | Text |
+    | 发票消费类型 | `vehicle_invoice_goods_type` | Text |
+    | 开票人 | `vehicle_invoice_issued_by` | Text |
+    | 机器码 | `vehicle_invoice_machine_id` | Text |
+    | 机打代码 | `vehicle_invoice_print_code` | Text |
+    | 机打号码 | `vehicle_invoice_print_number` | Text |
+    | 全电发票号码（税控码区内） | `vehicle_invoice_evat_number` | Text |
+    | 二维码 | `vehicle_qr_code` | Text |
+    | 发票抬头 | `vehicle_invoice_title` | Text |
+    | 发票第X联 | `vehicle_invoice_form_type` | Text |
+    | 发票日期（YYYY-MM-DD） | `vehicle_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+  </Accordion>
+  <Accordion title="VAT common invoice (vat_common_invoice)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 校验码 | `vat_invoice_correct_code` | Text |
+    | 发票号码 | `vat_invoice_haoma_large_size` | Text |
+    | 发票代码 | `vat_invoice_daima_print` | Text |
+    | 开票日期 | `vat_invoice_issue_date` | Text |
+    | 价税合计小写 | `vat_invoice_total_cover_tax_digits` | Text |
+    | 价税合计大写 | `vat_invoice_total_cover_tax` | Text |
+    | 打印合计（不含税金额） | `vat_invoice_total_print` | Text |
+    | 销售方名称 | `vat_invoice_seller_name` | Text |
+    | 销售方开户行及帐号 | `vat_invoice_seller_bank_account` | Text |
+    | 销售方纳税人识别号 | `vat_invoice_seller_id` | Text |
+    | 销售方地址、电话 | `vat_invoice_seller_addr_tell` | Text |
+    | 购买方名称 | `vat_invoice_payer_name` | Text |
+    | 购买方纳税人识别号 | `vat_invoice_rate_payer_id` | Text |
+    | 购买方开户行及帐号 | `vat_invoice_payer_bank_account` | Text |
+    | 购买方地址、电话 | `vat_invoice_payer_addr_tell` | Text |
+    | 税额合计 | `vat_invoice_tax_total` | Text |
+    | 专票/普票 | `vat_invoice_zhuan_yong_flag` | Text |
+    | 代开(非代开条目为空) | `vat_invoice_dai_kai_flag` | Text |
+    | 右侧打印发票代码 | `vat_invoice_daima_right_side` | Text |
+    | 右侧打印发票号码 | `vat_invoice_haoma_right_side` | Text |
+    | 抵扣联/发票联 | `vat_invoice_page_number` | Text |
+    | 发票类型（是否为电子发票） | `vat_invoice_type` | Text |
+    | 备注 | `vat_invoice_total_note` | Text |
+    | 密码区 | `vat_invoice_cipher_field` | Text |
+    | 开票人 | `vat_invoice_drawer` | Text |
+    | 复核 | `vat_invoice_review` | Text |
+    | 收款人 | `vat_invoice_payee` | Text |
+    | 盖章存在性判断 | `exist_stample` | Text |
+    | 省市 | `vat_invoice_address` | Text |
+    | 标题发票联 | `vat_invoice_headline_page_number` | Text |
+    | 发票第X联 | `vat_invoice_form_type` | Text |
+    | 发票子类型（左上角行业属性） | `vat_invoice_sub_type` | Text |
+    | 发票抬头 | `vat_invoice_title` | Text |
+    | 打印校验码 | `vat_invoice_corrent_code_print` | Text |
+    | 机器编号 | `vat_invoice_machine_no` | Text |
+    | 右侧打印开票日期 | `vat_invoice_issue_date_print` | Text |
+    | 二维码 | `vat_invoice_qr_code` | Text |
+    | 发票代码（二维码） | `vat_invoice_daima` | Text |
+    | 发票号码（二维码） | `vat_invoice_haoma` | Text |
+    | 合计（二维码） | `vat_invoice_total` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 发票类型 | `type` | Text |
+    | 消费类型 | `vat_invoice_goods_type_list` | Text |
+    | 全电发票号码（密码区内） | `vat_invoice_evat_number` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+    **Table fields**
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 项目名称 | `vat_invoice_goods` | Text |
+    | 规格型号 | `vat_invoice_plate_specific` | Text |
+    | 单位 | `vat_invoice_electrans_unit` | Text |
+    | 数量 | `vat_invoice_electrans_quantity` | Text |
+    | 单价 | `vat_invoice_electrans_unit_price` | Text |
+    | 金额 | `vat_invoice_price` | Text |
+    | 税率 | `vat_invoice_tax_rate_list` | Text |
+    | 税额 | `vat_invoice_tax_list` | Text |
+
+  </Accordion>
+  <Accordion title="VAT special invoice (vat_special_invoice)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 校验码 | `vat_invoice_correct_code` | Text |
+    | 发票号码 | `vat_invoice_haoma_large_size` | Text |
+    | 发票代码 | `vat_invoice_daima_print` | Text |
+    | 开票日期 | `vat_invoice_issue_date` | Text |
+    | 价税合计小写 | `vat_invoice_total_cover_tax_digits` | Text |
+    | 价税合计大写 | `vat_invoice_total_cover_tax` | Text |
+    | 打印合计（不含税金额） | `vat_invoice_total_print` | Text |
+    | 销售方名称 | `vat_invoice_seller_name` | Text |
+    | 销售方开户行及帐号 | `vat_invoice_seller_bank_account` | Text |
+    | 销售方纳税人识别号 | `vat_invoice_seller_id` | Text |
+    | 销售方地址、电话 | `vat_invoice_seller_addr_tell` | Text |
+    | 购买方名称 | `vat_invoice_payer_name` | Text |
+    | 购买方纳税人识别号 | `vat_invoice_rate_payer_id` | Text |
+    | 购买方开户行及帐号 | `vat_invoice_payer_bank_account` | Text |
+    | 购买方地址、电话 | `vat_invoice_payer_addr_tell` | Text |
+    | 税额合计 | `vat_invoice_tax_total` | Text |
+    | 专票/普票 | `vat_invoice_zhuan_yong_flag` | Text |
+    | 代开(非代开条目为空) | `vat_invoice_dai_kai_flag` | Text |
+    | 右侧打印发票代码 | `vat_invoice_daima_right_side` | Text |
+    | 右侧打印发票号码 | `vat_invoice_haoma_right_side` | Text |
+    | 抵扣联/发票联 | `vat_invoice_page_number` | Text |
+    | 发票类型（是否为电子发票） | `vat_invoice_type` | Text |
+    | 备注 | `vat_invoice_total_note` | Text |
+    | 密码区 | `vat_invoice_cipher_field` | Text |
+    | 开票人 | `vat_invoice_drawer` | Text |
+    | 复核 | `vat_invoice_review` | Text |
+    | 收款人 | `vat_invoice_payee` | Text |
+    | 盖章存在性判断 | `exist_stample` | Text |
+    | 省市 | `vat_invoice_address` | Text |
+    | 标题发票联 | `vat_invoice_headline_page_number` | Text |
+    | 发票第X联 | `vat_invoice_form_type` | Text |
+    | 发票子类型（左上角行业属性） | `vat_invoice_sub_type` | Text |
+    | 发票抬头 | `vat_invoice_title` | Text |
+    | 打印校验码 | `vat_invoice_corrent_code_print` | Text |
+    | 机器编号 | `vat_invoice_machine_no` | Text |
+    | 右侧打印开票日期 | `vat_invoice_issue_date_print` | Text |
+    | 二维码 | `vat_invoice_qr_code` | Text |
+    | 发票代码（二维码） | `vat_invoice_daima` | Text |
+    | 发票号码（二维码） | `vat_invoice_haoma` | Text |
+    | 合计（二维码） | `vat_invoice_total` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 发票类型 | `type` | Text |
+    | 消费类型 | `vat_invoice_goods_type_list` | Text |
+    | 全电发票号码（密码区内） | `vat_invoice_evat_number` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+    **Table fields**
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 项目名称 | `vat_invoice_goods` | Text |
+    | 规格型号 | `vat_invoice_plate_specific` | Text |
+    | 单位 | `vat_invoice_electrans_unit` | Text |
+    | 数量 | `vat_invoice_electrans_quantity` | Text |
+    | 单价 | `vat_invoice_electrans_unit_price` | Text |
+    | 金额 | `vat_invoice_price` | Text |
+    | 税率 | `vat_invoice_tax_rate_list` | Text |
+    | 税额 | `vat_invoice_tax_list` | Text |
+
+  </Accordion>
+  <Accordion title="VAT electronic special invoice (vat_electronic_special_invoice)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 发票类型 | `type` | Text |
+    | 专票/普票 | `vat_invoice_zhuan_yong_flag` | Text |
+    | 发票抬头 | `vat_invoice_title` | Text |
+    | 发票号码 | `vat_invoice_haoma_large_size` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 开票日期 | `vat_invoice_issue_date` | Text |
+    | 销售方名称 | `vat_invoice_seller_name` | Text |
+    | 销售方开户行及帐号 | `vat_invoice_seller_bank_account` | Text |
+    | 销售方纳税人识别号 | `vat_invoice_seller_id` | Text |
+    | 销售方地址、电话 | `vat_invoice_seller_addr_tell` | Text |
+    | 购买方名称 | `vat_invoice_payer_name` | Text |
+    | 购买方纳税人识别号 | `vat_invoice_rate_payer_id` | Text |
+    | 购买方开户行及帐号 | `vat_invoice_payer_bank_account` | Text |
+    | 购买方地址、电话 | `vat_invoice_payer_addr_tell` | Text |
+    | 价税合计小写 | `vat_invoice_total_cover_tax_digits` | Text |
+    | 价税合计大写 | `vat_invoice_total_cover_tax` | Text |
+    | 校验码 | `vat_invoice_correct_code` | Text |
+    | 发票代码 | `vat_invoice_daima_print` | Text |
+    | 打印合计（不含税金额） | `vat_invoice_total_print` | Text |
+    | 税额合计 | `vat_invoice_tax_total` | Text |
+    | 开票人 | `vat_invoice_drawer` | Text |
+    | 收款人 | `vat_invoice_payee` | Text |
+    | 代开(非代开条目为空) | `vat_invoice_dai_kai_flag` | Text |
+    | 右侧打印发票代码 | `vat_invoice_daima_right_side` | Text |
+    | 右侧打印发票号码 | `vat_invoice_haoma_right_side` | Text |
+    | 抵扣联/发票联 | `vat_invoice_page_number` | Text |
+    | 发票类型（是否为电子发票） | `vat_invoice_type` | Text |
+    | 备注 | `vat_invoice_total_note` | Text |
+    | 密码区 | `vat_invoice_cipher_field` | Text |
+    | 复核 | `vat_invoice_review` | Text |
+    | 盖章存在性判断 | `exist_stample` | Text |
+    | 省市 | `vat_invoice_address` | Text |
+    | 标题发票联 | `vat_invoice_headline_page_number` | Text |
+    | 发票第X联 | `vat_invoice_form_type` | Text |
+    | 发票子类型（左上角行业属性） | `vat_invoice_sub_type` | Text |
+    | 打印校验码 | `vat_invoice_corrent_code_print` | Text |
+    | 机器编号 | `vat_invoice_machine_no` | Text |
+    | 右侧打印开票日期 | `vat_invoice_issue_date_print` | Text |
+    | 二维码 | `vat_invoice_qr_code` | Text |
+    | 发票代码（二维码） | `vat_invoice_daima` | Text |
+    | 发票号码（二维码） | `vat_invoice_haoma` | Text |
+    | 合计（二维码） | `vat_invoice_total` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 消费类型 | `vat_invoice_goods_type_list` | Text |
+    | 全电发票号码（密码区内） | `vat_invoice_evat_number` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+    **Table fields**
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 项目名称 | `vat_invoice_goods` | Text |
+    | 规格型号 | `vat_invoice_plate_specific` | Text |
+    | 单位 | `vat_invoice_electrans_unit` | Text |
+    | 数量 | `vat_invoice_electrans_quantity` | Text |
+    | 单价 | `vat_invoice_electrans_unit_price` | Text |
+    | 金额 | `vat_invoice_price` | Text |
+    | 税率 | `vat_invoice_tax_rate_list` | Text |
+    | 税额 | `vat_invoice_tax_list` | Text |
+
+  </Accordion>
+  <Accordion title="VAT electronic invoice (vat_electronic_invoice)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 专票/普票 | `vat_invoice_zhuan_yong_flag` | Text |
+    | 电子发票/非电子发票 | `vat_invoice_type` | Text |
+    | 发票子类型（行业属性） | `vat_invoice_sub_type` | Text |
+    | 发票抬头 | `vat_invoice_title` | Text |
+    | 发票号码 | `vat_invoice_haoma_large_size` | Text |
+    | 发票代码 | `vat_invoice_daima_print` | Text |
+    | 开票日期 | `vat_invoice_issue_date` | Text |
+    | 校验码 | `vat_invoice_correct_code` | Text |
+    | 销售方名称 | `vat_invoice_seller_name` | Text |
+    | 销售方开户行及帐号 | `vat_invoice_seller_bank_account` | Text |
+    | 销售方纳税人识别号 | `vat_invoice_seller_id` | Text |
+    | 销售方地址、电话 | `vat_invoice_seller_addr_tell` | Text |
+    | 购买方名称 | `vat_invoice_payer_name` | Text |
+    | 购买方纳税人识别号 | `vat_invoice_rate_payer_id` | Text |
+    | 购买方开户行及帐号 | `vat_invoice_payer_bank_account` | Text |
+    | 购买方地址、电话 | `vat_invoice_payer_addr_tell` | Text |
+    | 收款人 | `vat_invoice_payee` | Text |
+    | 复核 | `vat_invoice_review` | Text |
+    | 开票人 | `vat_invoice_drawer` | Text |
+    | 价税合计小写 | `vat_invoice_total_cover_tax_digits` | Text |
+    | 价税合计大写 | `vat_invoice_total_cover_tax` | Text |
+    | 金额合计 | `vat_invoice_total_print` | Text |
+    | 税额合计 | `vat_invoice_tax_total` | Text |
+    | 密码区 | `vat_invoice_cipher_field` | Text |
+    | 备注 | `vat_invoice_total_note` | Text |
+    | 代开(非代开条目为空) | `vat_invoice_dai_kai_flag` | Text |
+    | 右侧打印发票代码 | `vat_invoice_daima_right_side` | Text |
+    | 发票类型 | `type` | Text |
+    | 右侧打印发票号码 | `vat_invoice_haoma_right_side` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 抵扣联/发票联 | `vat_invoice_page_number` | Text |
+    | 右侧打印开票日期 | `vat_invoice_issue_date_print` | Text |
+    | 盖章存在性判断 | `exist_stample` | Text |
+    | 省市 | `vat_invoice_address` | Text |
+    | 标题发票联 | `vat_invoice_headline_page_number` | Text |
+    | 发票第X联 | `vat_invoice_form_type` | Text |
+    | 打印校验码 | `vat_invoice_corrent_code_print` | Text |
+    | 机器编号 | `vat_invoice_machine_no` | Text |
+    | 二维码 | `vat_invoice_qr_code` | Text |
+    | 发票代码（二维码） | `vat_invoice_daima` | Text |
+    | 发票号码（二维码） | `vat_invoice_haoma` | Text |
+    | 合计（二维码） | `vat_invoice_total` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 消费类型 | `vat_invoice_goods_type_list` | Text |
+    | 全电发票号码（密码区内） | `vat_invoice_evat_number` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+    **Table fields**
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 项目名称 | `vat_invoice_goods` | Text |
+    | 规格型号 | `vat_invoice_plate_specific` | Text |
+    | 单位 | `vat_invoice_electrans_unit` | Text |
+    | 数量 | `vat_invoice_electrans_quantity` | Text |
+    | 单价 | `vat_invoice_electrans_unit_price` | Text |
+    | 金额 | `vat_invoice_price` | Text |
+    | 税率 | `vat_invoice_tax_rate_list` | Text |
+    | 税额 | `vat_invoice_tax_list` | Text |
+
+  </Accordion>
+  <Accordion title="Blockchain electronic invoice (blockchain_electronic_invoice)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 校验码 | `vat_invoice_correct_code` | Text |
+    | 发票号码 | `vat_invoice_haoma_large_size` | Text |
+    | 发票代码 | `vat_invoice_daima_print` | Text |
+    | 开票日期 | `vat_invoice_issue_date` | Text |
+    | 价税合计小写 | `vat_invoice_total_cover_tax_digits` | Text |
+    | 价税合计大写 | `vat_invoice_total_cover_tax` | Text |
+    | 打印合计（不含税金额） | `vat_invoice_total_print` | Text |
+    | 销售方名称 | `vat_invoice_seller_name` | Text |
+    | 销售方开户行及帐号 | `vat_invoice_seller_bank_account` | Text |
+    | 销售方纳税人识别号 | `vat_invoice_seller_id` | Text |
+    | 销售方地址、电话 | `vat_invoice_seller_addr_tell` | Text |
+    | 购买方名称 | `vat_invoice_payer_name` | Text |
+    | 购买方纳税人识别号 | `vat_invoice_rate_payer_id` | Text |
+    | 购买方开户行及帐号 | `vat_invoice_payer_bank_account` | Text |
+    | 购买方地址、电话 | `vat_invoice_payer_addr_tell` | Text |
+    | 税额合计 | `vat_invoice_tax_total` | Text |
+    | 专票/普票 | `vat_invoice_zhuan_yong_flag` | Text |
+    | 代开(非代开条目为空) | `vat_invoice_dai_kai_flag` | Text |
+    | 右侧打印发票代码 | `vat_invoice_daima_right_side` | Text |
+    | 右侧打印发票号码 | `vat_invoice_haoma_right_side` | Text |
+    | 抵扣联/发票联 | `vat_invoice_page_number` | Text |
+    | 发票类型（是否为电子发票） | `vat_invoice_type` | Text |
+    | 备注 | `vat_invoice_total_note` | Text |
+    | 密码区 | `vat_invoice_cipher_field` | Text |
+    | 开票人 | `vat_invoice_drawer` | Text |
+    | 复核 | `vat_invoice_review` | Text |
+    | 收款人 | `vat_invoice_payee` | Text |
+    | 盖章存在性判断 | `exist_stample` | Text |
+    | 省市 | `vat_invoice_address` | Text |
+    | 标题发票联 | `vat_invoice_headline_page_number` | Text |
+    | 发票第X联 | `vat_invoice_form_type` | Text |
+    | 发票子类型（左上角行业属性） | `vat_invoice_sub_type` | Text |
+    | 发票抬头 | `vat_invoice_title` | Text |
+    | 打印校验码 | `vat_invoice_corrent_code_print` | Text |
+    | 机器编号 | `vat_invoice_machine_no` | Text |
+    | 右侧打印开票日期 | `vat_invoice_issue_date_print` | Text |
+    | 二维码 | `vat_invoice_qr_code` | Text |
+    | 发票代码（二维码） | `vat_invoice_daima` | Text |
+    | 发票号码（二维码） | `vat_invoice_haoma` | Text |
+    | 合计（二维码） | `vat_invoice_total` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 发票类型 | `type` | Text |
+    | 消费类型 | `vat_invoice_goods_type_list` | Text |
+    | 全电发票号码（密码区内） | `vat_invoice_evat_number` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+    **Table fields**
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 项目名称 | `vat_invoice_goods` | Text |
+    | 规格型号 | `vat_invoice_plate_specific` | Text |
+    | 单位 | `vat_invoice_electrans_unit` | Text |
+    | 数量 | `vat_invoice_electrans_quantity` | Text |
+    | 单价 | `vat_invoice_electrans_unit_price` | Text |
+    | 金额 | `vat_invoice_price` | Text |
+    | 税率 | `vat_invoice_tax_rate_list` | Text |
+    | 税额 | `vat_invoice_tax_list` | Text |
+
+  </Accordion>
+  <Accordion title="New VAT electronic invoice (vat_electronic_invoice_new)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 发票号码 | `vat_invoice_haoma_right_side` | Text |
+    | 开票日期 | `vat_invoice_issue_date_print` | Text |
+    | 价税合计大写 | `vat_invoice_total_cover_tax` | Text |
+    | 价税合计小写 | `vat_invoice_total_cover_tax_digits` | Text |
+    | 税额合计 | `vat_invoice_tax_total` | Text |
+    | 合计（不含税金额） | `vat_invoice_total` | Text |
+    | 购买方名称 | `vat_invoice_payer_name` | Text |
+    | 购买方纳税人识别号 | `vat_invoice_rate_payer_id` | Text |
+    | 销售方名称 | `vat_invoice_seller_name` | Text |
+    | 销售方纳税人识别号 | `vat_invoice_seller_id` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 发票子类型（左上角行业属性） | `vat_invoice_sub_type` | Text |
+    | 类型 | `type` | Text |
+    | 开票人 | `vat_invoice_drawer` | Text |
+    | 发票消费类型 | `vat_invoice_goods_type_list` | Text |
+    | 发票号码（二维码） | `vat_invoice_haoma` | Text |
+    | 打印合计 | `vat_invoice_total_print` | Text |
+    | 开票日期（二维码） | `vat_invoice_issue_date` | Text |
+    | 二维码 | `vat_invoice_qr_code` | Text |
+    | 备注 | `vat_invoice_total_note` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 发票抬头 | `vat_invoice_title` | Text |
+    | 小计税额 | `vat_invoice_tax_total_per_page` | Text |
+    | 小计金额 | `vat_invoice_total_per_page` | Text |
+    | 页码（总页数/当前页数） | `vat_invoice_current_page` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+    | 价税合计（OCR） | `vat_invoice_total_cover_tax_raw` | Text |
+    | 开票日期（OCR） | `vat_invoice_issue_date_raw` | Text |
+    | 发票号码（OCR） | `vat_invoice_haoma_raw` | Text |
+
+    **Table fields**
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 项目名称 | `vat_invoice_goods` | Text |
+    | 规格型号 | `vat_invoice_plate_specific` | Text |
+    | 单位 | `vat_invoice_electrans_unit` | Text |
+    | 数量 | `vat_invoice_electrans_quantity` | Text |
+    | 单价 | `vat_invoice_electrans_unit_price` | Text |
+    | 金额 | `vat_invoice_price` | Text |
+    | 税率 | `vat_invoice_tax_rate` | Text |
+    | 税额 | `vat_invoice_tax` | Text |
+
+  </Accordion>
+  <Accordion title="New VAT electronic special invoice (vat_electronic_special_invoice_new)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 发票号码 | `vat_invoice_haoma_right_side` | Text |
+    | 开票日期 | `vat_invoice_issue_date_print` | Text |
+    | 价税合计大写 | `vat_invoice_total_cover_tax` | Text |
+    | 价税合计小写 | `vat_invoice_total_cover_tax_digits` | Text |
+    | 税额合计 | `vat_invoice_tax_total` | Text |
+    | 合计（不含税金额） | `vat_invoice_total` | Text |
+    | 购买方名称 | `vat_invoice_payer_name` | Text |
+    | 购买方纳税人识别号 | `vat_invoice_rate_payer_id` | Text |
+    | 销售方名称 | `vat_invoice_seller_name` | Text |
+    | 销售方纳税人识别号 | `vat_invoice_seller_id` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 发票子类型（左上角行业属性） | `vat_invoice_sub_type` | Text |
+    | 类型 | `type` | Text |
+    | 开票人 | `vat_invoice_drawer` | Text |
+    | 发票消费类型 | `vat_invoice_goods_type_list` | Text |
+    | 发票号码（二维码） | `vat_invoice_haoma` | Text |
+    | 打印合计 | `vat_invoice_total_print` | Text |
+    | 开票日期（二维码） | `vat_invoice_issue_date` | Text |
+    | 二维码 | `vat_invoice_qr_code` | Text |
+    | 备注 | `vat_invoice_total_note` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 发票抬头 | `vat_invoice_title` | Text |
+    | 小计税额 | `vat_invoice_tax_total_per_page` | Text |
+    | 小计金额 | `vat_invoice_total_per_page` | Text |
+    | 页码（总页数/当前页数） | `vat_invoice_current_page` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+    | 价税合计（OCR） | `vat_invoice_total_cover_tax_raw` | Text |
+    | 开票日期（OCR） | `vat_invoice_issue_date_raw` | Text |
+    | 发票号码（OCR） | `vat_invoice_haoma_raw` | Text |
+
+    **Table fields**
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 项目名称 | `vat_invoice_goods` | Text |
+    | 规格型号 | `vat_invoice_plate_specific` | Text |
+    | 单位 | `vat_invoice_electrans_unit` | Text |
+    | 数量 | `vat_invoice_electrans_quantity` | Text |
+    | 单价 | `vat_invoice_electrans_unit_price` | Text |
+    | 金额 | `vat_invoice_price` | Text |
+    | 税率 | `vat_invoice_tax_rate` | Text |
+    | 税额 | `vat_invoice_tax` | Text |
+
+  </Accordion>
+  <Accordion title="VAT electronic toll invoice (vat_electronic_toll_invoice)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 校验码 | `vat_invoice_correct_code` | Text |
+    | 发票号码 | `vat_invoice_haoma_large_size` | Text |
+    | 发票代码 | `vat_invoice_daima_print` | Text |
+    | 开票日期 | `vat_invoice_issue_date` | Text |
+    | 价税合计小写 | `vat_invoice_total_cover_tax_digits` | Text |
+    | 价税合计大写 | `vat_invoice_total_cover_tax` | Text |
+    | 打印合计（不含税金额） | `vat_invoice_total_print` | Text |
+    | 销售方名称 | `vat_invoice_seller_name` | Text |
+    | 销售方开户行及帐号 | `vat_invoice_seller_bank_account` | Text |
+    | 销售方纳税人识别号 | `vat_invoice_seller_id` | Text |
+    | 销售方地址、电话 | `vat_invoice_seller_addr_tell` | Text |
+    | 购买方名称 | `vat_invoice_payer_name` | Text |
+    | 购买方纳税人识别号 | `vat_invoice_rate_payer_id` | Text |
+    | 购买方开户行及帐号 | `vat_invoice_payer_bank_account` | Text |
+    | 购买方地址、电话 | `vat_invoice_payer_addr_tell` | Text |
+    | 税额合计 | `vat_invoice_tax_total` | Text |
+    | 专票/普票 | `vat_invoice_zhuan_yong_flag` | Text |
+    | 代开(非代开条目为空) | `vat_invoice_dai_kai_flag` | Text |
+    | 右侧打印发票代码 | `vat_invoice_daima_right_side` | Text |
+    | 右侧打印发票号码 | `vat_invoice_haoma_right_side` | Text |
+    | 抵扣联/发票联 | `vat_invoice_page_number` | Text |
+    | 发票类型（是否为电子发票） | `vat_invoice_type` | Text |
+    | 备注 | `vat_invoice_total_note` | Text |
+    | 密码区 | `vat_invoice_cipher_field` | Text |
+    | 开票人 | `vat_invoice_drawer` | Text |
+    | 复核 | `vat_invoice_review` | Text |
+    | 收款人 | `vat_invoice_payee` | Text |
+    | 盖章存在性判断 | `exist_stample` | Text |
+    | 省市 | `vat_invoice_address` | Text |
+    | 标题发票联 | `vat_invoice_headline_page_number` | Text |
+    | 发票第X联 | `vat_invoice_form_type` | Text |
+    | 发票子类型（左上角行业属性） | `vat_invoice_sub_type` | Text |
+    | 发票抬头 | `vat_invoice_title` | Text |
+    | 打印校验码 | `vat_invoice_corrent_code_print` | Text |
+    | 机器编号 | `vat_invoice_machine_no` | Text |
+    | 右侧打印开票日期 | `vat_invoice_issue_date_print` | Text |
+    | 二维码 | `vat_invoice_qr_code` | Text |
+    | 发票代码（二维码） | `vat_invoice_daima` | Text |
+    | 发票号码（二维码） | `vat_invoice_haoma` | Text |
+    | 合计（二维码） | `vat_invoice_total` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 发票类型 | `type` | Text |
+    | 消费类型 | `vat_invoice_goods_type_list` | Text |
+    | 全电发票号码（密码区内） | `vat_invoice_evat_number` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+    **Table fields**
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 项目名称 | `vat_invoice_goods` | Text |
+    | 车牌号 | `vat_invoice_license_plate_number` | Text |
+    | 车辆类型 | `vat_invoice_electrans_unit` | Text |
+    | 通行日期起 | `vat_invoice_pass_start_date` | Text |
+    | 通行日期止 | `vat_invoice_pass_end_date` | Text |
+    | 金额 | `vat_invoice_price` | Text |
+    | 税率 | `vat_invoice_tax_rate_list` | Text |
+    | 税额 | `vat_invoice_tax_list` | Text |
+
+  </Accordion>
+  <Accordion title="VAT roll invoice (vat_roll_invoice)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 发票票头 | `invoice_head` | Text |
+    | 发票代码 | `invoice_code` | Text |
+    | 发票号码 | `invoice_number` | Text |
+    | 机打号码 | `machine_number` | Text |
+    | 机器编码 | `machine_code` | Text |
+    | 销方名称 | `sold_name` | Text |
+    | 销方纳税人识别号 | `sold_tax_number` | Text |
+    | 开票日期 | `date_of_invoice` | Text |
+    | 收款员 | `cashier_name` | Text |
+    | 购方名称 | `buy_name` | Text |
+    | 购方纳税人识别号 | `buy_tax_number` | Text |
+    | 发票消费类型 | `vat_invoice_goods_type_list` | Text |
+    | 合计金额(小写) | `total_money` | Text |
+    | 合计金额(大写) | `total_money_big` | Text |
+    | 校验码 | `check_number` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 省市 | `vat_invoice_address` | Text |
+    | 条形码信息 | `invoice_bar_code` | Text |
+    | 二维码信息 | `invoice_qr_code` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+    **Table fields**
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 项目 | `goods_name_list` | Text |
+    | 单价 | `goods_unit_price_list` | Text |
+    | 数量 | `goods_number_list` | Text |
+    | 金额 | `goods_money_list` | Text |
+
+  </Accordion>
+  <Accordion title="Vehicle toll invoice (vehicle_toll)">
+
+    | Field | Field Name | Type |
+    | --- | --- | --- |
+    | 车辆通行费代码 | `toll_code` | Text |
+    | 车辆通行费号码 | `toll_number` | Text |
+    | 收费金额 | `money` | Text |
+    | 收费日期 | `date` | Text |
+    | 收费时间 | `time` | Text |
+    | 发票所在地 | `location` | Text |
+    | 发票专用章存在性判断 | `exist_invoice_seal` | Text |
+    | 入口 | `toll_entrance` | Text |
+    | 出口 | `toll_exit` | Text |
+    | 发票监制章存在性判断 | `exist_invoice_superviser_stamp` | Text |
+    | 是否为高速票 | `toll_highspeed_mark` | Text |
+    | 发票消费类型 | `vat_invoice_goods_type_list` | Text |
+    | 发票日期（YYYY-MM-DD） | `vat_invoice_format_date` | Text |
+    | 发票所在PDF文件页码（图片默认为1） | `invoice_pdf_page_number` | Text |
+
+  </Accordion>
+</AccordionGroup>
 
 ## Response
 

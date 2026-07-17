@@ -949,6 +949,7 @@ components:
       oneOf:
         - title: 使用文件 Base64
           type: object
+          additionalProperties: false
           properties:
             app_id:
               default: *documentRecognitionAppId
@@ -963,6 +964,7 @@ components:
             required: [file_url]
         - title: 使用文件 URL
           type: object
+          additionalProperties: false
           properties:
             app_id:
               default: *documentRecognitionAppId
@@ -977,14 +979,42 @@ components:
           not:
             required: [file_base64]
     DocumentExtractRequest:
-      allOf:
-        - $ref: '#/components/schemas/DocumentFileRequest'
-        - type: object
+      oneOf:
+        - title: 使用文件 Base64
+          type: object
+          additionalProperties: false
           properties:
+            app_id:
+              default: app_abc123
+              type: string
+              description: 应用的唯一标识。
+            file_base64:
+              default: JVBERi0xLjQKJcfs...
+              type: string
+              description: 待处理文件 Base64，与 file_url 二选一。
             with_rec_result:
               type: boolean
               description: 是否返回文档解析结果。高速版抽取不返回解析结果。
               default: false
+          required: [app_id, file_base64]
+        - title: 使用文件 URL
+          type: object
+          additionalProperties: false
+          properties:
+            app_id:
+              default: app_abc123
+              type: string
+              description: 应用的唯一标识。
+            file_url:
+              default: *documentRecognitionFileUrl
+              type: string
+              format: uri
+              description: 待处理文件 URL，与 file_base64 二选一。
+            with_rec_result:
+              type: boolean
+              description: 是否返回文档解析结果。高速版抽取不返回解析结果。
+              default: false
+          required: [app_id, file_url]
     DocumentExtractResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -1108,6 +1138,7 @@ components:
               additionalProperties: true
     ExtractionFieldConfig:
       type: object
+      additionalProperties: false
       properties:
         field_key:
           type: string
@@ -1133,6 +1164,7 @@ components:
       required: [field_name, field_type]
     ExtractionSubFieldConfig:
       type: object
+      additionalProperties: false
       properties:
         field_key:
           type: string
@@ -1153,6 +1185,7 @@ components:
       required: [field_name, field_type]
     LongDocConfig:
       type: object
+      additionalProperties: false
       properties:
         doc_type:
           type: string
@@ -1173,6 +1206,7 @@ components:
         - $ref: '#/components/schemas/HighSpeedExtractionAppCreateRequest'
     StandardExtractionAppCreateRequest:
       type: object
+      additionalProperties: false
       title: 创建标准版自定义抽取应用
       properties:
         ai_function:
@@ -1199,8 +1233,14 @@ components:
             $ref: '#/components/schemas/ExtractionFieldConfig'
         parse_mode:
           type: string
-          enum: [standard, advance, agentic, fast_vlm]
-          description: 解析模式。标准版自定义抽取应用必填。
+          enum: [standard, advance, fast_vlm, agentic]
+          description: |
+            解析模式。标准版自定义抽取应用必填；不同模式适用于不同版式复杂度和准确率要求的文档。
+
+            - standard：标准解析，适用于清晰的电子版文档，速度和准确率均衡。
+            - advance：增强解析 1.0，适用于印章、签名、多表格等格式较复杂的文档。
+            - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，提升解析稳定性。
+            - agentic：智能解析，自动组合多种模型处理复杂文档，适合准确率要求高的场景。
         enable_field_value_translation:
           type: boolean
           default: false
@@ -1218,6 +1258,7 @@ components:
       required: [ai_function, app_name, extract_fields, parse_mode]
     HighSpeedExtractionAppCreateRequest:
       type: object
+      additionalProperties: false
       title: 创建高速版抽取应用
       properties:
         ai_function:
@@ -1250,6 +1291,7 @@ components:
       required: [ai_function, app_name, extract_fields]
     HighSpeedExtractionFieldConfig:
       type: object
+      additionalProperties: false
       title: 高速版字段
       description: 高速版字段配置。普通字段的 field_type 为 string 或 date，不要传 sub_fields；表格字段的 field_type 为 table，必须传 sub_fields。
       properties:
@@ -1294,6 +1336,7 @@ components:
                 minItems: 1
     HighSpeedExtractionSubFieldConfig:
       type: object
+      additionalProperties: false
       properties:
         field_key:
           type: string
@@ -1319,6 +1362,7 @@ components:
         - $ref: '#/components/schemas/HighSpeedExtractionAppUpdateRequest'
     StandardExtractionAppUpdateRequest:
       type: object
+      additionalProperties: false
       title: 修改标准版自定义抽取应用
       properties:
         app_id:
@@ -1344,8 +1388,14 @@ components:
             $ref: '#/components/schemas/ExtractionFieldConfig'
         parse_mode:
           type: string
-          enum: [standard, advance, agentic, fast_vlm]
-          description: 解析模式。标准版自定义抽取应用必填；高速版自定义抽取应用不支持该参数的设置。
+          enum: [standard, advance, fast_vlm, agentic]
+          description: |
+            解析模式。标准版自定义抽取应用必填；高速版自定义抽取应用不支持设置该参数。
+
+            - standard：标准解析，适用于清晰的电子版文档，速度和准确率均衡。
+            - advance：增强解析 1.0，适用于印章、签名、多表格等格式较复杂的文档。
+            - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，提升解析稳定性。
+            - agentic：智能解析，自动组合多种模型处理复杂文档，适合准确率要求高的场景。
         enable_field_value_translation:
           type: boolean
           default: false
@@ -1363,6 +1413,7 @@ components:
       required: [app_id, config_version, extract_fields, parse_mode]
     HighSpeedExtractionAppUpdateRequest:
       type: object
+      additionalProperties: false
       title: 修改高速版抽取应用
       properties:
         app_id:
@@ -1394,6 +1445,7 @@ components:
       required: [app_id, config_version, extract_fields]
     AppIdRequest:
       type: object
+      additionalProperties: false
       properties:
         app_id:
           type: string
@@ -1401,6 +1453,7 @@ components:
       required: [app_id]
     AppVersionDeleteRequest:
       type: object
+      additionalProperties: false
       properties:
         app_id:
           type: string
@@ -1411,6 +1464,7 @@ components:
       required: [app_id, config_version]
     AppConfigQueryRequest:
       type: object
+      additionalProperties: false
       properties:
         app_id:
           type: string
@@ -1421,6 +1475,7 @@ components:
       required: [app_id]
     AiRecommendRequest:
       type: object
+      additionalProperties: false
       description: 智能体生成字段配置请求。请求体需提供 file_url 或 file_base64；prompt 可作为辅助生成提示。
       properties:
         app_id:
@@ -1694,6 +1749,7 @@ components:
                   type: number
     DocFlowRunRequest:
       type: object
+      additionalProperties: false
       properties:
         application_id:
           type: string
@@ -1707,10 +1763,15 @@ components:
             $ref: '#/components/schemas/DocFlowInputFile'
         inputs:
           type: object
-          additionalProperties: true
+          additionalProperties: false
+          properties:
+            query:
+              type: string
+              description: 工作流输入参数示例。实际字段以工作流入参配置为准。
       required: [application_id]
     DocFlowInputFile:
       type: object
+      additionalProperties: false
       properties:
         url:
           type: string
@@ -1753,6 +1814,7 @@ components:
                   format: date-time
     FileUploadRequest:
       type: object
+      additionalProperties: false
       properties:
         chunk:
           type: string

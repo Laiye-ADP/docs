@@ -922,6 +922,7 @@ components:
       oneOf:
         - title: Use file Base64
           type: object
+          additionalProperties: false
           properties:
             app_id:
               default: *documentRecognitionAppId
@@ -936,6 +937,7 @@ components:
             required: [file_url]
         - title: Use file URL
           type: object
+          additionalProperties: false
           properties:
             app_id:
               default: *documentRecognitionAppId
@@ -950,14 +952,42 @@ components:
           not:
             required: [file_base64]
     DocumentExtractRequest:
-      allOf:
-        - $ref: '#/components/schemas/DocumentFileRequest'
-        - type: object
+      oneOf:
+        - title: Use file Base64
+          type: object
+          additionalProperties: false
           properties:
+            app_id:
+              default: app_abc123
+              type: string
+              description: Unique application ID.
+            file_base64:
+              default: JVBERi0xLjQKJcfs...
+              type: string
+              description: Base64-encoded file. Use either file_base64 or file_url.
             with_rec_result:
               type: boolean
               description: Whether to return document recognition results. High-speed extraction does not return recognition results.
               default: false
+          required: [app_id, file_base64]
+        - title: Use file URL
+          type: object
+          additionalProperties: false
+          properties:
+            app_id:
+              default: app_abc123
+              type: string
+              description: Unique application ID.
+            file_url:
+              default: *documentRecognitionFileUrl
+              type: string
+              format: uri
+              description: File URL. Use either file_url or file_base64.
+            with_rec_result:
+              type: boolean
+              description: Whether to return document recognition results. High-speed extraction does not return recognition results.
+              default: false
+          required: [app_id, file_url]
     TaskCreateResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -986,6 +1016,7 @@ components:
               additionalProperties: true
     ExtractionFieldConfig:
       type: object
+      additionalProperties: false
       properties:
         field_key:
           type: string
@@ -1011,6 +1042,7 @@ components:
       required: [field_name, field_type]
     ExtractionSubFieldConfig:
       type: object
+      additionalProperties: false
       properties:
         field_key:
           type: string
@@ -1031,6 +1063,7 @@ components:
       required: [field_name, field_type]
     LongDocConfig:
       type: object
+      additionalProperties: false
       properties:
         doc_type:
           type: string
@@ -1051,6 +1084,7 @@ components:
         - $ref: '#/components/schemas/HighSpeedExtractionAppCreateRequest'
     StandardExtractionAppCreateRequest:
       type: object
+      additionalProperties: false
       title: Create standard custom extraction application
       properties:
         ai_function:
@@ -1096,6 +1130,7 @@ components:
       required: [ai_function, app_name, extract_fields, parse_mode]
     HighSpeedExtractionAppCreateRequest:
       type: object
+      additionalProperties: false
       title: Create high-speed extraction application
       properties:
         ai_function:
@@ -1128,6 +1163,7 @@ components:
       required: [ai_function, app_name, extract_fields]
     HighSpeedExtractionFieldConfig:
       type: object
+      additionalProperties: false
       title: High-speed field
       description: High-speed field configuration. For ordinary fields, set field_type to string or date and do not pass sub_fields. For table fields, set field_type to table and pass sub_fields.
       properties:
@@ -1172,6 +1208,7 @@ components:
                 minItems: 1
     HighSpeedExtractionSubFieldConfig:
       type: object
+      additionalProperties: false
       properties:
         field_key:
           type: string
@@ -1197,6 +1234,7 @@ components:
         - $ref: '#/components/schemas/HighSpeedExtractionAppUpdateRequest'
     StandardExtractionAppUpdateRequest:
       type: object
+      additionalProperties: false
       title: Update standard custom extraction application
       properties:
         app_id:
@@ -1241,6 +1279,7 @@ components:
       required: [app_id, config_version, extract_fields, parse_mode]
     HighSpeedExtractionAppUpdateRequest:
       type: object
+      additionalProperties: false
       title: Update high-speed extraction application
       properties:
         app_id:
@@ -1272,6 +1311,7 @@ components:
       required: [app_id, config_version, extract_fields]
     AppIdRequest:
       type: object
+      additionalProperties: false
       properties:
         app_id:
           type: string
@@ -1279,6 +1319,7 @@ components:
       required: [app_id]
     AppVersionDeleteRequest:
       type: object
+      additionalProperties: false
       properties:
         app_id:
           type: string
@@ -1289,6 +1330,7 @@ components:
       required: [app_id, config_version]
     AppConfigQueryRequest:
       type: object
+      additionalProperties: false
       properties:
         app_id:
           type: string
@@ -1299,6 +1341,7 @@ components:
       required: [app_id]
     AiRecommendRequest:
       type: object
+      additionalProperties: false
       description: Field configuration generation request. The request body must provide file_url or file_base64. prompt can be used as an auxiliary generation instruction.
       properties:
         app_id:
@@ -1572,6 +1615,7 @@ components:
                   type: number
     WorkflowRunRequest:
       type: object
+      additionalProperties: false
       properties:
         application_id:
           type: string
@@ -1583,10 +1627,24 @@ components:
           type: array
           items:
             type: object
-            additionalProperties: true
+            additionalProperties: false
+            properties:
+              url:
+                type: string
+              name:
+                type: string
+              mime_type:
+                type: string
+              size:
+                type: integer
+            required: [url, name, mime_type]
         inputs:
           type: object
-          additionalProperties: true
+          additionalProperties: false
+          properties:
+            query:
+              type: string
+              description: Example workflow input. Actual fields depend on the workflow input configuration.
       required: [application_id]
     WorkflowRunResponse:
       allOf:
@@ -1598,6 +1656,7 @@ components:
               additionalProperties: true
     FileUploadRequest:
       type: object
+      additionalProperties: false
       properties:
         chunk:
           type: string
