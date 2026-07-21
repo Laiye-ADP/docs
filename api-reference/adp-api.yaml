@@ -475,11 +475,25 @@ components:
       value:
         file_base64: &documentRecognitionFileBase64 data:image/jpeg;base64,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
         app_id: &documentRecognitionAppId ootb_k7m2x9p4v1n8w3q6r5t0y2b4
+        model_params:
+          recognize_config:
+            recognize_mode: standard
+            enable_highlight: 1
+            enable_pdf_parse: false
+            pdf_pic_second_parsing: false
+            enable_stamp_recognition: false
     DocumentRecognitionFileUrl:
       summary: 使用文件 URL
       value:
         file_url: &documentRecognitionFileUrl https://adp.laiye.com/web/agentic_doc_processor/laiye/file/2003c711818811f1a36200163e358400
         app_id: *documentRecognitionAppId
+        model_params:
+          recognize_config:
+            recognize_mode: standard
+            enable_highlight: 1
+            enable_pdf_parse: true
+            pdf_pic_second_parsing: false
+            enable_stamp_recognition: false
   requestBodies:
     DocumentFileRequest:
       required: true
@@ -960,9 +974,12 @@ components:
               type: string
               format: uri
               description: 待处理文件 URL，与 file_base64 二选一。
+            file_name:
+              type: string
+              description: 文件名称。使用 Base64 或无法从 URL 判断文件名时可传入。
+            model_params:
+              $ref: '#/components/schemas/DocumentRecognizeModelParams'
           required: [app_id, file_url]
-          not:
-            required: [file_base64]
         - title: 使用文件 Base64
           type: object
           additionalProperties: false
@@ -975,9 +992,53 @@ components:
               default: *documentRecognitionFileBase64
               type: string
               description: 待处理文件 Base64，与 file_url 二选一。
+            file_name:
+              type: string
+              description: 文件名称。使用 Base64 或无法从 URL 判断文件名时可传入。
+            model_params:
+              $ref: '#/components/schemas/DocumentRecognizeModelParams'
           required: [app_id, file_base64]
-          not:
-            required: [file_url]
+    DocumentRecognizeModelParams:
+      type: object
+      additionalProperties: true
+      description: |
+        本次文档解析的模型调用参数。未传时使用应用已保存的解析配置；如需临时覆盖解析配置，在 recognize_config 中传入对应字段。
+      properties:
+        recognize_config:
+          $ref: '#/components/schemas/DocumentRecognizeConfig'
+    DocumentRecognizeConfig:
+      type: object
+      additionalProperties: false
+      description: |
+        本次调用使用的解析配置。不同解析模式支持的配置能力不同：
+
+        - standard：标准解析，适用于清晰的电子版文档，支持显示来源位置、PDF 文本优先和印章识别。
+        - advance：增强解析 1.0，适用于印章、签名、多表格等格式较复杂的文档；不支持显示来源位置。
+        - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，支持显示来源位置、PDF 文本优先和印章识别。
+        - agentic：智能解析，自动组合多种模型处理复杂文档，支持显示来源位置、PDF 文本优先和印章识别。
+      properties:
+        recognize_mode:
+          type: string
+          enum: [standard, advance, fast_vlm, agentic]
+          default: standard
+          description: 解析模式。
+        enable_highlight:
+          type: integer
+          enum: [0, 1]
+          default: 1
+          description: 是否显示来源位置。1 表示保留文本块和表格在原文中的位置；0 表示不返回位置。仅 standard、fast_vlm、agentic 模式支持。
+        enable_pdf_parse:
+          type: boolean
+          default: false
+          description: 是否启用 PDF 文本优先。仅对可复制文字的电子 PDF 生效，可提升处理速度和文字稳定性。
+        pdf_pic_second_parsing:
+          type: boolean
+          default: false
+          description: 启用 PDF 文本优先时，是否对 PDF 中的图片区域进行 VLM 二次解析。
+        enable_stamp_recognition:
+          type: boolean
+          default: false
+          description: 是否启用印章识别。开启后会识别文档中的印章信息，并尝试提取印章文字。
     DocumentExtractRequest:
       oneOf:
         - title: 使用文件 URL
@@ -1079,6 +1140,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DocumentDetail'
+        stamps:
+          type: array
+          description: 印章识别结果。仅在开启 enable_stamp_recognition 且识别到印章时返回。
+          items:
+            type: object
+            additionalProperties: true
     DocumentDetail:
       type: object
       properties:
