@@ -199,6 +199,25 @@ paths:
               schema:
                 $ref: '#/components/schemas/AppConfigResponse'
               examples:
+                standardConfig:
+                  value:
+                    code: 200
+                    message: success
+                    data:
+                      app_id: app_1406
+                      app_name: 采购单抽取应用
+                      app_label: [purchase-order]
+                      config_version: v1
+                      extract_fields:
+                        - field_name: 订单号
+                          field_type: string
+                          field_prompt: 抽取采购订单编号。
+                      parse_mode: fast_vlm
+                      enable_highlight: 0
+                      enable_pdf_parse: true
+                      pdf_pic_second_parsing: false
+                      enable_stamp_recognition: true
+                      enable_long_doc: false
                 highSpeedConfig:
                   value:
                     code: 200
@@ -212,7 +231,11 @@ paths:
                         - field_name: 发票号码
                           field_type: string
                           field_prompt: 抽取发票上的唯一发票号码。
-                      parse_mode: standard
+                      parse_mode: null
+                      enable_highlight: null
+                      enable_pdf_parse: null
+                      pdf_pic_second_parsing: null
+                      enable_stamp_recognition: null
                       enable_long_doc: false
         '422':
           $ref: '#/components/responses/ValidationError'
@@ -1716,7 +1739,31 @@ components:
           items:
             $ref: '#/components/schemas/ExtractionFieldConfig'
         parse_mode:
-          type: string
+          type:
+            - string
+            - 'null'
+          description: 解析模式。高速版返回 null。
+        enable_highlight:
+          type:
+            - integer
+            - 'null'
+          enum: [0, 1, null]
+          description: 是否显示来源位置。标准版返回 0 或 1；高速版返回 null。
+        enable_pdf_parse:
+          type:
+            - boolean
+            - 'null'
+          description: 是否开启 PDF 文本优先。高速版返回 null。
+        pdf_pic_second_parsing:
+          type:
+            - boolean
+            - 'null'
+          description: 开启 PDF 文本优先时，是否对 PDF 中的图片进行二次解析。高速版返回 null。
+        enable_stamp_recognition:
+          type:
+            - boolean
+            - 'null'
+          description: 是否开启印章识别。高速版返回 null。
         enable_long_doc:
           type: boolean
         long_doc_config:

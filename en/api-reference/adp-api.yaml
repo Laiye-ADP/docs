@@ -199,6 +199,25 @@ paths:
               schema:
                 $ref: '#/components/schemas/AppConfigResponse'
               examples:
+                standardConfig:
+                  value:
+                    code: 200
+                    message: success
+                    data:
+                      app_id: app_1406
+                      app_name: Purchase order extraction app
+                      app_label: [purchase-order]
+                      config_version: v1
+                      extract_fields:
+                        - field_name: Order number
+                          field_type: string
+                          field_prompt: Extract the purchase order number.
+                      parse_mode: fast_vlm
+                      enable_highlight: 0
+                      enable_pdf_parse: true
+                      pdf_pic_second_parsing: false
+                      enable_stamp_recognition: true
+                      enable_long_doc: false
                 highSpeedConfig:
                   value:
                     code: 200
@@ -212,7 +231,11 @@ paths:
                         - field_name: Invoice number
                           field_type: string
                           field_prompt: Extract the unique invoice number from the invoice.
-                      parse_mode: standard
+                      parse_mode: null
+                      enable_highlight: null
+                      enable_pdf_parse: null
+                      pdf_pic_second_parsing: null
+                      enable_stamp_recognition: null
                       enable_long_doc: false
         '422':
           $ref: '#/components/responses/ValidationError'
@@ -1588,7 +1611,31 @@ components:
           items:
             $ref: '#/components/schemas/ExtractionFieldConfig'
         parse_mode:
-          type: string
+          type:
+            - string
+            - 'null'
+          description: Parsing mode. High-speed applications return null.
+        enable_highlight:
+          type:
+            - integer
+            - 'null'
+          enum: [0, 1, null]
+          description: Whether source locations are enabled. Standard applications return 0 or 1. High-speed applications return null.
+        enable_pdf_parse:
+          type:
+            - boolean
+            - 'null'
+          description: Whether PDF text first is enabled. High-speed applications return null.
+        pdf_pic_second_parsing:
+          type:
+            - boolean
+            - 'null'
+          description: When PDF text first is enabled, whether to run secondary parsing on images inside the PDF. High-speed applications return null.
+        enable_stamp_recognition:
+          type:
+            - boolean
+            - 'null'
+          description: Whether stamp recognition is enabled. High-speed applications return null.
         enable_long_doc:
           type: boolean
         long_doc_config:
