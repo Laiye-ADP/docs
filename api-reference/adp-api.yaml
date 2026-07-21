@@ -132,7 +132,7 @@ paths:
     post:
       tags: [应用管理]
       summary: 创建抽取应用
-      description: 创建标准版或高速版自定义抽取应用，并设置标签、字段配置和抽取配置。创建高速版自定义抽取应用时，设置 ai_function 为 1425，且字段和表格子字段需要提供 field_key。
+      description: 创建标准版或高速版自定义抽取应用，并设置标签、字段配置和抽取配置。标准版支持 parse_mode、显示来源位置、PDF 文本优先、印章识别等解析配置；创建高速版自定义抽取应用时，设置 ai_function 为 1425，且字段和表格子字段需要提供 field_key，不支持标准版解析配置。
       operationId: createExtractionApp
       security:
         - ApiKeyAuth: []
@@ -166,7 +166,7 @@ paths:
     post:
       tags: [应用管理]
       summary: 修改抽取应用
-      description: 更新抽取应用的名称、标签、字段配置和抽取配置，并创建新的配置版本。修改高速版自定义抽取应用时，复用该接口并传入高速版应用的 app_id；请求体不需要传 ai_function。高速版自定义抽取应用不支持设置 parse_mode 和 enable_long_doc。
+      description: 更新抽取应用的名称、标签、字段配置和抽取配置，并创建新的配置版本。修改高速版自定义抽取应用时，复用该接口并传入高速版应用的 app_id；请求体不需要传 ai_function。高速版自定义抽取应用不支持设置 parse_mode、enable_highlight、enable_pdf_parse、pdf_pic_second_parsing、enable_stamp_recognition 和 enable_long_doc。
       operationId: updateExtractionApp
       security:
         - ApiKeyAuth: []
@@ -571,6 +571,10 @@ components:
                     field_type: date
                     field_prompt: 抽取订单日期。
                 parse_mode: standard
+                enable_highlight: 1
+                enable_pdf_parse: false
+                pdf_pic_second_parsing: false
+                enable_stamp_recognition: false
                 enable_long_doc: false
             highSpeedCustomExtractionApp:
               summary: 创建高速版自定义抽取应用
@@ -605,6 +609,26 @@ components:
           schema:
             $ref: '#/components/schemas/ExtractionAppUpdateRequest'
           examples:
+            standardCustomExtractionApp:
+              summary: 修改标准版自定义抽取应用
+              value:
+                app_id: app_1406
+                app_name: 采购单抽取应用（新版）
+                config_version: v1
+                app_label: [purchase-order]
+                extract_fields:
+                  - field_name: 订单号
+                    field_type: string
+                    field_prompt: 抽取采购订单编号。
+                  - field_name: 供应商名称
+                    field_type: string
+                    field_prompt: 抽取供应商名称。
+                parse_mode: fast_vlm
+                enable_highlight: 1
+                enable_pdf_parse: true
+                pdf_pic_second_parsing: false
+                enable_stamp_recognition: true
+                enable_long_doc: false
             highSpeedCustomExtractionApp:
               summary: 修改高速版自定义抽取应用
               value:
@@ -1302,12 +1326,29 @@ components:
           type: string
           enum: [standard, advance, fast_vlm, agentic]
           description: |
-            解析模式。标准版自定义抽取应用必填；不同模式适用于不同版式复杂度和准确率要求的文档。
+            解析模式。标准版自定义抽取应用必填；不同模式适用于不同版式复杂度和准确率要求的文档。模式能力与 Web 端解析配置一致：
 
-            - standard：标准解析，适用于清晰的电子版文档，速度和准确率均衡。
-            - advance：增强解析 1.0，适用于印章、签名、多表格等格式较复杂的文档。
-            - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，提升解析稳定性。
-            - agentic：智能解析，自动组合多种模型处理复杂文档，适合准确率要求高的场景。
+            - standard：标准解析，适用于清晰的电子版文档，支持显示来源位置、PDF 文本优先和印章识别。
+            - advance：增强解析 1.0，适用于印章、签名、多表格等格式较复杂的文档；不支持显示来源位置。
+            - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，支持显示来源位置、PDF 文本优先和印章识别。
+            - agentic：智能解析，自动组合多种模型处理复杂文档，支持显示来源位置、PDF 文本优先和印章识别。
+        enable_highlight:
+          type: integer
+          enum: [0, 1]
+          default: 1
+          description: 是否显示来源位置。传 1 开启，传 0 关闭；standard、fast_vlm、agentic 支持，advance 不支持。
+        enable_pdf_parse:
+          type: boolean
+          default: false
+          description: 是否开启 PDF 文本优先。适合可复制文字的电子 PDF，可提升处理速度和文字稳定性。
+        pdf_pic_second_parsing:
+          type: boolean
+          default: false
+          description: 开启 PDF 文本优先时，是否对 PDF 中的图片进行二次解析。
+        enable_stamp_recognition:
+          type: boolean
+          default: false
+          description: 是否开启印章识别。开启后会尝试识别文档中的印章信息，需要印章识别能力授权。
         enable_field_value_translation:
           type: boolean
           default: false
@@ -1457,12 +1498,29 @@ components:
           type: string
           enum: [standard, advance, fast_vlm, agentic]
           description: |
-            解析模式。标准版自定义抽取应用必填；高速版自定义抽取应用不支持设置该参数。
+            解析模式。标准版自定义抽取应用必填；高速版自定义抽取应用不支持设置该参数。模式能力与 Web 端解析配置一致：
 
-            - standard：标准解析，适用于清晰的电子版文档，速度和准确率均衡。
-            - advance：增强解析 1.0，适用于印章、签名、多表格等格式较复杂的文档。
-            - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，提升解析稳定性。
-            - agentic：智能解析，自动组合多种模型处理复杂文档，适合准确率要求高的场景。
+            - standard：标准解析，适用于清晰的电子版文档，支持显示来源位置、PDF 文本优先和印章识别。
+            - advance：增强解析 1.0，适用于印章、签名、多表格等格式较复杂的文档；不支持显示来源位置。
+            - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，支持显示来源位置、PDF 文本优先和印章识别。
+            - agentic：智能解析，自动组合多种模型处理复杂文档，支持显示来源位置、PDF 文本优先和印章识别。
+        enable_highlight:
+          type: integer
+          enum: [0, 1]
+          default: 1
+          description: 是否显示来源位置。传 1 开启，传 0 关闭；standard、fast_vlm、agentic 支持，advance 不支持。
+        enable_pdf_parse:
+          type: boolean
+          default: false
+          description: 是否开启 PDF 文本优先。适合可复制文字的电子 PDF，可提升处理速度和文字稳定性。
+        pdf_pic_second_parsing:
+          type: boolean
+          default: false
+          description: 开启 PDF 文本优先时，是否对 PDF 中的图片进行二次解析。
+        enable_stamp_recognition:
+          type: boolean
+          default: false
+          description: 是否开启印章识别。开启后会尝试识别文档中的印章信息，需要印章识别能力授权。
         enable_field_value_translation:
           type: boolean
           default: false

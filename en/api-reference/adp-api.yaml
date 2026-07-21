@@ -132,7 +132,7 @@ paths:
     post:
       tags: [Application management]
       summary: Create extraction application
-      description: Create a standard or high-speed custom extraction application, and configure labels, fields, and extraction settings. To create a high-speed custom extraction application, set ai_function to 1425 and provide field_key for fields and table sub-fields.
+      description: Create a standard or high-speed custom extraction application, and configure labels, fields, and extraction settings. Standard applications support parse_mode, source locations, PDF text first, stamp recognition, and related parsing settings. To create a high-speed custom extraction application, set ai_function to 1425 and provide field_key for fields and table sub-fields. High-speed applications do not support standard parsing settings.
       operationId: createExtractionApp
       security:
         - ApiKeyAuth: []
@@ -166,7 +166,7 @@ paths:
     post:
       tags: [Application management]
       summary: Update extraction application
-      description: Update the name, labels, fields, and extraction configuration of an extraction application, and create a new configuration version. To update a high-speed custom extraction application, reuse this endpoint and pass the app_id of the high-speed application. The request body does not need ai_function. High-speed custom extraction applications do not support setting parse_mode or enable_long_doc.
+      description: Update the name, labels, fields, and extraction configuration of an extraction application, and create a new configuration version. To update a high-speed custom extraction application, reuse this endpoint and pass the app_id of the high-speed application. The request body does not need ai_function. High-speed custom extraction applications do not support setting parse_mode, enable_highlight, enable_pdf_parse, pdf_pic_second_parsing, enable_stamp_recognition, or enable_long_doc.
       operationId: updateExtractionApp
       security:
         - ApiKeyAuth: []
@@ -571,6 +571,10 @@ components:
                     field_type: date
                     field_prompt: Extract the order date.
                 parse_mode: standard
+                enable_highlight: 1
+                enable_pdf_parse: false
+                pdf_pic_second_parsing: false
+                enable_stamp_recognition: false
                 enable_long_doc: false
             highSpeedCustomExtractionApp:
               summary: Create high-speed custom extraction application
@@ -605,6 +609,26 @@ components:
           schema:
             $ref: '#/components/schemas/ExtractionAppUpdateRequest'
           examples:
+            standardCustomExtractionApp:
+              summary: Update standard custom extraction application
+              value:
+                app_id: app_1406
+                app_name: Purchase order extraction app (new version)
+                config_version: v1
+                app_label: [purchase-order]
+                extract_fields:
+                  - field_name: Order number
+                    field_type: string
+                    field_prompt: Extract the purchase order number.
+                  - field_name: Supplier name
+                    field_type: string
+                    field_prompt: Extract the supplier name.
+                parse_mode: fast_vlm
+                enable_highlight: 1
+                enable_pdf_parse: true
+                pdf_pic_second_parsing: false
+                enable_stamp_recognition: true
+                enable_long_doc: false
             highSpeedCustomExtractionApp:
               summary: Update high-speed custom extraction application
               value:
@@ -1172,8 +1196,31 @@ components:
             $ref: '#/components/schemas/ExtractionFieldConfig'
         parse_mode:
           type: string
-          enum: [standard, advance, agentic, fast_vlm]
-          description: Parsing mode. Required for standard custom extraction applications.
+          enum: [standard, advance, fast_vlm, agentic]
+          description: |
+            Parsing mode. Required for standard custom extraction applications. Mode capabilities match the Web parsing configuration:
+
+            - standard: Standard parsing for clear digital documents. Supports source locations, PDF text first, and stamp recognition.
+            - advance: Enhanced parsing 1.0 for documents with stamps, signatures, multiple tables, or moderately complex layouts. Source locations are not supported.
+            - fast_vlm: Enhanced parsing 2.0 for complex layouts, scanned files, and multi-table documents. Supports source locations, PDF text first, and stamp recognition.
+            - agentic: Smart parsing that combines multiple models for complex documents. Supports source locations, PDF text first, and stamp recognition.
+        enable_highlight:
+          type: integer
+          enum: [0, 1]
+          default: 1
+          description: Whether to include source locations. Pass 1 to enable or 0 to disable. Supported by standard, fast_vlm, and agentic. Not supported by advance.
+        enable_pdf_parse:
+          type: boolean
+          default: false
+          description: Whether to prefer PDF text extraction. Use this for digital PDFs with selectable text to improve processing speed and text stability.
+        pdf_pic_second_parsing:
+          type: boolean
+          default: false
+          description: When PDF text extraction is enabled, whether to run secondary parsing on images inside the PDF.
+        enable_stamp_recognition:
+          type: boolean
+          default: false
+          description: Whether to enable stamp recognition. The service attempts to recognize stamp information in the document. Stamp recognition capability must be enabled.
         enable_field_value_translation:
           type: boolean
           default: false
@@ -1321,8 +1368,31 @@ components:
             $ref: '#/components/schemas/ExtractionFieldConfig'
         parse_mode:
           type: string
-          enum: [standard, advance, agentic, fast_vlm]
-          description: Parsing mode. Required for standard custom extraction applications. High-speed custom extraction applications do not support setting this parameter.
+          enum: [standard, advance, fast_vlm, agentic]
+          description: |
+            Parsing mode. Required for standard custom extraction applications. High-speed custom extraction applications do not support setting this parameter. Mode capabilities match the Web parsing configuration:
+
+            - standard: Standard parsing for clear digital documents. Supports source locations, PDF text first, and stamp recognition.
+            - advance: Enhanced parsing 1.0 for documents with stamps, signatures, multiple tables, or moderately complex layouts. Source locations are not supported.
+            - fast_vlm: Enhanced parsing 2.0 for complex layouts, scanned files, and multi-table documents. Supports source locations, PDF text first, and stamp recognition.
+            - agentic: Smart parsing that combines multiple models for complex documents. Supports source locations, PDF text first, and stamp recognition.
+        enable_highlight:
+          type: integer
+          enum: [0, 1]
+          default: 1
+          description: Whether to include source locations. Pass 1 to enable or 0 to disable. Supported by standard, fast_vlm, and agentic. Not supported by advance.
+        enable_pdf_parse:
+          type: boolean
+          default: false
+          description: Whether to prefer PDF text extraction. Use this for digital PDFs with selectable text to improve processing speed and text stability.
+        pdf_pic_second_parsing:
+          type: boolean
+          default: false
+          description: When PDF text extraction is enabled, whether to run secondary parsing on images inside the PDF.
+        enable_stamp_recognition:
+          type: boolean
+          default: false
+          description: Whether to enable stamp recognition. The service attempts to recognize stamp information in the document. Stamp recognition capability must be enabled.
         enable_field_value_translation:
           type: boolean
           default: false
