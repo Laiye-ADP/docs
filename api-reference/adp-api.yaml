@@ -426,21 +426,6 @@ paths:
           $ref: '#/components/responses/FileResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
-  /open/agentic_engine/laiye/files/{file_id}/delete:
-    post:
-      tags: [工作流文件]
-      summary: 删除文件
-      description: 删除指定文件。该操作不可恢复。
-      operationId: deleteDocFlowFile
-      security:
-        - EngineApiKeyAuth: []
-      parameters:
-        - $ref: '#/components/parameters/FileId'
-      responses:
-        '200':
-          $ref: '#/components/responses/FileDeleteResponse'
-        '422':
-          $ref: '#/components/responses/ValidationError'
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -983,12 +968,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/FileResponse'
-    FileDeleteResponse:
-      description: 文件删除结果。
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/FileDeleteResponse'
   schemas:
     SimpleResponse:
       type: object
@@ -2018,14 +1997,4 @@ components:
                 download_url:
                   type: string
                 status:
-                  type: string
-    FileDeleteResponse:
-      allOf:
-        - $ref: '#/components/schemas/SimpleResponse'
-        - type: object
-          properties:
-            data:
-              type: object
-              properties:
-                id:
                   type: string

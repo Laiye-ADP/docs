@@ -163,8 +163,7 @@
                     "group": "获取文件URL",
                     "pages": [
                       "POST /open/agentic_engine/laiye/files/upload",
-                      "GET /open/agentic_engine/laiye/files/{file_id}",
-                      "POST /open/agentic_engine/laiye/files/{file_id}/delete"
+                      "GET /open/agentic_engine/laiye/files/{file_id}"
                     ],
                     "icon": "file-output"
                   },
@@ -335,8 +334,7 @@
                     "group": "Get file URL",
                     "pages": [
                       "POST /open/agentic_engine/laiye/files/upload",
-                      "GET /open/agentic_engine/laiye/files/{file_id}",
-                      "POST /open/agentic_engine/laiye/files/{file_id}/delete"
+                      "GET /open/agentic_engine/laiye/files/{file_id}"
                     ],
                     "icon": "file-output"
                   },

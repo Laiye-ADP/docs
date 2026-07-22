@@ -51,6 +51,12 @@
     );
   }
 
+  function directFileControls(field) {
+    return Array.from(field.querySelectorAll('input[type="file"]')).filter(
+      (control) => control.closest(FIELD_SELECTOR) === field && !control.disabled
+    );
+  }
+
   function hasVisibleNestedField(field) {
     return Array.from(field.querySelectorAll(FIELD_SELECTOR)).some(
       (nestedField) => nestedField !== field && isVisible(nestedField)
@@ -83,6 +89,11 @@
     return Array.from(document.querySelectorAll(FIELD_SELECTOR)).filter((field) => {
       if (!isVisible(field) || !hasRequiredPill(field)) {
         return false;
+      }
+
+      const fileControls = directFileControls(field);
+      if (fileControls.length > 0) {
+        return !fileControls.some(controlHasValue);
       }
 
       const controls = directControls(field);
