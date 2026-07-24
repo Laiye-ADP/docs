@@ -392,6 +392,38 @@ paths:
           $ref: '#/components/responses/DocFlowRunResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/v1/app/run/{run_id}/rerun:
+    post:
+      tags: [工作流]
+      summary: 重新运行工作流
+      description: 根据历史运行记录重新触发一次工作流运行。接口会复用原运行的应用、版本和输入，并创建新的异步运行任务。
+      operationId: rerunDocFlowRunTask
+      security:
+        - EngineApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocFlowRunResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/v1/app/run/{run_id}/cancel:
+    post:
+      tags: [工作流]
+      summary: 取消工作流运行
+      description: 取消等待中、运行中或已暂停的工作流运行。已成功、失败、已取消或超时的运行不能取消。
+      operationId: cancelDocFlowRunTask
+      security:
+        - EngineApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      requestBody:
+        $ref: '#/components/requestBodies/DocFlowCancelRunRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocFlowRunResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /open/agentic_engine/laiye/files/upload:
     post:
       tags: [工作流文件]
@@ -717,6 +749,14 @@ components:
               - url: https://adp.laiye.com/web/agentic_doc_processor/laiye/file/2003c711818811f1a36200163e358400
                 name: 采购单.pdf
                 mime_type: application/pdf
+    DocFlowCancelRunRequest:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocFlowCancelRunRequest'
+          example:
+            reason: 用户主动取消
   responses:
     SimpleResponse:
       description: 通用响应。
@@ -1920,6 +1960,13 @@ components:
               type: string
               description: 工作流输入参数示例。实际字段以工作流入参配置为准。
       required: [application_id]
+    DocFlowCancelRunRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        reason:
+          type: string
+          description: 取消原因。可选，传入后会写入运行错误信息。
     DocFlowInputFile:
       type: object
       additionalProperties: false

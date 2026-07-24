@@ -392,6 +392,38 @@ paths:
           $ref: '#/components/responses/WorkflowRunResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/v1/app/run/{run_id}/rerun:
+    post:
+      tags: [Workflow]
+      summary: Rerun workflow
+      description: Trigger a new workflow run from a historical run. The API reuses the original run's application, version, and inputs, and creates a new asynchronous run task.
+      operationId: rerunWorkflowRunTask
+      security:
+        - EngineApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      responses:
+        '200':
+          $ref: '#/components/responses/WorkflowRunResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/v1/app/run/{run_id}/cancel:
+    post:
+      tags: [Workflow]
+      summary: Cancel workflow run
+      description: Cancel a pending, running, or paused workflow run. Succeeded, failed, cancelled, or timed-out runs cannot be cancelled.
+      operationId: cancelWorkflowRunTask
+      security:
+        - EngineApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      requestBody:
+        $ref: '#/components/requestBodies/WorkflowCancelRunRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/WorkflowRunResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /open/agentic_engine/laiye/files/upload:
     post:
       tags: [Workflow files]
@@ -709,6 +741,14 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/WorkflowRunRequest'
+    WorkflowCancelRunRequest:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WorkflowCancelRunRequest'
+          example:
+            reason: Cancelled by user
   responses:
     SimpleResponse:
       description: Common response.
@@ -1803,6 +1843,13 @@ components:
               type: string
               description: Example workflow input. Actual fields depend on the workflow input configuration.
       required: [application_id]
+    WorkflowCancelRunRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        reason:
+          type: string
+          description: Optional cancel reason. When provided, it is stored as the run error message.
     WorkflowRunResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'

@@ -156,7 +156,9 @@
                     "pages": [
                       "POST /open/agentic_engine/laiye/v1/app/run",
                       "POST /open/agentic_engine/laiye/v1/app/run/create/task",
-                      "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}"
+                      "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}",
+                      "POST /open/agentic_engine/laiye/v1/app/run/{run_id}/rerun",
+                      "POST /open/agentic_engine/laiye/v1/app/run/{run_id}/cancel"
                     ]
                   },
                   {
@@ -313,7 +315,9 @@
                     "pages": [
                       "POST /open/agentic_engine/laiye/v1/app/run",
                       "POST /open/agentic_engine/laiye/v1/app/run/create/task",
-                      "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}"
+                      "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}",
+                      "POST /open/agentic_engine/laiye/v1/app/run/{run_id}/rerun",
+                      "POST /open/agentic_engine/laiye/v1/app/run/{run_id}/cancel"
                     ],
                     "icon": "network"
                   },
