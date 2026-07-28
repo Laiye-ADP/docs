@@ -17,7 +17,7 @@ paths:
     post:
       tags: [国内通用票据抽取]
       summary: 国内通用票据抽取（同步接口）
-      description: 针对国内通用票据文件进行字段抽取。返回字段和分类结果由预置应用配置决定。
+      description: 针对国内通用票据文件进行字段抽取。返回字段和分类结果由预置应用配置决定；可验真的发票会在抽取字段中返回验真结果、验真报错信息和作废标志。
       operationId: extractDomesticBill
       security:
         - ApiKeyAuth: []
@@ -75,6 +75,39 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/DocumentExtractResponse'
+          examples:
+            invoiceVerification:
+              summary: 包含发票验真字段的抽取结果
+              value:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  task_id: ''
+                  file_url: ''
+                  status: 4
+                  extraction_result:
+                    - field_key: vat_electronic_special_invoice_new
+                      field_name: 电子发票增值税专用发票
+                      object_values:
+                        - document_type: vat_electronic_special_invoice_new
+                          pages: [0]
+                          extraction_result:
+                            - field_key: fpVerification
+                              field_name: 查验结果
+                              field_values:
+                                - field_value: ''
+                                  confidence: 0.0
+                            - field_key: fpVerificationMsg
+                              field_name: 查验报错信息
+                              field_values:
+                                - field_value: ''
+                                  confidence: 0.0
+                            - field_key: fpIsVoided
+                              field_name: 作废标志
+                              field_values:
+                                - field_value: ''
+                                  confidence: 0.0
     ValidationError:
       description: 参数校验错误。
       content:
@@ -147,8 +180,69 @@ components:
                 extraction_result:
                   type: array
                   items:
-                    type: object
-                    additionalProperties: true
+                    $ref: '#/components/schemas/ExtractionResult'
                 classify_result:
                   type: object
                   additionalProperties: true
+    ExtractionResult:
+      type: object
+      additionalProperties: true
+      properties:
+        field_key:
+          type: string
+          description: 文档类型的唯一标识。
+        field_name:
+          type: string
+          description: 文档类型名称。
+        object_values:
+          type: array
+          description: 各识别文档的抽取结果。
+          items:
+            $ref: '#/components/schemas/DocumentObjectValue'
+    DocumentObjectValue:
+      type: object
+      additionalProperties: true
+      properties:
+        document_type:
+          type: string
+          description: 识别出的文档类型标识。
+        pages:
+          type: array
+          items:
+            type: integer
+          description: 文档所在的页码，从 0 开始计数。
+        extraction_result:
+          type: array
+          description: 抽取字段。可验真的发票还可能包含 fpVerification（查验结果）、fpVerificationMsg（查验报错信息）和 fpIsVoided（作废标志）。
+          items:
+            $ref: '#/components/schemas/ExtractedField'
+    ExtractedField:
+      type: object
+      additionalProperties: true
+      properties:
+        field_key:
+          type: string
+          description: 字段唯一标识；发票验真字段分别为 fpVerification、fpVerificationMsg 和 fpIsVoided。
+        field_name:
+          type: string
+          description: 字段显示名称。
+        field_values:
+          type: array
+          description: 字段值列表。
+          items:
+            $ref: '#/components/schemas/ExtractedFieldValue'
+    ExtractedFieldValue:
+      type: object
+      additionalProperties: true
+      properties:
+        field_value:
+          type: string
+          description: 字段值。
+        field_confidence:
+          type: number
+          format: float
+          description: 字段抽取置信度。
+        confidence:
+          type: number
+          format: float
+          description: 发票验真字段的置信度。

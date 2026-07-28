@@ -17,7 +17,7 @@ paths:
     post:
       tags: [Domestic bill extraction]
       summary: Extract domestic general bill (sync)
-      description: Extract fields from domestic general bills. Returned fields and classification results depend on the preset application configuration.
+      description: Extract fields from domestic general bills. Returned fields and classification results depend on the preset application configuration. Verifiable invoices can include the verification result, verification error message, and voided flag in their extracted fields.
       operationId: extractDomesticBill
       security:
         - ApiKeyAuth: []
@@ -75,6 +75,39 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/DocumentExtractResponse'
+          examples:
+            invoiceVerification:
+              summary: Extraction result containing invoice verification fields
+              value:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  task_id: ''
+                  file_url: ''
+                  status: 4
+                  extraction_result:
+                    - field_key: vat_electronic_special_invoice_new
+                      field_name: Electronic VAT Special Invoice
+                      object_values:
+                        - document_type: vat_electronic_special_invoice_new
+                          pages: [0]
+                          extraction_result:
+                            - field_key: fpVerification
+                              field_name: Verification result
+                              field_values:
+                                - field_value: ''
+                                  confidence: 0.0
+                            - field_key: fpVerificationMsg
+                              field_name: Verification error message
+                              field_values:
+                                - field_value: ''
+                                  confidence: 0.0
+                            - field_key: fpIsVoided
+                              field_name: Voided flag
+                              field_values:
+                                - field_value: ''
+                                  confidence: 0.0
     ValidationError:
       description: Validation error.
       content:
@@ -132,3 +165,84 @@ components:
             data:
               type: object
               additionalProperties: true
+              properties:
+                task_id:
+                  type: string
+                file_url:
+                  type: string
+                status:
+                  type: integer
+                doc_recognize_result:
+                  type: array
+                  items:
+                    type: object
+                    additionalProperties: true
+                extraction_result:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ExtractionResult'
+                classify_result:
+                  type: object
+                  additionalProperties: true
+    ExtractionResult:
+      type: object
+      additionalProperties: true
+      properties:
+        field_key:
+          type: string
+          description: Unique identifier of the document type.
+        field_name:
+          type: string
+          description: Name of the document type.
+        object_values:
+          type: array
+          description: Extraction results for each recognized document.
+          items:
+            $ref: '#/components/schemas/DocumentObjectValue'
+    DocumentObjectValue:
+      type: object
+      additionalProperties: true
+      properties:
+        document_type:
+          type: string
+          description: Identifier of the recognized document type.
+        pages:
+          type: array
+          items:
+            type: integer
+          description: Zero-based page indexes containing the document.
+        extraction_result:
+          type: array
+          description: Extracted fields. Verifiable invoices can also include fpVerification (verification result), fpVerificationMsg (verification error message), and fpIsVoided (voided flag).
+          items:
+            $ref: '#/components/schemas/ExtractedField'
+    ExtractedField:
+      type: object
+      additionalProperties: true
+      properties:
+        field_key:
+          type: string
+          description: Unique field identifier. Invoice verification uses fpVerification, fpVerificationMsg, and fpIsVoided.
+        field_name:
+          type: string
+          description: Display name of the field.
+        field_values:
+          type: array
+          description: List of values for the field.
+          items:
+            $ref: '#/components/schemas/ExtractedFieldValue'
+    ExtractedFieldValue:
+      type: object
+      additionalProperties: true
+      properties:
+        field_value:
+          type: string
+          description: Field value.
+        field_confidence:
+          type: number
+          format: float
+          description: Confidence score of the extracted field.
+        confidence:
+          type: number
+          format: float
+          description: Confidence score of an invoice verification field.

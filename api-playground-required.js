@@ -3,12 +3,15 @@
   const CONTROL_SELECTOR = 'input, textarea, select, [contenteditable="true"]';
   const REQUIRED_PILL_SELECTOR = '[data-component-part="field-required-pill"]';
   const BLOCKED_ATTR = 'data-api-required-blocked';
+  const SHOW_CHILD_ATTRIBUTES_PATTERN = /^(Show child attributes|显示子属性)$/i;
   const BLOCKED_REASON = {
     zh: '请先填写必填项',
     en: 'Fill required fields first',
   };
 
   let scheduled = false;
+  let childAttributesScheduled = false;
+  const expandedChildAttributeButtons = new WeakSet();
 
   function isVisible(element) {
     if (!(element instanceof HTMLElement)) {
@@ -147,6 +150,54 @@
     window.requestAnimationFrame(updateSendButtons);
   }
 
+  function isShowChildAttributesButton(element) {
+    if (!(element instanceof HTMLElement)) {
+      return false;
+    }
+
+    const label = (element.getAttribute('aria-label') || element.textContent || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    return SHOW_CHILD_ATTRIBUTES_PATTERN.test(label);
+  }
+
+  function childAttributesControls() {
+    const controls = new Set();
+
+    Array.from(document.querySelectorAll('*'))
+      .filter(isShowChildAttributesButton)
+      .forEach((element) => {
+        controls.add(
+          element.closest('button, [role="button"], [tabindex], summary') || element
+        );
+      });
+
+    return Array.from(controls);
+  }
+
+  function expandChildAttributes() {
+    childAttributesScheduled = false;
+
+    childAttributesControls().forEach((control) => {
+      if (expandedChildAttributeButtons.has(control)) {
+        return;
+      }
+
+      expandedChildAttributeButtons.add(control);
+      control.click();
+    });
+  }
+
+  function scheduleChildAttributesExpansion() {
+    if (childAttributesScheduled) {
+      return;
+    }
+
+    childAttributesScheduled = true;
+    window.requestAnimationFrame(expandChildAttributes);
+  }
+
   document.addEventListener(
     'click',
     (event) => {
@@ -165,12 +216,17 @@
   document.addEventListener('change', scheduleUpdate, true);
   document.addEventListener('keyup', scheduleUpdate, true);
 
-  new MutationObserver(scheduleUpdate).observe(document.documentElement, {
+  new MutationObserver(() => {
+    scheduleUpdate();
+    scheduleChildAttributesExpansion();
+  }).observe(document.documentElement, {
     attributes: true,
     childList: true,
     subtree: true,
   });
 
   window.addEventListener('pageshow', scheduleUpdate);
+  window.addEventListener('pageshow', scheduleChildAttributesExpansion);
   scheduleUpdate();
+  scheduleChildAttributesExpansion();
 })();
