@@ -97,7 +97,10 @@
                     "group": "国内通用票据",
                     "root": "api-reference/preset-domestic-bills",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract"
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/invoice/verify"
                     ],
                     "openapi": {
                       "source": "/api-reference/preset-domestic-bills.yaml",
@@ -270,7 +273,10 @@
                     "group": "Domestic general bills",
                     "root": "en/api-reference/preset-domestic-bills",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract"
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/invoice/verify"
                     ],
                     "openapi": {
                       "source": "/en/api-reference/preset-domestic-bills.yaml",

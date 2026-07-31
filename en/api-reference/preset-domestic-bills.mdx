@@ -13,6 +13,21 @@ POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract
 
 The API returns extracted fields and classification results based on the preset application configuration.
 
+For large files or longer-running extractions, create an asynchronous task first and use its `task_id` to query the result:
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task
+GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}
+```
+
+To verify an invoice directly from its invoice details, call the standalone invoice verification API:
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app/invoice/verify
+```
+
+Provide the invoice number, invoice date, and tax-inclusive total. Use `YYYY-MM-DD` for the invoice date.
+
 ## Request parameters
 
 | Name | Type | Required | Description |

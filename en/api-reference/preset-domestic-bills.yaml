@@ -12,6 +12,8 @@ servers:
 tags:
   - name: Domestic bill extraction
     description: Extract fields from domestic general bills.
+  - name: Domestic invoice verification
+    description: Verify domestic invoices from invoice details.
 paths:
   /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract:
     post:
@@ -30,6 +32,58 @@ paths:
           $ref: '#/components/responses/DocumentExtractResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task:
+    post:
+      tags: [Domestic bill extraction]
+      summary: Create domestic bill extraction task
+      description: Create an asynchronous domestic bill extraction task and immediately receive its task_id. Use this endpoint for large files or longer-running tasks.
+      operationId: createDomesticBillExtractTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentExtractRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TaskCreateResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}:
+    get:
+      tags: [Domestic bill extraction]
+      summary: Query domestic bill extraction task
+      description: Query the status and result of a domestic bill extraction task by task_id.
+      operationId: queryDomesticBillExtractTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentExtractResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/invoice/verify:
+    post:
+      tags: [Domestic invoice verification]
+      summary: Verify domestic invoice
+      description: Verify an invoice from its invoice number, issue date, and tax-inclusive total.
+      operationId: verifyDomesticInvoice
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/InvoiceVerifyRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/InvoiceVerifyResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -45,6 +99,13 @@ components:
       schema:
         type: string
         default: laiye
+    TaskId:
+      name: task_id
+      in: path
+      required: true
+      description: Task ID.
+      schema:
+        type: string
   examples:
     DomesticBillsFileBase64:
       summary: Use file Base64
@@ -68,6 +129,19 @@ components:
               $ref: '#/components/examples/DomesticBillsFileUrl'
             fileBase64:
               $ref: '#/components/examples/DomesticBillsFileBase64'
+    InvoiceVerifyRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InvoiceVerifyRequest'
+          examples:
+            electronicInvoice:
+              summary: Verify a VAT electronic invoice
+              value:
+                fpNumber: '0123456789'
+                fpDate: '2026-06-01'
+                fpAmount: '100.00'
   responses:
     DocumentExtractResponse:
       description: Extraction result.
@@ -108,6 +182,38 @@ components:
                               field_values:
                                 - field_value: ''
                                   confidence: 0.0
+    InvoiceVerifyResponse:
+      description: Invoice verification result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InvoiceVerifyResponse'
+          examples:
+            verifiedInvoice:
+              summary: Successfully verified invoice
+              value:
+                code: success
+                message: ''
+                data:
+                  result:
+                    type_key: vat_electronic_invoice_new
+                    fpVerification: Invoice verified and matched
+                    fpVerificationMsg: ''
+                    fpIsVoided: Not voided
+                    fpNumber: '0123456789'
+                    fpDate: '2026-06-01'
+                    fpAmount: '100.00'
+                  metadata:
+                    trace_id: 94fe9b74e0e311f091505e345594c618
+                    attempt_verify_page_count: 1
+                    actual_consume_page_count: 1
+                    billable_pages: [1]
+    TaskCreateResponse:
+      description: Task creation result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TaskCreateResponse'
     ValidationError:
       description: Validation error.
       content:
@@ -157,6 +263,120 @@ components:
           type:
             - string
             - 'null'
+    TaskCreateResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                task_id:
+                  type: string
+    InvoiceVerifyRequest:
+      type: object
+      additionalProperties: false
+      required: [fpNumber, fpDate, fpAmount]
+      properties:
+        fpNumber:
+          type: string
+          description: Invoice number.
+        fpDate:
+          type: string
+          format: date
+          description: Invoice issue date in YYYY-MM-DD format.
+        fpAmount:
+          type: string
+          description: Tax-inclusive total.
+    InvoiceVerifyResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                result:
+                  $ref: '#/components/schemas/InvoiceVerifyResult'
+                metadata:
+                  $ref: '#/components/schemas/InvoiceVerifyMetadata'
+    InvoiceVerifyResult:
+      type: object
+      properties:
+        type_key:
+          type: string
+          description: Invoice type.
+        instance_id:
+          type: string
+          description: Your business instance ID.
+        fpVerification:
+          type: string
+          description: Verification status.
+        fpVerificationMsg:
+          type: string
+          description: Verification message or error details.
+        fpIsVoided:
+          type: string
+          description: Void status.
+        fpType:
+          type: string
+          description: Invoice type name.
+        fpCode:
+          type: string
+          description: Invoice code.
+        fpNumber:
+          type: string
+          description: Invoice number.
+        fpDate:
+          type: string
+          description: Invoice issue date, creation date, or travel date.
+        fpAmount:
+          type: string
+          description: Tax-inclusive total, fare, or total amount.
+        fpNoTaxAmount:
+          type: string
+          description: Tax-exclusive amount.
+        fpTotalTaxAmount:
+          type: string
+          description: Total tax amount.
+        fpSellerName:
+          type: string
+          description: Seller name.
+        fpSellerID:
+          type: string
+          description: Seller taxpayer ID.
+        fpPayerName:
+          type: string
+          description: Buyer name.
+        fpPayerID:
+          type: string
+          description: Buyer taxpayer ID.
+        fpRemarks:
+          type: string
+          description: Remarks.
+        fpItems:
+          type: array
+          description: Invoice line items.
+          items:
+            type: object
+            additionalProperties: true
+    InvoiceVerifyMetadata:
+      type: object
+      properties:
+        trace_id:
+          type: string
+          description: Trace ID.
+        attempt_verify_page_count:
+          type: integer
+          description: Number of pages submitted for verification.
+        actual_consume_page_count:
+          type: integer
+          description: Number of pages charged.
+        billable_pages:
+          type: array
+          description: Charged page numbers.
+          items:
+            type: integer
     DocumentExtractResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'

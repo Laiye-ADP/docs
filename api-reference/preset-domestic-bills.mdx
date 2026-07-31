@@ -13,6 +13,21 @@ POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract
 
 接口会根据预置应用配置返回抽取字段和文档分类结果。
 
+文件较大或处理时间较长时，可先调用异步创建接口获取 `task_id`，再通过查询接口获取抽取结果：
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task
+GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}
+```
+
+如需根据发票要素直接查验，可调用独立的发票验真接口：
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app/invoice/verify
+```
+
+仅需传入发票号码、开票日期和价税合计。开票日期使用 `YYYY-MM-DD` 格式。
+
 ## 请求参数
 
 | 名称 | 类型 | 是否必填 | 描述 |

@@ -12,6 +12,8 @@ servers:
 tags:
   - name: 国内通用票据抽取
     description: 抽取国内通用票据字段。
+  - name: 国内发票验真
+    description: 根据发票要素查验国内发票。
 paths:
   /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract:
     post:
@@ -30,6 +32,58 @@ paths:
           $ref: '#/components/responses/DocumentExtractResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task:
+    post:
+      tags: [国内通用票据抽取]
+      summary: 创建国内通用票据抽取异步任务
+      description: 创建国内通用票据抽取任务，并立即返回 task_id。适用于大文件或处理时间较长的任务。
+      operationId: createDomesticBillExtractTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentExtractRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TaskCreateResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}:
+    get:
+      tags: [国内通用票据抽取]
+      summary: 查询国内通用票据抽取任务结果
+      description: 根据 task_id 查询国内通用票据抽取任务状态和结果。
+      operationId: queryDomesticBillExtractTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentExtractResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/invoice/verify:
+    post:
+      tags: [国内发票验真]
+      summary: 国内发票验真
+      description: 根据发票号码、开票日期和价税合计执行独立验真。
+      operationId: verifyDomesticInvoice
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/InvoiceVerifyRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/InvoiceVerifyResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -45,6 +99,13 @@ components:
       schema:
         type: string
         default: laiye
+    TaskId:
+      name: task_id
+      in: path
+      required: true
+      description: 任务 ID。
+      schema:
+        type: string
   examples:
     DomesticBillsFileBase64:
       summary: 使用文件 Base64
@@ -68,6 +129,19 @@ components:
               $ref: '#/components/examples/DomesticBillsFileUrl'
             fileBase64:
               $ref: '#/components/examples/DomesticBillsFileBase64'
+    InvoiceVerifyRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InvoiceVerifyRequest'
+          examples:
+            electronicInvoice:
+              summary: 电子发票普通发票验真
+              value:
+                fpNumber: '0123456789'
+                fpDate: '2026-06-01'
+                fpAmount: '100.00'
   responses:
     DocumentExtractResponse:
       description: 抽取结果。
@@ -108,6 +182,38 @@ components:
                               field_values:
                                 - field_value: ''
                                   confidence: 0.0
+    InvoiceVerifyResponse:
+      description: 发票验真结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InvoiceVerifyResponse'
+          examples:
+            verifiedInvoice:
+              summary: 验真成功
+              value:
+                code: success
+                message: ''
+                data:
+                  result:
+                    type_key: vat_electronic_invoice_new
+                    fpVerification: 查验成功发票一致
+                    fpVerificationMsg: ''
+                    fpIsVoided: 未作废
+                    fpNumber: '0123456789'
+                    fpDate: '2026-06-01'
+                    fpAmount: '100.00'
+                  metadata:
+                    trace_id: 94fe9b74e0e311f091505e345594c618
+                    attempt_verify_page_count: 1
+                    actual_consume_page_count: 1
+                    billable_pages: [1]
+    TaskCreateResponse:
+      description: 任务创建结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TaskCreateResponse'
     ValidationError:
       description: 参数校验错误。
       content:
@@ -157,6 +263,120 @@ components:
           type:
             - string
             - 'null'
+    TaskCreateResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                task_id:
+                  type: string
+    InvoiceVerifyRequest:
+      type: object
+      additionalProperties: false
+      required: [fpNumber, fpDate, fpAmount]
+      properties:
+        fpNumber:
+          type: string
+          description: 发票号码。
+        fpDate:
+          type: string
+          format: date
+          description: 开票日期，格式为 YYYY-MM-DD。
+        fpAmount:
+          type: string
+          description: 价税合计。
+    InvoiceVerifyResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                result:
+                  $ref: '#/components/schemas/InvoiceVerifyResult'
+                metadata:
+                  $ref: '#/components/schemas/InvoiceVerifyMetadata'
+    InvoiceVerifyResult:
+      type: object
+      properties:
+        type_key:
+          type: string
+          description: 发票类型。
+        instance_id:
+          type: string
+          description: 业务侧实例 ID。
+        fpVerification:
+          type: string
+          description: 验真状态，例如“查验成功发票一致”。
+        fpVerificationMsg:
+          type: string
+          description: 验真提示或错误信息。
+        fpIsVoided:
+          type: string
+          description: 作废状态：已作废、未作废或空。
+        fpType:
+          type: string
+          description: 查验票种中文名。
+        fpCode:
+          type: string
+          description: 发票代码。
+        fpNumber:
+          type: string
+          description: 发票号码。
+        fpDate:
+          type: string
+          description: 开票日期、填制日期或乘车日期。
+        fpAmount:
+          type: string
+          description: 价税合计、票价或合计金额。
+        fpNoTaxAmount:
+          type: string
+          description: 不含税金额。
+        fpTotalTaxAmount:
+          type: string
+          description: 税额合计。
+        fpSellerName:
+          type: string
+          description: 销售方名称。
+        fpSellerID:
+          type: string
+          description: 销售方纳税人识别号。
+        fpPayerName:
+          type: string
+          description: 购买方名称。
+        fpPayerID:
+          type: string
+          description: 购买方纳税人识别号。
+        fpRemarks:
+          type: string
+          description: 备注。
+        fpItems:
+          type: array
+          description: 发票明细行。
+          items:
+            type: object
+            additionalProperties: true
+    InvoiceVerifyMetadata:
+      type: object
+      properties:
+        trace_id:
+          type: string
+          description: 链路追踪 ID。
+        attempt_verify_page_count:
+          type: integer
+          description: 尝试验真的页数。
+        actual_consume_page_count:
+          type: integer
+          description: 实际扣费页数。
+        billable_pages:
+          type: array
+          description: 实际计费页码。
+          items:
+            type: integer
     DocumentExtractResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
