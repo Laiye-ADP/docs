@@ -192,7 +192,7 @@
           {
             "group": "其他文档",
             "icon": "book-open",
-            "pages": ["products/adp-skills", "products/n8n-nodes-adp"]
+            "pages": ["products/adp-skills", "products/n8n-nodes-adp", "products/feishu-plugin-documentation"]
           }
         ]
       },
