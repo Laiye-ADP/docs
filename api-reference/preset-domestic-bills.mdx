@@ -11,7 +11,7 @@ description: "使用 ADP 预置应用抽取国内通用票据字段。"
 POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract
 ```
 
-接口会根据预置应用配置返回抽取字段和文档分类结果。
+接口会根据预置应用配置返回抽取字段和文档分类结果。需要在本次抽取中附带发票验真时，传入 `enable_invoice_verify: true`；不传则使用应用已保存配置。
 
 文件较大或处理时间较长时，可先调用异步创建接口获取 `task_id`，再通过查询接口获取抽取结果：
 
@@ -36,6 +36,23 @@ POST /open/agentic_doc_processor/{tenant_name}/v1/app/invoice/verify
 | `app_id` | string | 是 | 国内通用票据预置应用的唯一标识。 |
 | `file_base64` | string | 可选 | 待抽取文件的 Base64，与 `file_url` 二选一。 |
 | `file_url` | string | 可选 | 待抽取文件 URL，与 `file_base64` 二选一。仅支持 HTTP 开头的线上地址。 |
+| `enable_invoice_verify` | boolean | 可选 | 本次抽取是否附带发票验真。`true` 开启，`false` 关闭；不传则使用应用已保存配置。仅对国内通用票据应用生效。 |
+
+## 调用示例
+
+以下示例使用文件 URL，并在当前请求中开启发票验真：
+
+```bash
+curl --request POST \\
+  'https://adp.laiye.com/open/agentic_doc_processor/laiye/v1/app/doc/extract' \\
+  --header 'Content-Type: application/json' \\
+  --header 'X-API-KEY: 你的API_KEY' \\
+  --data '{
+    "app_id": "ootb_v9x2y5z8a1b4c7d0e3f6h9j1k4m7",
+    "file_url": "https://你的可访问地址/invoice.pdf",
+    "enable_invoice_verify": true
+  }'
+```
 
 ## 支持的票据类型
 

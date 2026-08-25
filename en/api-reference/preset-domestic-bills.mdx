@@ -11,7 +11,7 @@ Domestic general bills use the document extraction API.
 POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract
 ```
 
-The API returns extracted fields and classification results based on the preset application configuration.
+The API returns extracted fields and classification results based on the preset application configuration. To include invoice verification in the current extraction, pass `enable_invoice_verify: true`. If omitted, the saved application setting is used.
 
 For large files or longer-running extractions, create an asynchronous task first and use its `task_id` to query the result:
 
@@ -36,6 +36,23 @@ Provide the invoice number, invoice date, and tax-inclusive total. Use `YYYY-MM-
 | `app_id` | string | Yes | Unique ID of the domestic general bill preset application. |
 | `file_base64` | string | Optional | Base64 content of the file. Use either `file_base64` or `file_url`. |
 | `file_url` | string | Optional | Online file URL. Use either `file_url` or `file_base64`. Only HTTP URLs are supported. |
+| `enable_invoice_verify` | boolean | Optional | Whether this extraction includes invoice verification. `true` enables it and `false` disables it; omit the field to use the saved application setting. Only applies to the domestic general bill application. |
+
+## Example
+
+This example extracts a file from a URL and enables invoice verification for this request:
+
+```bash
+curl --request POST \\
+  'https://adp.laiye.com/open/agentic_doc_processor/laiye/v1/app/doc/extract' \\
+  --header 'Content-Type: application/json' \\
+  --header 'X-API-KEY: YOUR_API_KEY' \\
+  --data '{
+    "app_id": "ootb_v9x2y5z8a1b4c7d0e3f6h9j1k4m7",
+    "file_url": "https://your-accessible-url/invoice.pdf",
+    "enable_invoice_verify": true
+  }'
+```
 
 ## Supported bill types
 
