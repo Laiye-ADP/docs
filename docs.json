@@ -176,7 +176,7 @@
                     "group": "账户",
                     "icon": "circle-dollar-sign",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/user/payment"
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/user/payment"
                     ]
                   }
                 ],
@@ -352,7 +352,7 @@
                     "group": "Account",
                     "icon": "circle-dollar-sign",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/user/payment"
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/user/payment"
                     ]
                   }
                 ],

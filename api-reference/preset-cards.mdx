@@ -26,6 +26,7 @@ GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{tas
 | `app_id` | string | 是 | 卡证预置应用的唯一标识。 |
 | `file_base64` | string | 可选 | 待抽取文件的 Base64，与 `file_url` 二选一。 |
 | `file_url` | string | 可选 | 待抽取文件 URL，与 `file_base64` 二选一。仅支持 HTTP 开头的线上地址。 |
+| `file_name` | string | 可选 | 文件名（含扩展名）。使用 Base64，或无法从 URL 判断文件名时传入。 |
 | `with_rec_result` | boolean | 否 | 是否返回文档解析结果，默认 `false`。 |
 
 ## 支持的卡证类型
@@ -258,6 +259,10 @@ GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{tas
 | `code` | string | 业务码。成功为 `success`。 |
 | `message` | string | 返回信息。 |
 | `data.task_id` | string | 抽取任务 ID。 |
-| `data.status` | integer | 抽取状态。`4` 表示成功，`5` 表示失败。 |
+| `data.status` | integer | 抽取状态：`0` 未知、`1` 就绪、`2` 运行中、`4` 成功、`5` 失败、`6` 取消或拒绝。 |
+| `data.message` | string | 抽取任务返回信息。 |
+| `data.extract_config_version` | string | 本次抽取使用的配置版本。 |
+| `data.metadata` | object \| null | 抽取元数据；无数据时为 `null`。 |
+| `data.aigc` | object \| null | AIGC 标识信息；无数据时为 `null`。 |
 | `data.extraction_result` | array | 卡证字段抽取结果。 |
 | `data.classify_result` | object | 文档分类结果。 |

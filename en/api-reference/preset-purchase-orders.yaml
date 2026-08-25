@@ -139,7 +139,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/SimpleResponse'
+            $ref: '#/components/schemas/HTTPValidationError'
   schemas:
     DocumentExtractRequest:
       oneOf:
@@ -152,6 +152,9 @@ components:
               type: string
               format: uri
               description: File URL. Use either file_url or file_base64.
+            file_name:
+              type: string
+              description: File name. Provide it for Base64 input or when the name cannot be determined from the URL.
             app_id:
               default: *purchaseOrderAppId
               type: string
@@ -169,6 +172,9 @@ components:
               default: *purchaseOrderFileBase64
               type: string
               description: Base64-encoded file. Use either file_base64 or file_url.
+            file_name:
+              type: string
+              description: File name. Provide it for Base64 input or when the name cannot be determined from the URL.
             app_id:
               default: *purchaseOrderAppId
               type: string
@@ -191,6 +197,33 @@ components:
           type:
             - string
             - 'null'
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationErrorItem'
+      required: [detail]
+    ValidationErrorItem:
+      type: object
+      additionalProperties: true
+      properties:
+        type:
+          type: string
+        loc:
+          type: array
+          items:
+            oneOf:
+              - type: string
+              - type: integer
+        msg:
+          type: string
+        input: {}
+        ctx:
+          type: object
+          additionalProperties: true
+      required: [type, loc, msg]
     TaskCreateResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -201,6 +234,10 @@ components:
               properties:
                 task_id:
                   type: string
+                metadata:
+                  type: object
+                  additionalProperties: true
+                  description: Document processing task metadata.
     DocumentExtractResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -209,3 +246,18 @@ components:
             data:
               type: object
               additionalProperties: true
+              properties:
+                message:
+                  type: string
+                  description: Task status or processing result message.
+                extract_config_version:
+                  type: string
+                  description: Extraction configuration version used for this request.
+                metadata:
+                  type: [object, 'null']
+                  additionalProperties: true
+                  description: Document processing task metadata.
+                aigc:
+                  type: [object, 'null']
+                  additionalProperties: true
+                  description: AI-generated content compliance label.

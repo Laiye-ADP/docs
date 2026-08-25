@@ -46,6 +46,12 @@ Workflow APIs also adopt the `X-API-Key` request header for authentication.
 https://adp-global.laiye.com
 ```
 
+## Check both the HTTP status and the business result
+
+An HTTP 2xx status only confirms that the server received the request; it does not always mean that the business operation succeeded. Check the HTTP status first, then parse the JSON response and inspect the top-level `code`. If `code` is not the success value documented by the endpoint, handle the error using `message` and `tips`. For document extraction and parsing, also inspect `data.status` before consuming the result.
+
+The Python samples on the relevant endpoint pages demonstrate this pattern. HTTP 422 request validation errors use FastAPI's `detail[]` structure, which is different from a business error returned with HTTP 200.
+
 ## API Reference
 
 All APIs are available under the ADP API section in the left navigation bar. Each API page includes request parameters, response schemas and code samples. You can also search for target APIs via the top search bar.

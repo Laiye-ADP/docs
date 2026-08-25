@@ -36,6 +36,7 @@ Provide the invoice number, invoice date, and tax-inclusive total. Use `YYYY-MM-
 | `app_id` | string | Yes | Unique ID of the domestic general bill preset application. |
 | `file_base64` | string | Optional | Base64 content of the file. Use either `file_base64` or `file_url`. |
 | `file_url` | string | Optional | Online file URL. Use either `file_url` or `file_base64`. Only HTTP URLs are supported. |
+| `file_name` | string | Optional | File name. Provide it for Base64 input or when the name cannot be determined from the URL. |
 | `enable_invoice_verify` | boolean | Optional | Whether this extraction includes invoice verification. `true` enables it and `false` disables it; omit the field to use the saved application setting. Only applies to the domestic general bill application. |
 
 ## Example
@@ -1455,7 +1456,11 @@ The response uses the common document extraction structure.
 | `code` | string | Business code. `success` means the request succeeded. |
 | `message` | string | Response message. |
 | `data.task_id` | string | Extraction task ID. |
-| `data.status` | integer | Extraction status. `4` means success, and `5` means failure. |
+| `data.message` | string | Task status or processing result message. |
+| `data.status` | integer | Extraction status: `0` unknown, `1` ready, `2` running, `4` succeeded, `5` failed, and `6` cancelled or rejected. |
+| `data.extract_config_version` | string | Extraction configuration version used for this request. |
+| `data.metadata` | object or null | Document processing task metadata. |
+| `data.aigc` | object or null | AI-generated content compliance label. |
 | `data.extraction_result` | array | Field extraction results. |
 | `data.classify_result` | object | Document classification result. |
 

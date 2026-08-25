@@ -81,7 +81,7 @@ paths:
         '200':
           $ref: '#/components/responses/InvoiceVerifyResponse'
         '400':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/BusinessError'
         '422':
           $ref: '#/components/responses/ValidationError'
 components:
@@ -216,12 +216,18 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/TaskCreateResponse'
+    BusinessError:
+      description: 业务参数错误。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SimpleResponse'
     ValidationError:
       description: 参数校验错误。
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/SimpleResponse'
+            $ref: '#/components/schemas/HTTPValidationError'
   schemas:
     DocumentExtractRequest:
       oneOf:
@@ -234,6 +240,9 @@ components:
               type: string
               format: uri
               description: 待抽取文件 URL，与 file_base64 二选一。
+            file_name:
+              type: string
+              description: 文件名称。使用 Base64 或无法从 URL 判断文件名时可传入。
             app_id:
               default: *domesticBillsAppId
               type: string
@@ -250,6 +259,9 @@ components:
               default: *domesticBillsFileBase64
               type: string
               description: 待抽取文件 Base64，与 file_url 二选一。
+            file_name:
+              type: string
+              description: 文件名称。使用 Base64 或无法从 URL 判断文件名时可传入。
             app_id:
               default: *domesticBillsAppId
               type: string
@@ -271,6 +283,33 @@ components:
           type:
             - string
             - 'null'
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationErrorItem'
+      required: [detail]
+    ValidationErrorItem:
+      type: object
+      additionalProperties: true
+      properties:
+        type:
+          type: string
+        loc:
+          type: array
+          items:
+            oneOf:
+              - type: string
+              - type: integer
+        msg:
+          type: string
+        input: {}
+        ctx:
+          type: object
+          additionalProperties: true
+      required: [type, loc, msg]
     TaskCreateResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -281,6 +320,10 @@ components:
               properties:
                 task_id:
                   type: string
+                metadata:
+                  type: object
+                  additionalProperties: true
+                  description: 文档处理任务元数据。
     InvoiceVerifyRequest:
       type: object
       additionalProperties: false
@@ -312,62 +355,89 @@ components:
       type: object
       properties:
         type_key:
-          type: string
+          type: [string, 'null']
           description: 发票类型。
         instance_id:
-          type: string
+          type: [string, 'null']
           description: 业务侧实例 ID。
         fpVerification:
-          type: string
+          type: [string, 'null']
           description: 验真状态，例如“查验成功发票一致”。
         fpVerificationMsg:
-          type: string
+          type: [string, 'null']
           description: 验真提示或错误信息。
         fpIsVoided:
-          type: string
+          type: [string, 'null']
           description: 作废状态：已作废、未作废或空。
         fpType:
-          type: string
+          type: [string, 'null']
           description: 查验票种中文名。
         fpCode:
-          type: string
+          type: [string, 'null']
           description: 发票代码。
         fpNumber:
-          type: string
+          type: [string, 'null']
           description: 发票号码。
         fpDate:
-          type: string
+          type: [string, 'null']
           description: 开票日期、填制日期或乘车日期。
         fpAmount:
-          type: string
+          type: [string, 'null']
           description: 价税合计、票价或合计金额。
         fpNoTaxAmount:
-          type: string
+          type: [string, 'null']
           description: 不含税金额。
         fpTotalTaxAmount:
-          type: string
+          type: [string, 'null']
           description: 税额合计。
         fpSellerName:
-          type: string
+          type: [string, 'null']
           description: 销售方名称。
         fpSellerID:
-          type: string
+          type: [string, 'null']
           description: 销售方纳税人识别号。
         fpPayerName:
-          type: string
+          type: [string, 'null']
           description: 购买方名称。
         fpPayerID:
-          type: string
+          type: [string, 'null']
           description: 购买方纳税人识别号。
         fpRemarks:
-          type: string
+          type: [string, 'null']
           description: 备注。
         fpItems:
-          type: array
+          type: [array, 'null']
           description: 发票明细行。
           items:
-            type: object
-            additionalProperties: true
+            $ref: '#/components/schemas/InvoiceVerifyItem'
+    InvoiceVerifyItem:
+      type: object
+      additionalProperties: true
+      properties:
+        itemName:
+          type: [string, 'null']
+          description: 货物或服务名称。
+        itemModel:
+          type: [string, 'null']
+          description: 规格型号。
+        itemUnit:
+          type: [string, 'null']
+          description: 单位。
+        itemQuantity:
+          type: [string, 'null']
+          description: 数量。
+        itemUnitPrice:
+          type: [string, 'null']
+          description: 单价。
+        itemAmount:
+          type: [string, 'null']
+          description: 金额。
+        itemTaxRate:
+          type: [string, 'null']
+          description: 税率。
+        itemTaxAmount:
+          type: [string, 'null']
+          description: 税额。
     InvoiceVerifyMetadata:
       type: object
       properties:
@@ -398,8 +468,13 @@ components:
                   type: string
                 file_url:
                   type: string
+                message:
+                  type: string
+                  description: 任务状态或处理结果说明。
                 status:
                   type: integer
+                  enum: [0, 1, 2, 4, 5, 6]
+                  description: 0=未知，1=就绪，2=运行中，4=成功，5=失败，6=取消或拒绝。
                 doc_recognize_result:
                   type: array
                   items:
@@ -409,6 +484,17 @@ components:
                   type: array
                   items:
                     $ref: '#/components/schemas/ExtractionResult'
+                extract_config_version:
+                  type: string
+                  description: 本次抽取使用的配置版本。
+                metadata:
+                  type: [object, 'null']
+                  additionalProperties: true
+                  description: 文档处理任务元数据。
+                aigc:
+                  type: [object, 'null']
+                  additionalProperties: true
+                  description: AI 生成内容合规标识。
                 classify_result:
                   type: object
                   additionalProperties: true

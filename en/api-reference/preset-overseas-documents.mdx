@@ -26,6 +26,7 @@ GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{tas
 | `app_id` | string | Yes | Unique ID of the preset application. View it in **View API**. |
 | `file_base64` | string | Optional | Base64 content of the file. Use either `file_base64` or `file_url`. |
 | `file_url` | string | Optional | Online file URL. Use either `file_url` or `file_base64`. Only HTTP URLs are supported. |
+| `file_name` | string | Optional | File name. Provide it for Base64 input or when the name cannot be determined from the URL. |
 | `with_rec_result` | boolean | No | Whether to return document recognition results. Default: `false`. |
 
 ## Global Invoice fields

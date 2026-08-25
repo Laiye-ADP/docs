@@ -81,7 +81,7 @@ paths:
         '200':
           $ref: '#/components/responses/InvoiceVerifyResponse'
         '400':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/BusinessError'
         '422':
           $ref: '#/components/responses/ValidationError'
 components:
@@ -216,12 +216,18 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/TaskCreateResponse'
+    BusinessError:
+      description: Business parameter error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SimpleResponse'
     ValidationError:
       description: Validation error.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/SimpleResponse'
+            $ref: '#/components/schemas/HTTPValidationError'
   schemas:
     DocumentExtractRequest:
       oneOf:
@@ -234,6 +240,9 @@ components:
               type: string
               format: uri
               description: File URL. Use either file_url or file_base64.
+            file_name:
+              type: string
+              description: File name. Provide it for Base64 input or when the name cannot be determined from the URL.
             app_id:
               default: *domesticBillsAppId
               type: string
@@ -250,6 +259,9 @@ components:
               default: *domesticBillsFileBase64
               type: string
               description: Base64-encoded file. Use either file_base64 or file_url.
+            file_name:
+              type: string
+              description: File name. Provide it for Base64 input or when the name cannot be determined from the URL.
             app_id:
               default: *domesticBillsAppId
               type: string
@@ -271,6 +283,33 @@ components:
           type:
             - string
             - 'null'
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationErrorItem'
+      required: [detail]
+    ValidationErrorItem:
+      type: object
+      additionalProperties: true
+      properties:
+        type:
+          type: string
+        loc:
+          type: array
+          items:
+            oneOf:
+              - type: string
+              - type: integer
+        msg:
+          type: string
+        input: {}
+        ctx:
+          type: object
+          additionalProperties: true
+      required: [type, loc, msg]
     TaskCreateResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -281,6 +320,10 @@ components:
               properties:
                 task_id:
                   type: string
+                metadata:
+                  type: object
+                  additionalProperties: true
+                  description: Document processing task metadata.
     InvoiceVerifyRequest:
       type: object
       additionalProperties: false
@@ -312,62 +355,89 @@ components:
       type: object
       properties:
         type_key:
-          type: string
+          type: [string, 'null']
           description: Invoice type.
         instance_id:
-          type: string
+          type: [string, 'null']
           description: Your business instance ID.
         fpVerification:
-          type: string
+          type: [string, 'null']
           description: Verification status.
         fpVerificationMsg:
-          type: string
+          type: [string, 'null']
           description: Verification message or error details.
         fpIsVoided:
-          type: string
+          type: [string, 'null']
           description: Void status.
         fpType:
-          type: string
+          type: [string, 'null']
           description: Invoice type name.
         fpCode:
-          type: string
+          type: [string, 'null']
           description: Invoice code.
         fpNumber:
-          type: string
+          type: [string, 'null']
           description: Invoice number.
         fpDate:
-          type: string
+          type: [string, 'null']
           description: Invoice issue date, creation date, or travel date.
         fpAmount:
-          type: string
+          type: [string, 'null']
           description: Tax-inclusive total, fare, or total amount.
         fpNoTaxAmount:
-          type: string
+          type: [string, 'null']
           description: Tax-exclusive amount.
         fpTotalTaxAmount:
-          type: string
+          type: [string, 'null']
           description: Total tax amount.
         fpSellerName:
-          type: string
+          type: [string, 'null']
           description: Seller name.
         fpSellerID:
-          type: string
+          type: [string, 'null']
           description: Seller taxpayer ID.
         fpPayerName:
-          type: string
+          type: [string, 'null']
           description: Buyer name.
         fpPayerID:
-          type: string
+          type: [string, 'null']
           description: Buyer taxpayer ID.
         fpRemarks:
-          type: string
+          type: [string, 'null']
           description: Remarks.
         fpItems:
-          type: array
+          type: [array, 'null']
           description: Invoice line items.
           items:
-            type: object
-            additionalProperties: true
+            $ref: '#/components/schemas/InvoiceVerifyItem'
+    InvoiceVerifyItem:
+      type: object
+      additionalProperties: true
+      properties:
+        itemName:
+          type: [string, 'null']
+          description: Item or service name.
+        itemModel:
+          type: [string, 'null']
+          description: Model or specification.
+        itemUnit:
+          type: [string, 'null']
+          description: Unit.
+        itemQuantity:
+          type: [string, 'null']
+          description: Quantity.
+        itemUnitPrice:
+          type: [string, 'null']
+          description: Unit price.
+        itemAmount:
+          type: [string, 'null']
+          description: Amount.
+        itemTaxRate:
+          type: [string, 'null']
+          description: Tax rate.
+        itemTaxAmount:
+          type: [string, 'null']
+          description: Tax amount.
     InvoiceVerifyMetadata:
       type: object
       properties:
@@ -398,8 +468,13 @@ components:
                   type: string
                 file_url:
                   type: string
+                message:
+                  type: string
+                  description: Task status or processing result message.
                 status:
                   type: integer
+                  enum: [0, 1, 2, 4, 5, 6]
+                  description: 0=unknown, 1=ready, 2=running, 4=succeeded, 5=failed, 6=cancelled or rejected.
                 doc_recognize_result:
                   type: array
                   items:
@@ -409,6 +484,17 @@ components:
                   type: array
                   items:
                     $ref: '#/components/schemas/ExtractionResult'
+                extract_config_version:
+                  type: string
+                  description: Extraction configuration version used for this request.
+                metadata:
+                  type: [object, 'null']
+                  additionalProperties: true
+                  description: Document processing task metadata.
+                aigc:
+                  type: [object, 'null']
+                  additionalProperties: true
+                  description: AI-generated content compliance label.
                 classify_result:
                   type: object
                   additionalProperties: true

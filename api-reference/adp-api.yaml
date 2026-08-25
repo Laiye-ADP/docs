@@ -132,7 +132,7 @@ paths:
     post:
       tags: [应用管理]
       summary: 创建抽取应用
-      description: 创建标准版或高速版自定义抽取应用，并设置标签、字段配置和抽取配置。标准版支持 parse_mode、显示来源位置、PDF 文本优先、印章识别等解析配置；创建高速版自定义抽取应用时，设置 ai_function 为 1425，且字段和表格子字段需要提供 field_key，不支持标准版解析配置。
+      description: 创建标准版或高速版自定义抽取应用，并设置标签、字段配置和抽取配置。标准版支持 parse_mode、显示来源位置、PDF 文本优先、印章识别等解析配置；创建高速版自定义抽取应用时，设置 ai_function 为 1425，且字段和表格子字段需要提供 field_key，不支持标准版解析配置。注意：HTTP 200 也可能表示业务失败，调用方必须同时检查响应中的业务 code。
       operationId: createExtractionApp
       security:
         - ApiKeyAuth: []
@@ -145,6 +145,29 @@ paths:
           $ref: '#/components/responses/ExtractionAppResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
+      x-codeSamples:
+        - lang: python
+          label: Python（同时检查 HTTP 状态和业务码）
+          source: |
+            import requests
+
+            response = requests.post(
+                "https://adp.laiye.com/open/agentic_doc_processor/laiye/v1/app-manage/create",
+                headers={"X-API-KEY": "YOUR_API_KEY"},
+                json={
+                    "ai_function": 1406,
+                    "app_name": "采购单抽取应用",
+                    "extract_fields": [
+                        {"field_name": "订单号", "field_type": "string"}
+                    ],
+                    "parse_mode": "standard",
+                },
+                timeout=60,
+            )
+            response.raise_for_status()
+            result = response.json()
+            if result.get("code") not in ("success", 200, "200"):
+                raise RuntimeError(result.get("message") or result.get("code"))
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete:
     post:
       tags: [应用管理]
@@ -166,7 +189,7 @@ paths:
     post:
       tags: [应用管理]
       summary: 修改抽取应用
-      description: 更新抽取应用的名称、标签、字段配置和抽取配置，并创建新的配置版本。修改高速版自定义抽取应用时，复用该接口并传入高速版应用的 app_id；请求体不需要传 ai_function。高速版自定义抽取应用不支持设置 parse_mode、enable_highlight、enable_pdf_parse、pdf_pic_second_parsing、enable_stamp_recognition 和 enable_long_doc。
+      description: 更新抽取应用的名称、标签、字段配置和抽取配置，并创建新的配置版本。修改高速版自定义抽取应用时，复用该接口并传入高速版应用的 app_id；请求体不需要传 ai_function。高速版自定义抽取应用不支持设置 parse_mode、enable_highlight、enable_pdf_parse、pdf_pic_second_parsing、enable_stamp_recognition 和 enable_long_doc。注意：HTTP 200 也可能表示业务失败，调用方必须同时检查响应中的业务 code。
       operationId: updateExtractionApp
       security:
         - ApiKeyAuth: []
@@ -179,6 +202,28 @@ paths:
           $ref: '#/components/responses/ExtractionAppUpdateResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
+      x-codeSamples:
+        - lang: python
+          label: Python（同时检查 HTTP 状态和业务码）
+          source: |
+            import requests
+
+            response = requests.post(
+                "https://adp.laiye.com/open/agentic_doc_processor/laiye/v1/app-manage/update",
+                headers={"X-API-KEY": "YOUR_API_KEY"},
+                json={
+                    "app_id": "app_1406",
+                    "extract_fields": [
+                        {"field_name": "订单号", "field_type": "string"}
+                    ],
+                    "parse_mode": "standard",
+                },
+                timeout=60,
+            )
+            response.raise_for_status()
+            result = response.json()
+            if result.get("code") not in ("success", 200, "200"):
+                raise RuntimeError(result.get("message") or result.get("code"))
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config:
     post:
       tags: [应用管理]
@@ -277,6 +322,17 @@ paths:
             type: integer
             enum: [0, 1]
             default: 1
+        - name: sort[]
+          in: query
+          required: false
+          description: 排序字段列表。字段名前加 - 表示降序，不加表示升序；默认按 updated_at 降序。
+          style: form
+          explode: true
+          schema:
+            type: array
+            default: [-updated_at]
+            items:
+              type: string
         - name: offset
           in: query
           required: false
@@ -285,14 +341,16 @@ paths:
             type: integer
             default: 0
             minimum: 0
+            maximum: 1000
         - name: limit
           in: query
           required: false
           description: 每页数量。
           schema:
             type: integer
-            default: 1000
+            default: 20
             minimum: 1
+            maximum: 1000
       responses:
         '200':
           $ref: '#/components/responses/AppListResponse'
@@ -319,7 +377,7 @@ paths:
     post:
       tags: [应用管理]
       summary: 智能体生成抽取字段提示词
-      description: 基于示例文档或提示词，AI 自动生成字段名称、字段类型和字段提示词等配置参考。传入高速版自定义抽取应用的 app_id 时，会进入高速版自动生成配置服务，返回 common_rule、field_rule、table_rule 等配置预览；该接口不会保存配置版本，也不会自动回填到 Web 页面应用中。高速版应用必须提供 file_url 或 file_base64，prompt 仅作为辅助生成提示。
+      description: 基于示例文档或提示词，AI 自动生成字段名称、字段类型和字段提示词等配置参考。标准版应用至少提供 prompt、file_url 或 file_base64 之一；高速版应用必须提供 file_url 或 file_base64，prompt 仅作为辅助生成提示。传入高速版自定义抽取应用的 app_id 时，会返回 common_rule、field_rule、table_rule 等配置预览；该接口不会保存配置版本，也不会自动回填到 Web 页面应用中。注意：HTTP 200 也可能表示业务失败，调用方必须同时检查响应中的业务 code。
       operationId: recommendExtractionFields
       security:
         - ApiKeyAuth: []
@@ -332,8 +390,27 @@ paths:
           $ref: '#/components/responses/AiRecommendResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
+      x-codeSamples:
+        - lang: python
+          label: Python（同时检查 HTTP 状态和业务码）
+          source: |
+            import requests
+
+            response = requests.post(
+                "https://adp.laiye.com/open/agentic_doc_processor/laiye/v1/app-manage/ai-recommend",
+                headers={"X-API-KEY": "YOUR_API_KEY"},
+                json={
+                    "app_id": "app_1406",
+                    "prompt": "请生成发票号码、开票日期和价税合计字段",
+                },
+                timeout=120,
+            )
+            response.raise_for_status()
+            result = response.json()
+            if result.get("code") not in ("success", 200, "200"):
+                raise RuntimeError(result.get("message") or result.get("code"))
   /open/agentic_doc_processor/{tenant_name}/v1/user/payment:
-    post:
+    get:
       tags: [账户]
       summary: 查看用户积分使用情况
       description: 无需请求体，根据 X-API-KEY 获取当前用户积分信息。
@@ -440,7 +517,7 @@ paths:
               $ref: '#/components/schemas/FileUploadRequest'
       responses:
         '200':
-          $ref: '#/components/responses/FileResponse'
+          $ref: '#/components/responses/FileUploadResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_engine/laiye/files/{file_id}:
@@ -455,7 +532,7 @@ paths:
         - $ref: '#/components/parameters/FileId'
       responses:
         '200':
-          $ref: '#/components/responses/FileResponse'
+          $ref: '#/components/responses/FileInfoResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
 components:
@@ -727,7 +804,6 @@ components:
               summary: 标准版自定义抽取应用生成字段提示词
               value:
                 app_id: app_1406
-                file_url: https://adp.laiye.com/web/agentic_doc_processor/laiye/file/2003c711818811f1a36200163e358400
                 prompt: 请从发票中抽取发票号码、开票日期和价税合计。
             highSpeedCustomExtractionApp:
               summary: 高速版自定义抽取应用自动生成配置预览
@@ -772,7 +848,15 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/SimpleResponse'
+            $ref: '#/components/schemas/HTTPValidationError'
+          example:
+            detail:
+              - type: greater_than
+                loc: [query, limit]
+                msg: Input should be greater than 0
+                input: 0
+                ctx:
+                  gt: 0
     TaskCreateResponse:
       description: 任务创建结果。
       content:
@@ -787,11 +871,16 @@ components:
                     properties:
                       task_id:
                         type: string
+                      metadata:
+                        type: object
+                        additionalProperties: true
+                        description: 文档处理任务元数据。
           example:
             code: success
             message: ''
             data:
               task_id: 94fe9b74e0e311f091505e345594c618
+              metadata: {}
     DocumentExtractResponse:
       description: 文档抽取结果。
       content:
@@ -804,9 +893,13 @@ components:
             data:
               task_id: 94fe9b74e0e311f091505e345594c618
               file_url: ''
+              message: ''
               status: 4
               doc_recognize_result: []
               extraction_result: []
+              extract_config_version: v1
+              metadata: {}
+              aigc: null
     DocumentRecognizeResponse:
       description: 文档解析结果。
       content:
@@ -819,23 +912,35 @@ components:
             data:
               task_id: 94fe9b74e0e311f091505e345594c618
               file_url: ''
+              message: ''
               status: 4
               doc_recognize_result: []
+              metadata: {}
+              aigc: null
     ExtractionAppResponse:
       description: 抽取应用结果。
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ExtractionAppResponse'
-          example:
-            code: success
-            message: ''
-            tips: null
-            data:
-              app_id: app_abc123
-              app_name: 高速版发票抽取应用
-              app_label: [invoice, high-speed]
-              config_version: v1
+          examples:
+            success:
+              summary: 创建成功
+              value:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  app_id: app_abc123
+                  app_name: 高速版发票抽取应用
+                  app_label: [invoice, high-speed]
+                  config_version: v1
+            missingParseMode:
+              summary: 标准版缺少 parse_mode（HTTP 200 业务失败）
+              value:
+                code: server_error
+                message: 标准版自定义抽取应用必须提供 parse_mode
+                tips: null
     ExtractionAppDeleteResponse:
       description: 抽取应用删除结果。
       content:
@@ -855,13 +960,21 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ExtractionAppUpdateResponse'
-          example:
-            code: success
-            message: ''
-            tips: null
-            data:
-              app_id: app_1425
-              config_version: v2
+          examples:
+            success:
+              summary: 修改成功
+              value:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  config_version: v2
+            missingParseMode:
+              summary: 标准版缺少 parse_mode（HTTP 200 业务失败）
+              value:
+                code: server_error
+                message: 标准版自定义抽取应用必须提供 parse_mode
+                tips: null
     ExtractionAppVersionDeleteResponse:
       description: 抽取应用配置版本删除结果。
       content:
@@ -954,6 +1067,12 @@ components:
                       field_parent_id: line_items
                   page_count: 2
                   document_type: invoice
+            promptOrFileRequired:
+              summary: 标准版未提供提示词或文件（HTTP 200 业务失败）
+              value:
+                code: prompt_or_file_required
+                message: prompt、file_url 或 file_base64 至少提供一个
+                tips: null
     AppListResponse:
       description: 应用列表。
       content:
@@ -965,12 +1084,19 @@ components:
             message: ''
             tips: null
             data:
+              range:
+                offset: 0
+                size: 20
+                total: 1
               list:
                 - id: app_1425
                   app_name: 高速版发票抽取应用
                   ai_function: 1425
                   app_label: [invoice, high-speed]
-              total: 1
+                  app_type: 1
+                  created_at: '2026-04-30T10:00:00Z'
+                  updated_at: '2026-04-30T10:10:00Z'
+                  engine_type: extract
     UserPaymentResponse:
       description: 用户积分信息。
       content:
@@ -978,13 +1104,13 @@ components:
           schema:
             $ref: '#/components/schemas/UserPaymentResponse'
           example:
-            code: success
-            message: ''
-            data:
-              total_credits: 0
-              used_credits: 0
-              expired_credits: 0
-              remaining_credits: 0
+            user_id: user_abc123
+            payment_type: free
+            concurrency: 2
+            total_credits: 0
+            used_credits: 0
+            expired_credits: 0
+            remaining_credits: 0
     DocFlowRunResponse:
       description: 工作流运行结果。
       content:
@@ -1002,12 +1128,18 @@ components:
               error: null
               started_at: '2026-04-30T10:00:00Z'
               ended_at: '2026-04-30T10:00:15Z'
-    FileResponse:
+    FileUploadResponse:
+      description: 文件上传结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FileUploadResponse'
+    FileInfoResponse:
       description: 文件信息。
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/FileResponse'
+            $ref: '#/components/schemas/FileInfoResponse'
   schemas:
     SimpleResponse:
       type: object
@@ -1025,6 +1157,43 @@ components:
             - string
             - 'null'
           description: 详细信息，默认为空。
+    HTTPValidationError:
+      type: object
+      description: FastAPI/Pydantic 请求参数校验错误。
+      properties:
+        detail:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationErrorItem'
+      required: [detail]
+    ValidationErrorItem:
+      type: object
+      additionalProperties: true
+      properties:
+        type:
+          type: string
+          description: 校验错误类型。
+        loc:
+          type: array
+          description: 错误字段在请求中的位置。
+          items:
+            oneOf:
+              - type: string
+              - type: integer
+        msg:
+          type: string
+          description: 可读的错误说明。
+        input:
+          description: 导致校验失败的输入值。
+        ctx:
+          type: object
+          additionalProperties: true
+          description: 校验器提供的补充上下文。
+        url:
+          type: string
+          format: uri
+          description: Pydantic 错误说明链接。
+      required: [type, loc, msg]
     DocumentFileRequest:
       oneOf:
         - title: 使用文件 URL
@@ -1085,7 +1254,7 @@ components:
       properties:
         recognize_mode:
           type: string
-          enum: [standard, advance, fast_vlm, agentic]
+          enum: [standard, advance, fast_vlm, agentic, agentic_v2]
           default: standard
           description: 解析模式。
         enable_highlight:
@@ -1120,6 +1289,9 @@ components:
               type: string
               format: uri
               description: 待处理文件 URL，与 file_base64 二选一。
+            file_name:
+              type: string
+              description: 文件名称。使用 Base64 或无法从 URL 判断文件名时可传入。
             with_rec_result:
               type: boolean
               description: 是否返回文档解析结果。高速版抽取不返回解析结果。
@@ -1137,6 +1309,9 @@ components:
               default: JVBERi0xLjQKJcfs...
               type: string
               description: 待处理文件 Base64，与 file_url 二选一。
+            file_name:
+              type: string
+              description: 文件名称。使用 Base64 或无法从 URL 判断文件名时可传入。
             with_rec_result:
               type: boolean
               description: 是否返回文档解析结果。高速版抽取不返回解析结果。
@@ -1156,9 +1331,13 @@ components:
           type: string
         file_url:
           type: string
+        message:
+          type: string
+          description: 任务状态或处理结果说明。
         status:
           type: integer
-          description: 1=等待，2=解析中，3=抽取中，4=成功，5=失败。
+          enum: [0, 1, 2, 4, 5, 6]
+          description: 0=未知，1=就绪，2=运行中，4=成功，5=失败，6=取消或拒绝。
         doc_recognize_result:
           type: array
           items:
@@ -1167,6 +1346,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ExtractionField'
+        extract_config_version:
+          type: string
+          description: 本次抽取使用的配置版本。
         collaboration_result:
           type: array
           items:
@@ -1177,6 +1359,29 @@ components:
           items:
             type: object
             additionalProperties: true
+        metadata:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+          description: 文档处理任务元数据。
+        aigc:
+          oneOf:
+            - $ref: '#/components/schemas/AigcLabel'
+            - type: 'null'
+          description: AI 生成内容合规标识。
+        spreadsheet_manifest_file_id:
+          type: string
+          description: Excel 原生预览 Manifest 文件 ID；非 Excel 文档通常返回空字符串。
+        spreadsheet_manifest_url:
+          type: string
+          description: Excel 原生预览 Manifest 下载地址；非 Excel 文档通常返回空字符串。
+        spreadsheet_billing:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+          description: Excel 工作表与内嵌图片计费信息。
     DocumentRecognizeResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -1189,12 +1394,63 @@ components:
                   type: string
                 file_url:
                   type: string
+                message:
+                  type: string
+                  description: 任务状态或处理结果说明。
                 status:
                   type: integer
+                  enum: [0, 1, 2, 4, 5, 6]
+                  description: 0=未知，1=就绪，2=运行中，4=成功，5=失败，6=取消或拒绝。
                 doc_recognize_result:
                   type: array
                   items:
                     $ref: '#/components/schemas/RecognizePage'
+                metadata:
+                  type: object
+                  additionalProperties: true
+                  description: 文档处理任务元数据。
+                aigc:
+                  oneOf:
+                    - $ref: '#/components/schemas/AigcLabel'
+                    - type: 'null'
+                  description: AI 生成内容合规标识。
+                convert_result:
+                  type: object
+                  additionalProperties: true
+                  description: 文档转换结果；Excel 文件会携带原生预览 Manifest 与计费信息。
+                spreadsheet:
+                  type: object
+                  additionalProperties: true
+                  description: Excel 原生结构摘要。
+    AigcLabel:
+      type: object
+      properties:
+        Label:
+          type: string
+          description: 内容标识类型。
+        ContentProducer:
+          type: string
+          description: 内容生成服务提供者编码。
+        ProduceID:
+          type: string
+          description: 内容制作编号。
+        ReservedCode1:
+          type: string
+          description: 内容生成侧预留校验码。
+        ContentPropagator:
+          type: string
+          description: 内容传播服务提供者编码。
+        PropagateID:
+          type: string
+          description: 内容传播编号。
+        ReservedCode2:
+          type: string
+          description: 内容传播侧预留校验码。
+        ProcessingTypes:
+          type: array
+          description: 本次响应涉及的 AI 处理类型。
+          items:
+            type: string
     RecognizePage:
       type: object
       properties:
@@ -1291,6 +1547,8 @@ components:
           description: 字段抽取提示词。
         sub_fields:
           type: array
+          minItems: 1
+          maxItems: 20
           description: 表格子字段。field_type 为 table 时必须至少提供 1 个有效子字段。
           items:
             $ref: '#/components/schemas/ExtractionSubFieldConfig'
@@ -1360,13 +1618,14 @@ components:
             type: string
         extract_fields:
           type: array
+          minItems: 1
           maxItems: 20
           description: 抽取字段配置列表，最多 20 个字段。
           items:
             $ref: '#/components/schemas/ExtractionFieldConfig'
         parse_mode:
           type: string
-          enum: [standard, advance, fast_vlm, agentic]
+          enum: [standard, advance, fast_vlm, agentic, agentic_v2]
           description: |
             解析模式。标准版自定义抽取应用必填；不同模式适用于不同版式复杂度和准确率要求的文档。模式能力与 Web 端解析配置一致：
 
@@ -1374,6 +1633,7 @@ components:
             - advance：增强解析 1.0，适用于印章、签名、多表格等格式较复杂的文档；不支持显示来源位置。
             - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，支持显示来源位置、PDF 文本优先和印章识别。
             - agentic：智能解析，自动组合多种模型处理复杂文档，支持显示来源位置、PDF 文本优先和印章识别。
+            - agentic_v2：智能解析 2.0，使用新版智能解析流程处理复杂文档。
         enable_highlight:
           type: integer
           enum: [0, 1]
@@ -1430,8 +1690,8 @@ components:
         extract_fields:
           type: array
           minItems: 1
-          maxItems: 20
-          description: 高速版抽取字段配置列表，最多 20 个字段。每个字段都需要提供 field_key。
+          maxItems: 50
+          description: 高速版抽取字段配置列表，最多 50 个字段。每个字段都需要提供 field_key。
           items:
             $ref: '#/components/schemas/HighSpeedExtractionFieldConfig'
         enable_field_value_translation:
@@ -1464,7 +1724,7 @@ components:
           description: 字段抽取提示词。
         sub_fields:
           type: array
-          maxItems: 50
+          maxItems: 30
           description: 表格子字段。仅 field_type 为 table 时填写，且必须至少提供 1 个有效子字段；普通字段不要传该参数。
           items:
             $ref: '#/components/schemas/HighSpeedExtractionSubFieldConfig'
@@ -1538,7 +1798,7 @@ components:
             $ref: '#/components/schemas/ExtractionFieldConfig'
         parse_mode:
           type: string
-          enum: [standard, advance, fast_vlm, agentic]
+          enum: [standard, advance, fast_vlm, agentic, agentic_v2]
           description: |
             解析模式。标准版自定义抽取应用必填；高速版自定义抽取应用不支持设置该参数。模式能力与 Web 端解析配置一致：
 
@@ -1546,6 +1806,7 @@ components:
             - advance：增强解析 1.0，适用于印章、签名、多表格等格式较复杂的文档；不支持显示来源位置。
             - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，支持显示来源位置、PDF 文本优先和印章识别。
             - agentic：智能解析，自动组合多种模型处理复杂文档，支持显示来源位置、PDF 文本优先和印章识别。
+            - agentic_v2：智能解析 2.0，使用新版智能解析流程处理复杂文档。
         enable_highlight:
           type: integer
           enum: [0, 1]
@@ -1577,7 +1838,7 @@ components:
           description: 长文档配置，仅 enable_long_doc 为 true 时使用。
           items:
             $ref: '#/components/schemas/LongDocConfig'
-      required: [app_id, config_version, extract_fields, parse_mode]
+      required: [app_id, extract_fields, parse_mode]
     HighSpeedExtractionAppUpdateRequest:
       type: object
       additionalProperties: false
@@ -1601,15 +1862,15 @@ components:
         extract_fields:
           type: array
           minItems: 1
-          maxItems: 20
-          description: 高速版抽取字段配置列表，最多 20 个字段。每个字段都需要提供 field_key。
+          maxItems: 50
+          description: 高速版抽取字段配置列表，最多 50 个字段。每个字段都需要提供 field_key。
           items:
             $ref: '#/components/schemas/HighSpeedExtractionFieldConfig'
         enable_field_value_translation:
           type: boolean
           default: false
           description: 是否开启抽取结果翻译，默认关闭。
-      required: [app_id, config_version, extract_fields]
+      required: [app_id, extract_fields]
     AppIdRequest:
       type: object
       additionalProperties: false
@@ -1643,7 +1904,7 @@ components:
     AiRecommendRequest:
       type: object
       additionalProperties: false
-      description: 智能体生成字段配置请求。请求体需提供 file_url 或 file_base64；prompt 可作为辅助生成提示。
+      description: 智能体生成字段配置请求。标准版应用至少提供 prompt、file_url 或 file_base64 之一；高速版应用仍必须提供 file_url 或 file_base64，prompt 只作为辅助说明。应用类型由 app_id 对应的应用决定，因此 OpenAPI 无法仅根据请求字段进一步区分两种条件约束。
       properties:
         app_id:
           type: string
@@ -1657,7 +1918,7 @@ components:
           description: 文件 URL。高速版应用与 file_base64 二选一必填。
         prompt:
           type: string
-          description: 用户提供的生成提示。需要同时提供文件，并将 prompt 作为辅助说明。
+          description: 用户提供的生成提示。标准版可只传 prompt；高速版需要同时提供文件。
         doc_type:
           type: string
           description: 文档类型。标准版自动生成建议时可传入；高速版会根据文档自动识别。
@@ -1666,6 +1927,7 @@ components:
           description: 文档类型描述。标准版自动生成建议时可传入。
       required: [app_id]
       anyOf:
+        - required: [prompt]
         - required: [file_base64]
         - required: [file_url]
     ExtractionAppResponse:
@@ -1674,7 +1936,27 @@ components:
         - type: object
           properties:
             data:
-              $ref: '#/components/schemas/AppConfigData'
+              $ref: '#/components/schemas/ExtractionAppCreateData'
+    ExtractionAppCreateData:
+      type: object
+      properties:
+        app_id:
+          type: string
+          description: 应用 ID。
+        app_name:
+          type: string
+          description: 应用名称。
+        app_label:
+          type:
+            - array
+            - 'null'
+          description: 应用标签列表。
+          items:
+            type: string
+        config_version:
+          type: string
+          description: 初始配置版本号。
+      required: [app_id, app_name, app_label, config_version]
     ExtractionAppDeleteResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -1695,14 +1977,14 @@ components:
         - type: object
           properties:
             data:
-              type: object
-              properties:
-                app_id:
-                  type: string
-                  description: 应用 ID。
-                config_version:
-                  type: string
-                  description: 新配置版本号。
+              $ref: '#/components/schemas/ExtractionAppUpdateData'
+    ExtractionAppUpdateData:
+      type: object
+      properties:
+        config_version:
+          type: string
+          description: 新配置版本号。
+      required: [config_version]
     ExtractionAppVersionDeleteResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -1723,15 +2005,65 @@ components:
         - type: object
           properties:
             data:
-              type: object
-              properties:
-                list:
-                  type: array
-                  items:
-                    type: object
-                    additionalProperties: true
-                total:
-                  type: integer
+              $ref: '#/components/schemas/AppListData'
+    AppListData:
+      type: object
+      properties:
+        range:
+          $ref: '#/components/schemas/PaginationRange'
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppListItem'
+      required: [range, list]
+    PaginationRange:
+      type: object
+      properties:
+        offset:
+          type: integer
+          minimum: 0
+        size:
+          type: integer
+          minimum: 0
+        total:
+          type: integer
+          minimum: 0
+      required: [offset, size, total]
+    AppListItem:
+      type: object
+      description: 应用列表中的非敏感公开字段。凭证及内部配置字段不会在公共 schema 中声明。
+      properties:
+        id:
+          type: string
+          description: 应用 ID。
+        app_type:
+          type: integer
+          description: 应用类型。1 表示自定义应用，0 表示系统预设。
+        ai_function:
+          type: integer
+          description: AI 能力类型。
+        app_name:
+          type: string
+          description: 应用名称。
+        app_label:
+          type:
+            - array
+            - 'null'
+          description: 应用标签列表。
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间。
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间。
+        engine_type:
+          type: string
+          description: 应用引擎类型。
+      required: [id, app_type, ai_function, app_name, app_label, created_at, updated_at, engine_type]
     AppConfigResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -1748,7 +2080,9 @@ components:
         app_name:
           type: string
         app_label:
-          type: array
+          type:
+            - array
+            - 'null'
           items:
             type: string
         config_version:
@@ -1756,7 +2090,7 @@ components:
         extract_fields:
           type: array
           items:
-            $ref: '#/components/schemas/ExtractionFieldConfig'
+            $ref: '#/components/schemas/ExtractionFieldConfigResponse'
         parse_mode:
           type:
             - string
@@ -1783,12 +2117,77 @@ components:
             - boolean
             - 'null'
           description: 是否开启印章识别。高速版返回 null。
+        enable_field_value_translation:
+          type: boolean
+          description: 是否开启抽取结果翻译。
         enable_long_doc:
           type: boolean
         long_doc_config:
-          type: array
+          type:
+            - array
+            - 'null'
           items:
-            $ref: '#/components/schemas/LongDocConfig'
+            $ref: '#/components/schemas/LongDocConfigResponse'
+      required: [app_id, app_name, config_version, extract_fields, enable_long_doc]
+    ExtractionFieldConfigResponse:
+      type: object
+      properties:
+        field_key:
+          type:
+            - string
+            - 'null'
+          description: 字段唯一标识。标准版不保证返回。
+        field_name:
+          type: string
+          description: 字段名称。
+        field_type:
+          type: string
+          description: 字段类型。
+        field_prompt:
+          type:
+            - string
+            - 'null'
+          description: 字段提示词。
+        sub_fields:
+          type:
+            - array
+            - 'null'
+          description: 表格子字段列表。
+          items:
+            $ref: '#/components/schemas/ExtractionSubFieldConfigResponse'
+      required: [field_name, field_type]
+    ExtractionSubFieldConfigResponse:
+      type: object
+      properties:
+        field_key:
+          type:
+            - string
+            - 'null'
+          description: 子字段唯一标识。标准版不保证返回。
+        field_name:
+          type: string
+          description: 子字段名称。
+        field_type:
+          type: string
+          description: 子字段类型。
+        field_prompt:
+          type:
+            - string
+            - 'null'
+          description: 子字段提示词。
+      required: [field_name, field_type]
+    LongDocConfigResponse:
+      type: object
+      properties:
+        doc_type:
+          type: string
+          description: 文档类型。
+        doc_desc:
+          type:
+            - string
+            - 'null'
+          description: 文档类型描述。
+      required: [doc_type]
     AiRecommendResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -1923,21 +2322,31 @@ components:
           type: string
           description: 模型生成的原始字段 key，仅在服务保留调试信息时返回。
     UserPaymentResponse:
-      allOf:
-        - $ref: '#/components/schemas/SimpleResponse'
-        - type: object
-          properties:
-            data:
-              type: object
-              properties:
-                total_credits:
-                  type: number
-                used_credits:
-                  type: number
-                expired_credits:
-                  type: number
-                remaining_credits:
-                  type: number
+      type: object
+      properties:
+        user_id:
+          type: string
+          description: 当前 Access Key 所属用户 ID。
+        payment_type:
+          type: string
+          enum: [paid, free]
+          description: 用户付费类型。
+        concurrency:
+          type: integer
+          description: 当前套餐支持的并发数。
+        total_credits:
+          type: number
+          description: 总积分。
+        used_credits:
+          type: number
+          description: 已使用积分。
+        expired_credits:
+          type: number
+          description: 已过期积分。
+        remaining_credits:
+          type: number
+          description: 剩余积分。
+      required: [user_id, payment_type, concurrency, total_credits, used_credits, expired_credits, remaining_credits]
     DocFlowRunRequest:
       type: object
       additionalProperties: false
@@ -1954,11 +2363,12 @@ components:
             $ref: '#/components/schemas/DocFlowInputFile'
         inputs:
           type: object
-          additionalProperties: false
+          additionalProperties: true
+          description: 工作流输入参数对象。可用字段由目标工作流发布版本的入参配置决定。
           properties:
             query:
               type: string
-              description: 工作流输入参数示例。实际字段以工作流入参配置为准。
+              description: 常见的文本输入字段示例；工作流也可以定义其他任意字段。
       required: [application_id]
     DocFlowCancelRunRequest:
       type: object
@@ -1979,6 +2389,12 @@ components:
           type: string
         size:
           type: integer
+        metadata:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+          description: 文件随工作流传递的自定义元数据。
       required: [url, name, mime_type]
     DocFlowRunResponse:
       allOf:
@@ -2003,7 +2419,9 @@ components:
                     - string
                     - 'null'
                 started_at:
-                  type: string
+                  type:
+                    - string
+                    - 'null'
                   format: date-time
                 ended_at:
                   type:
@@ -2024,24 +2442,61 @@ components:
           enum: [user, application]
           default: application
       required: [chunk]
-    FileResponse:
+    FileUploadResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
         - type: object
           properties:
             data:
-              type: object
-              additionalProperties: true
-              properties:
-                id:
-                  type: string
-                file_name:
-                  type: string
-                file_size:
-                  type: integer
-                content_type:
-                  type: string
-                download_url:
-                  type: string
-                status:
-                  type: string
+              $ref: '#/components/schemas/FileUploadData'
+    FileUploadData:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 文件 ID。
+        file_name:
+          type: string
+          description: 文件名。
+        file_size:
+          type: integer
+          description: 文件大小（字节）。
+        content_type:
+          type:
+            - string
+            - 'null'
+          description: MIME 类型。
+        download_url:
+          type:
+            - string
+            - 'null'
+          description: 文件下载地址。
+      required: [id, file_name, file_size, content_type, download_url]
+    FileInfoResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/FileInfoData'
+    FileInfoData:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 文件 ID。
+        file_name:
+          type: string
+          description: 文件名。
+        file_size:
+          type: integer
+          description: 文件大小（字节）。
+        content_type:
+          type:
+            - string
+            - 'null'
+          description: MIME 类型。
+        status:
+          type: string
+          description: 文件状态。
+      required: [id, file_name, file_size, content_type, status]

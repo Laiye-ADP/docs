@@ -26,6 +26,7 @@ GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{tas
 | `app_id` | string | 是 | 预置应用的唯一标识，在应用的 **查看 API** 中查看。 |
 | `file_base64` | string | 可选 | 待抽取文件的 Base64，与 `file_url` 二选一。 |
 | `file_url` | string | 可选 | 待抽取文件 URL，与 `file_base64` 二选一。仅支持 HTTP 开头的线上地址。 |
+| `file_name` | string | 可选 | 文件名（含扩展名）。使用 Base64，或无法从 URL 判断文件名时传入。 |
 | `with_rec_result` | boolean | 否 | 是否返回文档解析结果，默认 `false`。 |
 
 ## 海外发票字段
