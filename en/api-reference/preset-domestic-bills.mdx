@@ -26,7 +26,9 @@ To verify an invoice directly from its invoice details, call the standalone invo
 POST /open/agentic_doc_processor/{tenant_name}/v1/app/invoice/verify
 ```
 
-Provide the invoice number, invoice date, and tax-inclusive total. Use `YYYY-MM-DD` for the invoice date.
+The API supports 11 invoice types. `fpNumber` and `fpDate` are common required fields, while other fields are conditionally required by `type_key`. Existing three-field requests can continue to omit `type_key`; they are handled as `vat_electronic_invoice_new` and must include `fpAmount`. Use `YYYY-MM-DD` for the date.
+
+HTTP 200 with `code=success` means that the API completed processing. Read `data.result.fpVerification` to determine whether the invoice passed verification. See the standalone endpoint page for the required-field matrix, request examples, and response schema.
 
 ## Request parameters
 

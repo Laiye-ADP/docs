@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: ADP API
   version: 1.0.0
-  description: Laiye ADP OpenAPI reference for document extraction, document recognition, application management, credit usage, workflow runs, and workflow file management.
+  description: Laiye ADP OpenAPI reference for document extraction, recognition, and conversion; extraction application management; webhooks; credit usage; workflow discovery, runs, exports, and file management.
   license:
     name: MIT
     identifier: MIT
@@ -14,8 +14,12 @@ tags:
     description: Extract structured fields from uploaded documents.
   - name: Document recognition
     description: Recognize text, layout blocks, and positions from uploaded documents.
+  - name: Document conversion
+    description: Convert PDFs, Office documents, OFD files, and images into page images or native spreadsheet structures.
   - name: Application management
     description: Create, update, delete, and query extraction applications and configurations.
+  - name: Webhook
+    description: List system events and manage event callbacks.
   - name: Account
     description: Query credit usage.
   - name: Workflow
@@ -126,6 +130,189 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/DocumentRecognizeResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/doc/convert:
+    post:
+      tags: [Document conversion]
+      summary: Convert document (sync)
+      description: |
+        Convert a PDF, DOC/DOCX, XLS/XLSX, PPT/PPTX, OFD file, or common image into page images. XLSX input may instead return a native spreadsheet structure. Provide exactly one of `file_url` and `file_base64`.
+
+        The current implementation accepts at most 50 MiB and 260 pages. A synchronous request may reach the service timeout at approximately 120 seconds, so production integrations should prefer the asynchronous create and query endpoints. A failure branch may return HTTP 200 with `code=success` and `data=null`. Confirm that `data` exists, then inspect `task_id`, `img_detail_list`, or the spreadsheet structure fields. Returned URLs are currently valid for approximately one hour, but this is not a stable SLA; download them promptly.
+      operationId: convertDocument
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentConvertRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentConvertResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/doc/convert/create/task:
+    post:
+      tags: [Document conversion]
+      summary: Create asynchronous document conversion task
+      description: |
+        Create a document conversion task and return its `task_id` immediately. Queue messages are currently retained for approximately one hour, a task consumer times out after approximately 180 seconds, and result files are generally valid for approximately one hour. These durations are not stable SLAs.
+
+        Creation failure may still appear as HTTP 200 with `code=success` and `data=null`. Require a non-empty `data.task_id`, then poll the query endpoint with a backoff strategy.
+      operationId: createDocumentConvertTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentConvertAsyncRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentConvertTaskResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/doc/convert/query/task/{task_id}:
+    get:
+      tags: [Document conversion]
+      summary: Query asynchronous document conversion task
+      description: |
+        Query a conversion result by `task_id`. The current response has no separate task-status field. While processing is still in progress, the service may return `code=success` with an empty `img_detail_list` and zero `total_num`. Poll with backoff and stop only after page results or a spreadsheet structure is available.
+
+        An empty result cannot reliably distinguish "still processing" from "no visual pages." Set a total client timeout and a maximum poll count.
+      operationId: queryDocumentConvertTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - name: task_id
+          in: path
+          required: true
+          description: Task ID returned after an asynchronous conversion task is created.
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentConvertResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/webhook/events:
+    get:
+      tags: [Webhook]
+      summary: List Webhook event catalog
+      description: |
+        Return the system event types currently registered for subscription. The catalog indicates only that an event name can be configured; it does not imply a delivery SLA for every event. Fields in callback `data` may also vary by event.
+
+        The current catalog contains seven events: document recognition completed, document extraction completed, and human collaboration started, succeeded, failed, completed, or timed out. `collaboration_timeout` currently means only that the event is registered; actual delivery is not guaranteed.
+      operationId: listWebhookEvents
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      responses:
+        '200':
+          $ref: '#/components/responses/WebhookEventListResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/webhook/create:
+    post:
+      tags: [Webhook]
+      summary: Create Webhook
+      description: |
+        Create a Webhook configuration. Each account can retain at most five configurations. If `app_id` is omitted, `null`, or an empty array, the Webhook subscribes to all applications under the current account. Pass an array to subscribe only to specific applications.
+
+        Callbacks use POST `application/json` with a body shaped as `{event_type, timestamp, data}`. The production service sends `X-Webhook-Signature: sha256=...` and `X-Webhook-Timestamp`. The signature is computed as `HMAC-SHA256(secret, timestamp + "." + raw_body)`.
+
+        The current OpenAPI does not return, set, or rotate the secret, so an external caller cannot independently verify signatures. Failed-delivery retries also have no public SLA. Configure only a caller-controlled, public HTTPS endpoint, and return HTTP 200 promptly from the receiver. Do not use this endpoint as a production event bus before a security and reliability review.
+      operationId: createWebhook
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/WebhookCreateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/WebhookMutationResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/webhook/list:
+    get:
+      tags: [Webhook]
+      summary: List Webhook configurations
+      description: List Webhook configurations for the current account. Use `app_id` to match configurations that include the extraction application; configurations scoped to all applications also match. The response never returns the callback-signing secret.
+      operationId: listWebhooks
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - name: app_id
+          in: query
+          required: false
+          description: Filter by extraction application ID or application key.
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/WebhookListResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/webhook/update:
+    post:
+      tags: [Webhook]
+      summary: Update Webhook
+      description: |
+        Update the callback URL, event types, or application scope. Omitting `app_id` leaves the application scope unchanged. Passing `null` or an empty array explicitly clears the scope and subscribes to all applications under the current account.
+
+        The backend accepts a request containing only `webhook_id` as a no-op. The public contract requires at least one field to update. Use only a caller-controlled, public HTTPS callback URL.
+      operationId: updateWebhook
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/WebhookUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/WebhookMutationResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/webhook/delete:
+    post:
+      tags: [Webhook]
+      summary: Delete Webhook
+      description: Delete a Webhook configuration for the current account. Deleting the configuration does not delete historical delivery logs that have already been generated.
+      operationId: deleteWebhook
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/WebhookDeleteRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyMutationResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/webhook/logs:
+    post:
+      tags: [Webhook]
+      summary: Query Webhook delivery logs
+      description: |
+        Query Webhook delivery results. The default window is the last 72 hours, and one request can span at most 30 days. `response_body` retains at most approximately 2,000 characters and may contain business or sensitive information returned by the receiver.
+
+        The current service queries logs at tenant scope and does not further isolate them by the user who created the Webhook. Use this endpoint only with an administrator Access Key in a controlled tenant, and pass `webhook_id` whenever possible to narrow the scope. Do not expose log responses to ordinary end users.
+      operationId: queryWebhookLogs
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/WebhookLogQueryRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/WebhookLogResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create:
@@ -424,6 +611,67 @@ paths:
           $ref: '#/components/responses/UserPaymentResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/v1/app/applications:
+    get:
+      tags: [Workflow]
+      summary: List runnable workflow applications
+      description: List published workflow applications visible to the current Access Key. Results can be searched by name and paginated. Use the returned `id` as `application_id` when calling a run endpoint.
+      operationId: listWorkflowApplications
+      security:
+        - EngineApiKeyAuth: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          description: Search by application name.
+          schema:
+            type: string
+        - name: offset
+          in: query
+          required: false
+          description: Pagination offset.
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: size
+          in: query
+          required: false
+          description: Number of applications per page.
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          $ref: '#/components/responses/WorkflowApplicationListResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/v1/app/applications/{application_id}:
+    get:
+      tags: [Workflow]
+      summary: Get workflow application details (Limited preview)
+      description: |
+        Get an application's name, description, status, and tags by application ID.
+
+        Limited preview: the detail route's visibility check is not fully aligned with the list route. Query only an `application_id` obtained from the list endpoint that is owned by the current account or explicitly shared with the current tenant. Do not pass an arbitrary external ID to this endpoint.
+      operationId: getWorkflowApplication
+      security:
+        - EngineApiKeyAuth: []
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          description: Application ID obtained from the workflow application list.
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          $ref: '#/components/responses/WorkflowApplicationResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /open/agentic_engine/laiye/v1/app/run:
     post:
       tags: [Workflow]
@@ -499,6 +747,24 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/WorkflowRunResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/v1/app/runs/export:
+    post:
+      tags: [Workflow]
+      summary: Export workflow runs (Limited preview)
+      description: |
+        Export specified workflow runs as Excel, Word, Markdown, or JSON, and return a temporary download URL plus run summaries. The public contract requires at least one explicit `run_id`; it does not expose the backend compatibility behavior that treats an empty list as "export all runs for the application."
+
+        The current implementation processes at most 200 runs and generates at most 500,000 rows per request. Temporary files are generally valid for approximately one hour. Limited preview: this route validates only the Access Key and tenant; it has no independent administrator-role or application-visibility check. Use it only as an administrator in a controlled tenant, and export only `application_id` and `run_ids` that you have independently confirmed you can access. Exports may contain workflow inputs, node outputs, and business data. Protect the downloaded file at the same classification level as its source data.
+      operationId: exportWorkflowRuns
+      security:
+        - EngineApiKeyAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/WorkflowRunExportRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/WorkflowRunExportResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_engine/laiye/files/upload:
@@ -811,6 +1077,73 @@ components:
                 app_id: app_1425
                 file_url: https://adp.laiye.com/web/agentic_doc_processor/laiye/file/2003c711818811f1a36200163e358400
                 prompt: Generate field configuration based on the document layout. Use English snake_case field keys.
+    DocumentConvertRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentConvertRequest'
+          examples:
+            fileUrl:
+              value:
+                file_url: https://example.com/invoice.pdf
+                scale: 1
+                first_convert_page: 1
+                last_convert_page: 5
+                result_mode: url
+            fileBase64:
+              value:
+                file_base64: JVBERi0xLjQKJcfs...
+                result_mode: base64
+    DocumentConvertAsyncRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentConvertAsyncRequest'
+          example:
+            file_url: https://example.com/long-document.pdf
+            first_convert_page: 1
+            last_convert_page: 20
+    WebhookCreateRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WebhookCreateRequest'
+          example:
+            webhook_url: https://hooks.example.com/adp
+            event_types: [doc_extract_completed]
+            app_id: [app_abc123]
+    WebhookUpdateRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WebhookUpdateRequest'
+          example:
+            webhook_id: webhook_abc123
+            event_types: [doc_parse_completed, doc_extract_completed]
+    WebhookDeleteRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WebhookDeleteRequest'
+          example:
+            webhook_id: webhook_abc123
+    WebhookLogQueryRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WebhookLogQueryRequest'
+          example:
+            webhook_id: webhook_abc123
+            start_time: '2026-08-01 00:00:00'
+            end_time: '2026-08-02 00:00:00'
+            page: 1
+            page_size: 20
     WorkflowRunRequest:
       required: true
       content:
@@ -825,6 +1158,19 @@ components:
             $ref: '#/components/schemas/WorkflowCancelRunRequest'
           example:
             reason: Cancelled by user
+    WorkflowRunExportRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WorkflowRunExportRequest'
+          example:
+            application_id: app_abc123
+            run_ids: [run_xyz789]
+            format: excel
+            report_mode: merged
+            include_failed_runs: false
+            max_text_length: 10000
   responses:
     SimpleResponse:
       description: Common response.
@@ -1132,7 +1478,639 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/FileInfoResponse'
+    DocumentConvertTaskResponse:
+      description: Asynchronous document conversion task creation result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentConvertTaskResponse'
+          examples:
+            created:
+              value:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  task_id: task_abc123
+            failedButWrappedAsSuccess:
+              summary: Response that may be returned by the current failure branch
+              value:
+                code: success
+                message: ''
+                tips: null
+                data: null
+    DocumentConvertResponse:
+      description: Document conversion result. While processing is in progress or after a failure, the service may return an empty result or `data=null`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentConvertResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              task_id: task_abc123
+              img_detail_list:
+                - page_num: 1
+                  img_base64: ''
+                  img_url: https://example.com/temp/task_abc123/page-1.png
+                  width: 1240
+                  height: 1754
+                  preprocess: {}
+              total_num: 1
+              metadata: {}
+              file_type: pdf
+              source_file_type: pdf
+              spreadsheet_manifest_file_id: ''
+              spreadsheet_manifest_url: ''
+              view_type: ''
+              page_count: 1
+              sheet_count: 0
+              logical_unit_count: 0
+              document_contents: []
+              document_details: []
+              warnings: []
+              billing: {}
+    WebhookEventListResponse:
+      description: Webhook system event catalog.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WebhookEventListResponse'
+    WebhookMutationResponse:
+      description: Webhook creation or update result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WebhookMutationResponse'
+    EmptyMutationResponse:
+      description: The operation succeeded and `data` is an empty object.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EmptyDataResponse'
+    WebhookListResponse:
+      description: Webhook configurations for the current account. Signing secrets are not included.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WebhookListResponse'
+    WebhookLogResponse:
+      description: Webhook delivery logs. `response_body` may contain sensitive data.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WebhookLogResponse'
+    WorkflowApplicationListResponse:
+      description: Published workflow applications visible to the current Access Key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WorkflowApplicationListResponse'
+    WorkflowApplicationResponse:
+      description: Workflow application details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WorkflowApplicationResponse'
+    WorkflowRunExportResponse:
+      description: Workflow-run export result. Treat the download URL as a temporary sensitive link.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WorkflowRunExportResponse'
   schemas:
+    DocumentConvertRequest:
+      type: object
+      additionalProperties: false
+      oneOf:
+        - title: Use file URL
+          required: [file_url]
+        - title: Use Base64 file
+          required: [file_base64]
+      properties:
+        file_url:
+          type: string
+          format: uri
+          maxLength: 2048
+          description: Public HTTPS URL of the file to convert. Do not pass an internal-network URL or a URL containing long-lived credentials.
+        file_base64:
+          type: string
+          format: byte
+          description: Base64 content of the file to convert. The decoded file can be at most 50 MiB.
+        scale:
+          type: number
+          exclusiveMinimum: 0
+          default: 1
+          description: Page scale factor. The server currently exposes no stable upper bound; use the default value unless necessary.
+        first_convert_page:
+          type: integer
+          minimum: 1
+          description: First page to convert, starting at 1. Omit it to start from the first page.
+        last_convert_page:
+          type: integer
+          minimum: 1
+          description: Last page to convert, starting at 1 and not less than the first page. Omit it to continue through the last page.
+        result_mode:
+          type: string
+          enum: [url, base64]
+          default: url
+          description: How page images are returned. URLs are temporary; Base64 significantly increases the response size.
+    DocumentConvertAsyncRequest:
+      type: object
+      additionalProperties: false
+      oneOf:
+        - title: Use file URL
+          required: [file_url]
+        - title: Use Base64 file
+          required: [file_base64]
+      properties:
+        file_url:
+          type: string
+          format: uri
+          maxLength: 2048
+          description: Public HTTPS URL of the file to convert.
+        file_base64:
+          type: string
+          format: byte
+          description: Base64 content of the file to convert. The decoded file can be at most 50 MiB.
+        scale:
+          type: number
+          exclusiveMinimum: 0
+          default: 1
+        first_convert_page:
+          type: integer
+          minimum: 1
+        last_convert_page:
+          type: integer
+          minimum: 1
+      description: Asynchronous conversion currently always returns page results as URLs. The backend ignores `result_mode`, so the public contract does not expose that field.
+    DocumentConvertTaskResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              oneOf:
+                - type: object
+                  properties:
+                    task_id:
+                      type: string
+                  required: [task_id]
+                - type: 'null'
+    DocumentConvertResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              oneOf:
+                - $ref: '#/components/schemas/DocumentConvertData'
+                - type: 'null'
+    DocumentConvertData:
+      type: object
+      properties:
+        task_id:
+          type: string
+        img_detail_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentConvertImage'
+        total_num:
+          type: integer
+          minimum: 0
+        metadata:
+          type: object
+          additionalProperties: true
+        file_type:
+          type: string
+          description: Conversion result type, such as `pdf`, `image`, or `spreadsheet`.
+        source_file_type:
+          type: string
+          description: Detected source-file extension type.
+        spreadsheet_manifest_file_id:
+          type: string
+        spreadsheet_manifest_url:
+          type: string
+          description: Temporary download URL for the native Excel preview manifest.
+        view_type:
+          type: string
+          description: Set to `spreadsheet` for native Excel parsing.
+        page_count:
+          type: integer
+          minimum: 0
+        sheet_count:
+          type: integer
+          minimum: 0
+        logical_unit_count:
+          type: integer
+          minimum: 0
+        document_contents:
+          type: array
+          items:
+            type: string
+        document_details:
+          type: array
+          items: {}
+        warnings:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        billing:
+          type: object
+          additionalProperties: true
+      required: [task_id, img_detail_list, total_num, metadata, file_type, source_file_type, spreadsheet_manifest_file_id, spreadsheet_manifest_url, view_type, page_count, sheet_count, logical_unit_count, document_contents, document_details, warnings, billing]
+    DocumentConvertImage:
+      type: object
+      properties:
+        page_num: {type: integer, minimum: 0}
+        img_base64:
+          type: string
+          description: Page-image content when `result_mode=base64`; otherwise it is generally an empty string.
+        img_url:
+          type: string
+          description: Temporary page URL when `result_mode=url`; otherwise it is generally an empty string.
+        width: {type: integer, minimum: 0}
+        height: {type: integer, minimum: 0}
+        preprocess:
+          type: object
+          additionalProperties: true
+      required: [page_num, img_base64, img_url, width, height, preprocess]
+    EmptyDataResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+          required: [data]
+    WebhookEventType:
+      type: string
+      enum:
+        - doc_parse_completed
+        - doc_extract_completed
+        - collaboration_start
+        - collaboration_success
+        - collaboration_failed
+        - collaboration_completed
+        - collaboration_timeout
+    WebhookEventListResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                events:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/WebhookEvent'
+              required: [events]
+          required: [data]
+    WebhookEvent:
+      type: object
+      properties:
+        event_type:
+          $ref: '#/components/schemas/WebhookEventType'
+        name:
+          type: string
+        description:
+          type: string
+      required: [event_type, name, description]
+    WebhookCreateRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        webhook_url:
+          type: string
+          format: uri
+          pattern: '^https://'
+          maxLength: 512
+          description: Caller-controlled, public HTTPS callback URL. The public contract does not accept HTTP or internal-network URLs.
+        event_types:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/WebhookEventType'
+        app_id:
+          type: [array, 'null']
+          uniqueItems: true
+          description: Application scope. Omit it, pass `null`, or pass an empty array to subscribe to all applications under the current account.
+          items:
+            type: string
+            minLength: 1
+      required: [webhook_url, event_types]
+    WebhookUpdateRequest:
+      type: object
+      additionalProperties: false
+      anyOf:
+        - required: [webhook_url]
+        - required: [event_types]
+        - required: [app_id]
+      properties:
+        webhook_id:
+          type: string
+          minLength: 1
+        webhook_url:
+          type: string
+          format: uri
+          pattern: '^https://'
+          maxLength: 512
+          description: New public HTTPS callback URL.
+        event_types:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/WebhookEventType'
+        app_id:
+          type: [array, 'null']
+          uniqueItems: true
+          description: Passing `null` or an empty array explicitly clears the application scope; omitting it leaves the scope unchanged.
+          items:
+            type: string
+            minLength: 1
+      required: [webhook_id]
+    WebhookDeleteRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        webhook_id:
+          type: string
+          minLength: 1
+      required: [webhook_id]
+    WebhookMutationResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              oneOf:
+                - type: object
+                  properties:
+                    webhook_id:
+                      type: string
+                  required: [webhook_id]
+                - type: 'null'
+    WebhookListResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                webhook_list:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/WebhookConfig'
+              required: [webhook_list]
+          required: [data]
+    WebhookConfig:
+      type: object
+      properties:
+        webhook_id: {type: string}
+        webhook_url:
+          type: string
+          format: uri
+        event_types:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookEventType'
+        app_id:
+          type: [array, 'null']
+          items:
+            type: string
+        is_active:
+          type: integer
+          enum: [0, 1]
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [webhook_id, webhook_url, event_types, is_active]
+    WebhookLogQueryRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        webhook_id:
+          type: [string, 'null']
+          description: Webhook configuration ID. Always provide it whenever possible to narrow the query scope.
+        start_time:
+          type: [string, 'null']
+          pattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
+          description: Start time in `YYYY-MM-DD HH:mm:ss` format. If omitted, defaults to 72 hours before the end time.
+        end_time:
+          type: [string, 'null']
+          pattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
+          description: End time in `YYYY-MM-DD HH:mm:ss` format. If omitted, defaults to the current time.
+        page:
+          type: integer
+          default: 1
+          minimum: 1
+        page_size:
+          type: integer
+          default: 20
+          minimum: 1
+          maximum: 100
+    WebhookLogResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                logs:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/WebhookLog'
+                total: {type: integer, minimum: 0}
+                page: {type: integer, minimum: 1}
+                page_size: {type: integer, minimum: 1, maximum: 100}
+              required: [logs, total, page, page_size]
+          required: [data]
+    WebhookLog:
+      type: object
+      properties:
+        id: {type: string}
+        webhook_id: {type: string}
+        webhook_url:
+          type: string
+          format: uri
+        event_type:
+          $ref: '#/components/schemas/WebhookEventType'
+        app_id: {type: [string, 'null']}
+        app_name: {type: [string, 'null']}
+        status:
+          type: string
+          enum: [pending, success, failed, final_failed]
+        retry_count: {type: integer, minimum: 0}
+        next_retry_at:
+          type: [string, 'null']
+          format: date-time
+        response_code: {type: [integer, 'null']}
+        response_body:
+          type: [string, 'null']
+          maxLength: 2000
+          description: Last receiver response or error message. It may contain sensitive data.
+        delivered_at:
+          type: [string, 'null']
+          format: date-time
+        created_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, webhook_id, webhook_url, event_type, status, retry_count]
+    WorkflowApplication:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Workflow application ID.
+        name:
+          type: string
+        description:
+          type: [string, 'null']
+        status:
+          type: string
+        tags:
+          type: [array, 'null']
+          items:
+            type: string
+      required: [id, name, description, status, tags]
+    WorkflowApplicationListResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                range:
+                  type: object
+                  properties:
+                    offset: {type: integer, minimum: 0}
+                    size: {type: integer, minimum: 1}
+                    total: {type: [integer, 'null'], minimum: 0}
+                  required: [offset, size, total]
+                list:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/WorkflowApplication'
+              required: [range, list]
+          required: [data]
+    WorkflowApplicationResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              oneOf:
+                - $ref: '#/components/schemas/WorkflowApplication'
+                - type: 'null'
+    WorkflowRunExportRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        application_id:
+          type: string
+          minLength: 1
+          description: Workflow application ID.
+        run_ids:
+          type: array
+          minItems: 1
+          maxItems: 200
+          uniqueItems: true
+          description: Explicitly authorized run IDs to export. The public contract does not allow `null` or an empty array to export all runs.
+          items:
+            type: string
+            minLength: 1
+        node_ids:
+          type: array
+          uniqueItems: true
+          description: Optional node IDs. If omitted, all exportable nodes in each run are included.
+          items:
+            type: string
+            minLength: 1
+        format:
+          type: string
+          enum: [excel, word, markdown, json]
+          default: excel
+        report_mode:
+          type: string
+          enum: [merged, per_run]
+          default: merged
+          description: "`merged` produces one combined report; `per_run` separates output by run."
+        include_failed_runs:
+          type: boolean
+          default: false
+        primary_key_variable:
+          type: string
+          description: Optional workflow input-variable name to use as the export primary key.
+        max_text_length:
+          type: integer
+          minimum: 1
+          maximum: 30000
+          default: 10000
+          description: Maximum exported characters for one text value. The route currently defaults to 10,000.
+      required: [application_id, run_ids]
+    WorkflowRunExportResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              oneOf:
+                - $ref: '#/components/schemas/WorkflowRunExportData'
+                - type: 'null'
+    WorkflowRunExportData:
+      type: object
+      properties:
+        file_id: {type: string}
+        download_url:
+          type: string
+          format: uri
+          description: Temporary download URL. It is currently generally valid for approximately one hour, but this is not a stable SLA.
+        filename: {type: string}
+        file_size: {type: integer, minimum: 0}
+        format:
+          type: string
+          enum: [excel, word, markdown, json]
+        report_mode:
+          type: string
+          enum: [merged, per_run]
+        total_runs: {type: integer, minimum: 0, maximum: 200}
+        included_runs: {type: integer, minimum: 0, maximum: 200}
+        skipped_runs: {type: integer, minimum: 0, maximum: 200}
+        run_summaries:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowRunExportSummary'
+        export_time:
+          type: string
+          format: date-time
+      required: [file_id, download_url, filename, file_size, format, report_mode, total_runs, included_runs, skipped_runs, run_summaries, export_time]
+    WorkflowRunExportSummary:
+      type: object
+      properties:
+        run_id: {type: string}
+        status: {type: string}
+        started_at:
+          type: [string, 'null']
+          format: date-time
+        ended_at:
+          type: [string, 'null']
+          format: date-time
+        included_nodes: {type: integer, minimum: 0}
+        skipped_nodes: {type: integer, minimum: 0}
+      required: [run_id, status, started_at, ended_at, included_nodes, skipped_nodes]
     SimpleResponse:
       type: object
       properties:
@@ -1236,25 +2214,25 @@ components:
     DocumentRecognizeConfig:
       type: object
       additionalProperties: false
-      description: |
-        Parsing configuration for this call. Supported options differ by parsing mode:
-
-        - standard: Standard parsing for clear digital documents. Supports source locations, PDF text first, and stamp recognition.
-        - advance: Enhanced parsing 1.0 for documents with stamps, signatures, multiple tables, or moderately complex layouts. Source locations are not supported.
-        - fast_vlm: Enhanced parsing 2.0 for complex layouts, scanned files, and multi-table documents. Supports source locations, PDF text first, and stamp recognition.
-        - agentic: Smart parsing that combines multiple models for complex documents. Supports source locations, PDF text first, and stamp recognition.
-        - agentic_v2: Smart parsing 2.0, which uses the latest smart parsing pipeline for complex documents.
+      description: Parsing configuration for this call.
       properties:
         recognize_mode:
           type: string
-          enum: [standard, advance, fast_vlm, agentic, agentic_v2]
+          enum: [standard, advance, agentic, fast_vlm, agentic_v2]
           default: standard
-          description: Parsing mode.
+          description: |
+            Parsing mode. Available values are:
+
+            - standard: Standard parsing, primarily using LaiyeOCR / dotsOCR.
+            - advance: Enhanced parsing, primarily using Nanonets OCR.
+            - agentic: Smart parsing that combines standard and enhanced parsing and performs secondary parsing when conditions are met.
+            - fast_vlm: Fast VLM parsing that converts images directly to Markdown.
+            - agentic_v2: Smart parsing 2.0 using the NaviDC-OCR processing pipeline.
         enable_highlight:
           type: integer
           enum: [0, 1]
           default: 1
-          description: Whether to show source locations. 1 keeps source positions for text blocks and tables; 0 omits positions. Supported only in standard, fast_vlm, and agentic modes.
+          description: Whether to show source locations. 1 keeps source positions for text blocks and tables; 0 omits positions. Supported in standard, agentic, fast_vlm, and agentic_v2 modes. Not supported in advance mode.
         enable_pdf_parse:
           type: boolean
           default: false
@@ -1632,20 +2610,20 @@ components:
             $ref: '#/components/schemas/ExtractionFieldConfig'
         parse_mode:
           type: string
-          enum: [standard, advance, fast_vlm, agentic, agentic_v2]
+          enum: [standard, advance, agentic, fast_vlm, agentic_v2]
           description: |
-            Parsing mode. Required for standard custom extraction applications. Mode capabilities match the Web parsing configuration:
+            Parsing mode. Required for standard custom extraction applications. Available parsing modes are:
 
-            - standard: Standard parsing for clear digital documents. Supports source locations, PDF text first, and stamp recognition.
-            - advance: Enhanced parsing 1.0 for documents with stamps, signatures, multiple tables, or moderately complex layouts. Source locations are not supported.
-            - fast_vlm: Enhanced parsing 2.0 for complex layouts, scanned files, and multi-table documents. Supports source locations, PDF text first, and stamp recognition.
-            - agentic: Smart parsing that combines multiple models for complex documents. Supports source locations, PDF text first, and stamp recognition.
-            - agentic_v2: Smart parsing 2.0, which uses the latest smart parsing pipeline for complex documents.
+            - standard: Standard parsing, primarily using LaiyeOCR / dotsOCR.
+            - advance: Enhanced parsing, primarily using Nanonets OCR.
+            - agentic: Smart parsing that combines standard and enhanced parsing and performs secondary parsing when conditions are met.
+            - fast_vlm: Fast VLM parsing that converts images directly to Markdown.
+            - agentic_v2: Smart parsing 2.0 using the NaviDC-OCR processing pipeline.
         enable_highlight:
           type: integer
           enum: [0, 1]
           default: 1
-          description: Whether to include source locations. Pass 1 to enable or 0 to disable. Supported by standard, fast_vlm, and agentic. Not supported by advance.
+          description: Whether to include source locations. Pass 1 to enable or 0 to disable. Supported by standard, agentic, fast_vlm, and agentic_v2. Not supported by advance.
         enable_pdf_parse:
           type: boolean
           default: false
@@ -1805,20 +2783,20 @@ components:
             $ref: '#/components/schemas/ExtractionFieldConfig'
         parse_mode:
           type: string
-          enum: [standard, advance, fast_vlm, agentic, agentic_v2]
+          enum: [standard, advance, agentic, fast_vlm, agentic_v2]
           description: |
-            Parsing mode. Required for standard custom extraction applications. High-speed custom extraction applications do not support setting this parameter. Mode capabilities match the Web parsing configuration:
+            Parsing mode. Required for standard custom extraction applications. High-speed custom extraction applications do not support setting this parameter. Available parsing modes are:
 
-            - standard: Standard parsing for clear digital documents. Supports source locations, PDF text first, and stamp recognition.
-            - advance: Enhanced parsing 1.0 for documents with stamps, signatures, multiple tables, or moderately complex layouts. Source locations are not supported.
-            - fast_vlm: Enhanced parsing 2.0 for complex layouts, scanned files, and multi-table documents. Supports source locations, PDF text first, and stamp recognition.
-            - agentic: Smart parsing that combines multiple models for complex documents. Supports source locations, PDF text first, and stamp recognition.
-            - agentic_v2: Smart parsing 2.0, which uses the latest smart parsing pipeline for complex documents.
+            - standard: Standard parsing, primarily using LaiyeOCR / dotsOCR.
+            - advance: Enhanced parsing, primarily using Nanonets OCR.
+            - agentic: Smart parsing that combines standard and enhanced parsing and performs secondary parsing when conditions are met.
+            - fast_vlm: Fast VLM parsing that converts images directly to Markdown.
+            - agentic_v2: Smart parsing 2.0 using the NaviDC-OCR processing pipeline.
         enable_highlight:
           type: integer
           enum: [0, 1]
           default: 1
-          description: Whether to include source locations. Pass 1 to enable or 0 to disable. Supported by standard, fast_vlm, and agentic. Not supported by advance.
+          description: Whether to include source locations. Pass 1 to enable or 0 to disable. Supported by standard, agentic, fast_vlm, and agentic_v2. Not supported by advance.
         enable_pdf_parse:
           type: boolean
           default: false

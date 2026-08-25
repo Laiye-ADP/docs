@@ -26,7 +26,9 @@ GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{tas
 POST /open/agentic_doc_processor/{tenant_name}/v1/app/invoice/verify
 ```
 
-仅需传入发票号码、开票日期和价税合计。开票日期使用 `YYYY-MM-DD` 格式。
+接口支持 11 个票种。`fpNumber` 和 `fpDate` 是公共必填字段，其他字段根据 `type_key` 条件必填。既有三字段调用可以继续省略 `type_key`，此时按 `vat_electronic_invoice_new`（电子发票普通发票）处理，并要求传入 `fpAmount`。开票日期使用 `YYYY-MM-DD` 格式。
+
+HTTP 200 且 `code=success` 只表示接口已完成处理；请以 `data.result.fpVerification` 判断发票是否验真成功。各票种的必需字段、请求示例和返回结构请查看该接口的独立页面。
 
 ## 请求参数
 

@@ -6,3 +6,9 @@ button[data-api-required-blocked="true"] {
   cursor: not-allowed !important;
   opacity: 0.45 !important;
 }
+
+[data-testid="api-playground-modal"]
+  [data-testid="api-input-model_params"]
+  button[data-testid$=".model_params.additional-property-button"] {
+  display: none !important;
+}

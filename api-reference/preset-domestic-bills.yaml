@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: 国内通用票据
-  version: 1.0.0
+  version: 1.1.0
   description: ADP 预置应用接口，适用于国内通用票据抽取场景。
   license:
     name: MIT
@@ -69,7 +69,45 @@ paths:
     post:
       tags: [国内发票验真]
       summary: 国内发票验真
-      description: 根据发票号码、开票日期和价税合计执行独立验真。
+      description: |
+        根据票种及对应查验要素，对单张国内发票执行验真。
+
+        **兼容规则**
+
+        - 请求体保持扁平结构，不使用批量数组或嵌套 `verify_params`。
+        - `type_key` 可省略；省略时固定按 `vat_electronic_invoice_new` 处理。
+        - `fpNumber` 和 `fpDate` 是所有票种的公共要素，其余字段根据 `type_key` 条件必需。
+        - 所有代码、号码、日期、金额和校验码均建议使用 JSON 字符串，避免前导零或数值精度丢失。
+        - 不应通过字段组合推断票种；非默认票种必须显式传入 `type_key`。
+
+        **票种要素矩阵**
+
+        | type_key | 票种 | 必需字段 |
+        | --- | --- | --- |
+        | `vat_special_invoice` | 增值税专用发票 | `fpCode`, `fpNumber`, `fpDate`, `fpNoTaxAmount` |
+        | `vat_electronic_special_invoice` | 增值税电子专用发票 | `fpCode`, `fpNumber`, `fpDate`, `fpNoTaxAmount` |
+        | `vat_common_invoice` | 增值税普通发票 | `fpCode`, `fpNumber`, `fpDate`, `fpCRC` |
+        | `vat_electronic_invoice` | 增值税电子普通发票 | `fpCode`, `fpNumber`, `fpDate`, `fpCRC` |
+        | `vat_roll_invoice` | 增值税发票卷票 | `fpCode`, `fpNumber`, `fpDate`, `fpCRC` |
+        | `vat_electronic_special_invoice_new` | 电子发票增值税专用发票 | `fpNumber`, `fpDate`, `fpAmount` |
+        | `vat_electronic_invoice_new` | 电子发票普通发票 | `fpNumber`, `fpDate`, `fpAmount` |
+        | `motor_vehicle_sale_invoice` | 机动车销售统一发票 | `fpCode`, `fpNumber`, `fpDate`, `fpNoTaxAmount` |
+        | `used_car_purchase_invoice` | 二手车销售统一发票 | `fpCode`, `fpNumber`, `fpDate`, `fpAmount` |
+        | `electronic_air_transport` | 电子发票航空运输电子客票行程单 | `fpNumber`, `fpDate`, `fpAmount` |
+        | `electronic_train_ticket` | 电子发票铁路电子客票 | `fpNumber`, `fpDate`, `fpAmount` |
+
+        **结果判断**
+
+        HTTP 200 且 `code=success` 表示请求已被接口正常处理，不等同于发票验真成功。
+        调用方必须读取 `data.result.fpVerification` 判断验真结果。
+        条件要素缺失、下游查验失败等情况仍可能返回 HTTP 200，并在
+        `fpVerification` 和 `fpVerificationMsg` 中给出业务结果。
+
+        **计费元数据**
+
+        `attempt_verify_page_count` 表示要素完整并尝试调用查验服务的票据数；本接口为单张验真，值为 0 或 1。
+        `actual_consume_page_count` 表示命中计费状态的票据数，值为 0 或 1；
+        实际积分消耗仍可能被功能包覆盖。
       operationId: verifyDomesticInvoice
       security:
         - ApiKeyAuth: []
@@ -80,25 +118,30 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/InvoiceVerifyResponse'
-        '400':
-          $ref: '#/components/responses/BusinessError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/TenantNotFoundError'
         '422':
           $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 components:
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
       in: header
-      name: X-API-KEY
+      name: X-API-Key
+      description: ADP OpenAPI 密钥。
   parameters:
     TenantName:
       name: tenant_name
       in: path
       required: true
-      description: 租户名称，默认 laiye。
+      description: 租户名称。该路径参数必须显式提供。
       schema:
         type: string
-        default: laiye
+      example: laiye
     TaskId:
       name: task_id
       in: path
@@ -119,6 +162,164 @@ components:
         file_url: &domesticBillsFileUrl https://adp.laiye.com/web/agentic_doc_processor/laiye/file/2003c711818811f1a36200163e358400
         app_id: *domesticBillsAppId
         enable_invoice_verify: true
+    LegacyElectronicInvoiceRequest:
+      summary: 兼容既有三字段调用
+      description: 结构示例；省略 `type_key`，按电子发票普通发票处理。请替换为真实票面值。
+      value:
+        fpNumber: '23322000000000000000'
+        fpDate: '2026-08-25'
+        fpAmount: '106.00'
+    VatSpecialInvoiceRequest:
+      summary: 增值税专用发票
+      value:
+        type_key: vat_special_invoice
+        fpCode: '044001900111'
+        fpNumber: '12345678'
+        fpDate: '2026-08-25'
+        fpNoTaxAmount: '100.00'
+    VatElectronicSpecialInvoiceRequest:
+      summary: 增值税电子专用发票
+      value:
+        type_key: vat_electronic_special_invoice
+        fpCode: '044001900111'
+        fpNumber: '12345678'
+        fpDate: '2026-08-25'
+        fpNoTaxAmount: '100.00'
+    VatCommonInvoiceRequest:
+      summary: 增值税普通发票
+      value:
+        type_key: vat_common_invoice
+        fpCode: '044001900111'
+        fpNumber: '12345678'
+        fpDate: '2026-08-25'
+        fpCRC: '123456'
+    VatElectronicInvoiceRequest:
+      summary: 增值税电子普通发票
+      value:
+        type_key: vat_electronic_invoice
+        fpCode: '044001900111'
+        fpNumber: '12345678'
+        fpDate: '2026-08-25'
+        fpCRC: '123456'
+    VatRollInvoiceRequest:
+      summary: 增值税发票卷票
+      value:
+        type_key: vat_roll_invoice
+        fpCode: '044001900111'
+        fpNumber: '12345678'
+        fpDate: '2026-08-25'
+        fpCRC: '123456'
+    VatElectronicSpecialInvoiceNewRequest:
+      summary: 电子发票增值税专用发票
+      value:
+        type_key: vat_electronic_special_invoice_new
+        fpNumber: '23322000000000000001'
+        fpDate: '2026-08-25'
+        fpAmount: '106.00'
+    VatElectronicInvoiceNewRequest:
+      summary: 电子发票普通发票
+      value:
+        type_key: vat_electronic_invoice_new
+        fpNumber: '23322000000000000000'
+        fpDate: '2026-08-25'
+        fpAmount: '106.00'
+    MotorVehicleSaleInvoiceRequest:
+      summary: 机动车销售统一发票
+      value:
+        type_key: motor_vehicle_sale_invoice
+        fpCode: '044001900111'
+        fpNumber: '12345678'
+        fpDate: '2026-08-25'
+        fpNoTaxAmount: '100000.00'
+    UsedCarPurchaseInvoiceRequest:
+      summary: 二手车销售统一发票
+      value:
+        type_key: used_car_purchase_invoice
+        fpCode: '044001900111'
+        fpNumber: '12345678'
+        fpDate: '2026-08-25'
+        fpAmount: '80000.00'
+    ElectronicAirTransportRequest:
+      summary: 电子发票航空运输电子客票行程单
+      value:
+        type_key: electronic_air_transport
+        fpNumber: '23322000000000000002'
+        fpDate: '2026-08-25'
+        fpAmount: '1280.00'
+    ElectronicTrainTicketRequest:
+      summary: 电子发票铁路电子客票
+      value:
+        type_key: electronic_train_ticket
+        fpNumber: '23322000000000000003'
+        fpDate: '2026-08-25'
+        fpAmount: '553.00'
+    VerifiedInvoiceResponse:
+      summary: 验真成功且发票一致
+      value:
+        code: success
+        message: ''
+        tips: null
+        data:
+          result:
+            type_key: vat_electronic_invoice_new
+            instance_id: customer-order-001
+            invoice_pdf_page_number: 1
+            fpVerification: 查验成功发票一致
+            fpVerificationMsg: ''
+            fpIsVoided: 未作废
+            fpType: 电子发票普通发票
+            fpCode: null
+            fpNumber: '23322000000000000000'
+            fpDate: '2026-08-25'
+            fpAmount: '106.00'
+            fpNoTaxAmount: '100.00'
+            fpTotalTaxAmount: '6.00'
+            fpSellerName: 示例销售方有限公司
+            fpSellerID: '91310000XXXXXXXXXX'
+            fpPayerName: 示例购买方有限公司
+            fpPayerID: '91320000XXXXXXXXXX'
+            fpRemarks: ''
+            fpItems:
+              - itemName: 技术服务
+                itemModel: null
+                itemUnit: 次
+                itemQuantity: '1'
+                itemUnitPrice: '100.00'
+                itemAmount: '100.00'
+                itemTaxRate: '6%'
+                itemTaxAmount: '6.00'
+          metadata:
+            trace_id: 94fe9b74e0e311f091505e345594c618
+            attempt_verify_page_count: 1
+            actual_consume_page_count: 1
+            billable_pages: [1]
+    MissingRequiredElementResponse:
+      summary: 票种条件要素缺失
+      description: 业务未完成验真，但兼容 v1 行为仍返回 HTTP 200 和 `code=success`。
+      value:
+        code: success
+        message: ''
+        tips: null
+        data:
+          result:
+            type_key: vat_special_invoice
+            instance_id: vat_special_invoice_0
+            invoice_pdf_page_number: 1
+            fpVerification: 未能查验
+            fpVerificationMsg: 增值税专用发票 识别结果缺少查验必须字段 不含税金额
+            fpIsVoided: ''
+          metadata:
+            trace_id: 94fe9b74e0e311f091505e345594c619
+            attempt_verify_page_count: 0
+            actual_consume_page_count: 0
+            billable_pages: []
+    FrameworkBusinessErrorResponse:
+      summary: 框架级业务错误
+      description: 当前 v1 兼容框架可能以 HTTP 200 返回非 `success` 接口错误。
+      value:
+        code: http_server_error
+        message: 业务处理失败
+        tips: null
   requestBodies:
     DocumentExtractRequest:
       required: true
@@ -133,17 +334,36 @@ components:
               $ref: '#/components/examples/DomesticBillsFileBase64'
     InvoiceVerifyRequest:
       required: true
+      description: 单张发票验真要素。所有示例仅用于说明请求结构，请替换为真实票面值。
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/InvoiceVerifyRequest'
           examples:
-            electronicInvoice:
-              summary: 电子发票普通发票验真
-              value:
-                fpNumber: '0123456789'
-                fpDate: '2026-06-01'
-                fpAmount: '100.00'
+            legacyElectronicInvoice:
+              $ref: '#/components/examples/LegacyElectronicInvoiceRequest'
+            vatSpecialInvoice:
+              $ref: '#/components/examples/VatSpecialInvoiceRequest'
+            vatElectronicSpecialInvoice:
+              $ref: '#/components/examples/VatElectronicSpecialInvoiceRequest'
+            vatCommonInvoice:
+              $ref: '#/components/examples/VatCommonInvoiceRequest'
+            vatElectronicInvoice:
+              $ref: '#/components/examples/VatElectronicInvoiceRequest'
+            vatRollInvoice:
+              $ref: '#/components/examples/VatRollInvoiceRequest'
+            vatElectronicSpecialInvoiceNew:
+              $ref: '#/components/examples/VatElectronicSpecialInvoiceNewRequest'
+            vatElectronicInvoiceNew:
+              $ref: '#/components/examples/VatElectronicInvoiceNewRequest'
+            motorVehicleSaleInvoice:
+              $ref: '#/components/examples/MotorVehicleSaleInvoiceRequest'
+            usedCarPurchaseInvoice:
+              $ref: '#/components/examples/UsedCarPurchaseInvoiceRequest'
+            electronicAirTransport:
+              $ref: '#/components/examples/ElectronicAirTransportRequest'
+            electronicTrainTicket:
+              $ref: '#/components/examples/ElectronicTrainTicketRequest'
   responses:
     DocumentExtractResponse:
       description: 抽取结果。
@@ -185,31 +405,23 @@ components:
                                 - field_value: ''
                                   confidence: 0.0
     InvoiceVerifyResponse:
-      description: 发票验真结果。
+      description: |
+        请求处理结果。`code=success` 仅表示接口处理完成；发票验真结论以
+        `data.result.fpVerification` 为准。
+      headers:
+        X-Process-Time:
+          $ref: '#/components/headers/ProcessTime'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/InvoiceVerifyResponse'
           examples:
             verifiedInvoice:
-              summary: 验真成功
-              value:
-                code: success
-                message: ''
-                data:
-                  result:
-                    type_key: vat_electronic_invoice_new
-                    fpVerification: 查验成功发票一致
-                    fpVerificationMsg: ''
-                    fpIsVoided: 未作废
-                    fpNumber: '0123456789'
-                    fpDate: '2026-06-01'
-                    fpAmount: '100.00'
-                  metadata:
-                    trace_id: 94fe9b74e0e311f091505e345594c618
-                    attempt_verify_page_count: 1
-                    actual_consume_page_count: 1
-                    billable_pages: [1]
+              $ref: '#/components/examples/VerifiedInvoiceResponse'
+            missingRequiredElement:
+              $ref: '#/components/examples/MissingRequiredElementResponse'
+            frameworkBusinessError:
+              $ref: '#/components/examples/FrameworkBusinessErrorResponse'
     TaskCreateResponse:
       description: 任务创建结果。
       content:
@@ -223,11 +435,54 @@ components:
           schema:
             $ref: '#/components/schemas/SimpleResponse'
     ValidationError:
-      description: 参数校验错误。
+      description: 请求体、路径参数或字段类型校验失败。
+      headers:
+        X-Process-Time:
+          $ref: '#/components/headers/ProcessTime'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/HTTPValidationError'
+          example:
+            detail:
+              - type: missing
+                loc: [body, fpNumber]
+                msg: Field required
+                input:
+                  fpDate: '2026-08-25'
+                  fpAmount: '100.00'
+    UnauthorizedError:
+      description: 未提供有效的 OpenAPI 密钥。
+      headers:
+        X-Process-Time:
+          $ref: '#/components/headers/ProcessTime'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPError'
+          example:
+            detail: Invalid API Key
+    TenantNotFoundError:
+      description: 路径中的租户不存在。
+      headers:
+        X-Process-Time:
+          $ref: '#/components/headers/ProcessTime'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPError'
+          example:
+            detail: Tenant invalid-tenant not found
+    InternalServerError:
+      description: 未处理的服务端异常。
+      headers:
+        X-Process-Time:
+          $ref: '#/components/headers/ProcessTime'
+      content:
+        text/plain:
+          schema:
+            type: string
+          example: Internal server error
   schemas:
     DocumentExtractRequest:
       oneOf:
@@ -272,44 +527,55 @@ components:
           required: [app_id, file_base64]
     SimpleResponse:
       type: object
+      additionalProperties: true
+      required: [code, message, tips]
       properties:
         code:
           oneOf:
             - type: string
             - type: integer
+          description: |
+            接口处理代码。正常进入验真业务流程时为 `success`；
+            `success` 不等同于发票验真成功。
         message:
           type: string
+          description: 接口级消息。
         tips:
-          type:
-            - string
-            - 'null'
+          type: [string, 'null']
+          description: 可选提示信息。
     HTTPValidationError:
       type: object
+      additionalProperties: true
+      required: [detail]
       properties:
         detail:
           type: array
           items:
             $ref: '#/components/schemas/ValidationErrorItem'
-      required: [detail]
     ValidationErrorItem:
       type: object
       additionalProperties: true
+      required: [type, loc, msg]
       properties:
         type:
           type: string
+          description: 校验错误类型。
         loc:
           type: array
+          description: 错误字段位置。
           items:
             oneOf:
               - type: string
               - type: integer
         msg:
           type: string
-        input: {}
+          description: 错误信息。
+        input:
+          description: 导致校验错误的输入值。
         ctx:
           type: object
           additionalProperties: true
-      required: [type, loc, msg]
+          description: 可选校验上下文。
     TaskCreateResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -325,53 +591,129 @@ components:
                   additionalProperties: true
                   description: 文档处理任务元数据。
     InvoiceVerifyRequest:
-      type: object
-      additionalProperties: false
-      required: [fpNumber, fpDate, fpAmount]
-      properties:
-        fpNumber:
-          type: string
-          description: 发票号码。
-        fpDate:
-          type: string
-          format: date
-          description: 开票日期，格式为 YYYY-MM-DD。
-        fpAmount:
-          type: string
-          description: 价税合计。
+      description: 按发票票种选择请求模型。选择 type_key 后，接口文档仅展示该票种需要的查验字段；既有调用可选择兼容模式并省略 type_key。
+      oneOf:
+        - $ref: '#/components/schemas/LegacyInvoiceVerifyRequest'
+        - $ref: '#/components/schemas/VatSpecialInvoiceVerifyRequest'
+        - $ref: '#/components/schemas/VatElectronicSpecialInvoiceVerifyRequest'
+        - $ref: '#/components/schemas/VatCommonInvoiceVerifyRequest'
+        - $ref: '#/components/schemas/VatElectronicInvoiceVerifyRequest'
+        - $ref: '#/components/schemas/VatRollInvoiceVerifyRequest'
+        - $ref: '#/components/schemas/VatElectronicSpecialInvoiceNewVerifyRequest'
+        - $ref: '#/components/schemas/VatElectronicInvoiceNewVerifyRequest'
+        - $ref: '#/components/schemas/MotorVehicleSaleInvoiceVerifyRequest'
+        - $ref: '#/components/schemas/UsedCarPurchaseInvoiceVerifyRequest'
+        - $ref: '#/components/schemas/ElectronicAirTransportVerifyRequest'
+        - $ref: '#/components/schemas/ElectronicTrainTicketVerifyRequest'
+      discriminator:
+        propertyName: type_key
+        mapping:
+          vat_special_invoice: '#/components/schemas/VatSpecialInvoiceVerifyRequest'
+          vat_electronic_special_invoice: '#/components/schemas/VatElectronicSpecialInvoiceVerifyRequest'
+          vat_common_invoice: '#/components/schemas/VatCommonInvoiceVerifyRequest'
+          vat_electronic_invoice: '#/components/schemas/VatElectronicInvoiceVerifyRequest'
+          vat_roll_invoice: '#/components/schemas/VatRollInvoiceVerifyRequest'
+          vat_electronic_special_invoice_new: '#/components/schemas/VatElectronicSpecialInvoiceNewVerifyRequest'
+          vat_electronic_invoice_new: '#/components/schemas/VatElectronicInvoiceNewVerifyRequest'
+          motor_vehicle_sale_invoice: '#/components/schemas/MotorVehicleSaleInvoiceVerifyRequest'
+          used_car_purchase_invoice: '#/components/schemas/UsedCarPurchaseInvoiceVerifyRequest'
+          electronic_air_transport: '#/components/schemas/ElectronicAirTransportVerifyRequest'
+          electronic_train_ticket: '#/components/schemas/ElectronicTrainTicketVerifyRequest'
+      x-required-fields-by-type:
+        vat_special_invoice:
+          - fpNumber
+          - fpDate
+          - fpCode
+          - fpNoTaxAmount
+        vat_electronic_special_invoice:
+          - fpNumber
+          - fpDate
+          - fpCode
+          - fpNoTaxAmount
+        vat_common_invoice:
+          - fpNumber
+          - fpDate
+          - fpCode
+          - fpCRC
+        vat_electronic_invoice:
+          - fpNumber
+          - fpDate
+          - fpCode
+          - fpCRC
+        vat_roll_invoice:
+          - fpNumber
+          - fpDate
+          - fpCode
+          - fpCRC
+        vat_electronic_special_invoice_new:
+          - fpNumber
+          - fpDate
+          - fpAmount
+        vat_electronic_invoice_new:
+          - fpNumber
+          - fpDate
+          - fpAmount
+        motor_vehicle_sale_invoice:
+          - fpNumber
+          - fpDate
+          - fpCode
+          - fpNoTaxAmount
+        used_car_purchase_invoice:
+          - fpNumber
+          - fpDate
+          - fpCode
+          - fpAmount
+        electronic_air_transport:
+          - fpNumber
+          - fpDate
+          - fpAmount
+        electronic_train_ticket:
+          - fpNumber
+          - fpDate
+          - fpAmount
     InvoiceVerifyResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
         - type: object
           properties:
             data:
-              type: object
-              properties:
-                result:
-                  $ref: '#/components/schemas/InvoiceVerifyResult'
-                metadata:
-                  $ref: '#/components/schemas/InvoiceVerifyMetadata'
+              oneOf:
+                - $ref: '#/components/schemas/InvoiceVerifyData'
+                - type: 'null'
+              description: |
+                正常进入业务流程时返回验真数据；框架级业务错误时可能为空或不返回。
     InvoiceVerifyResult:
       type: object
+      additionalProperties: true
+      description: |
+        单张发票验真结果。查验服务可能随票种返回额外权威字段；调用方应只依赖
+        本契约明确声明的稳定字段，并忽略未知字段。
       properties:
         type_key:
           type: [string, 'null']
-          description: 发票类型。
+          description: 请求采用的发票票种标识。
         instance_id:
           type: [string, 'null']
-          description: 业务侧实例 ID。
+          description: 客户传入或服务端生成的业务侧实例 ID。
+        invoice_pdf_page_number:
+          type: [integer, 'null']
+          description: 票据页码。独立单张验真固定为 1。
+          minimum: 1
         fpVerification:
           type: [string, 'null']
-          description: 验真状态，例如“查验成功发票一致”。
+          description: |
+            验真业务状态。已知值包括 `查验成功发票一致`、`查验成功发票不一致`、
+            `发票不存在`、`未能查验`、`不支持查验` 和 `未知`。
         fpVerificationMsg:
           type: [string, 'null']
-          description: 验真提示或错误信息。
+          description: 验真提示、要素缺失说明或下游错误信息。
         fpIsVoided:
           type: [string, 'null']
-          description: 作废状态：已作废、未作废或空。
+          enum: [已作废, 未作废, '', null]
+          description: 作废状态；无法判断时为空字符串或 null。
         fpType:
           type: [string, 'null']
-          description: 查验票种中文名。
+          description: 查验服务返回的票种中文名称。
         fpCode:
           type: [string, 'null']
           description: 发票代码。
@@ -383,7 +725,7 @@ components:
           description: 开票日期、填制日期或乘车日期。
         fpAmount:
           type: [string, 'null']
-          description: 价税合计、票价或合计金额。
+          description: 价税合计、合计金额或票价。
         fpNoTaxAmount:
           type: [string, 'null']
           description: 不含税金额。
@@ -404,19 +746,20 @@ components:
           description: 购买方纳税人识别号。
         fpRemarks:
           type: [string, 'null']
-          description: 备注。
+          description: 发票备注。
         fpItems:
           type: [array, 'null']
-          description: 发票明细行。
+          description: 发票商品或服务明细。
           items:
             $ref: '#/components/schemas/InvoiceVerifyItem'
     InvoiceVerifyItem:
       type: object
       additionalProperties: true
+      description: 发票商品或服务明细；不同票种可能返回额外字段。
       properties:
         itemName:
           type: [string, 'null']
-          description: 货物或服务名称。
+          description: 项目名称。
         itemModel:
           type: [string, 'null']
           description: 规格型号。
@@ -434,27 +777,39 @@ components:
           description: 金额。
         itemTaxRate:
           type: [string, 'null']
-          description: 税率。
+          description: 税率或征收率。
         itemTaxAmount:
           type: [string, 'null']
           description: 税额。
     InvoiceVerifyMetadata:
       type: object
+      additionalProperties: true
+      required:
+        - trace_id
+        - attempt_verify_page_count
+        - actual_consume_page_count
+        - billable_pages
       properties:
         trace_id:
           type: string
-          description: 链路追踪 ID。
+          description: 链路追踪 ID；排查问题时应随工单提供。
         attempt_verify_page_count:
           type: integer
-          description: 尝试验真的页数。
+          enum: [0, 1]
+          description: 要素完整并尝试调用查验服务的票据数。
         actual_consume_page_count:
           type: integer
-          description: 实际扣费页数。
+          enum: [0, 1]
+          description: |
+            命中计费状态的票据数；不等同于最终积分扣除量，功能包可能覆盖消费。
         billable_pages:
           type: array
-          description: 实际计费页码。
+          maxItems: 1
+          uniqueItems: true
+          description: 实际计费页码。独立单张验真计费时为 `[1]`，否则为空数组。
           items:
             type: integer
+            const: 1
     DocumentExtractResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -560,3 +915,378 @@ components:
           type: number
           format: float
           description: 发票验真字段的置信度。
+    InvoiceTypeKey:
+      type: string
+      description: 发票票种标识。
+      enum:
+        - vat_special_invoice
+        - vat_electronic_special_invoice
+        - vat_common_invoice
+        - vat_electronic_invoice
+        - vat_roll_invoice
+        - vat_electronic_special_invoice_new
+        - vat_electronic_invoice_new
+        - motor_vehicle_sale_invoice
+        - used_car_purchase_invoice
+        - electronic_air_transport
+        - electronic_train_ticket
+    InvoiceVerifyData:
+      type: object
+      additionalProperties: false
+      required: [result, metadata]
+      properties:
+        result:
+          $ref: '#/components/schemas/InvoiceVerifyResult'
+        metadata:
+          $ref: '#/components/schemas/InvoiceVerifyMetadata'
+    HTTPError:
+      type: object
+      additionalProperties: true
+      required: [detail]
+      properties:
+        detail:
+          type: string
+          description: HTTP 错误说明。
+    LegacyInvoiceVerifyRequest:
+      title: 兼容模式：省略 type_key
+      type: object
+      additionalProperties: true
+      description: 兼容既有三字段调用。省略 type_key 时按电子发票普通发票处理。
+      required:
+        - fpNumber
+        - fpDate
+        - fpAmount
+      not:
+        required:
+          - type_key
+      properties:
+        fpNumber:
+          type: string
+          description: 发票号码，必须使用字符串传输。
+        fpDate:
+          type: string
+          format: date
+          description: 开票日期、填制日期或乘车日期，格式为 YYYY-MM-DD。
+        fpAmount:
+          type: string
+          description: 价税合计、合计金额或票价，不包含货币符号或千位分隔符。
+    VatSpecialInvoiceVerifyRequest:
+      title: 增值税专用发票
+      type: object
+      additionalProperties: true
+      description: 增值税专用发票验真请求。选择该票种后，仅需填写本模型展示的查验字段。
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpCode
+        - fpNoTaxAmount
+      properties:
+        type_key:
+          type: string
+          const: vat_special_invoice
+          default: vat_special_invoice
+          description: 发票票种标识。
+        fpCode:
+          type: string
+          description: 发票代码，必须使用字符串传输。
+        fpNumber:
+          type: string
+          description: 发票号码，必须使用字符串传输。
+        fpDate:
+          type: string
+          format: date
+          description: 开票日期、填制日期或乘车日期，格式为 YYYY-MM-DD。
+        fpNoTaxAmount:
+          type: string
+          description: 不含税金额，不包含货币符号或千位分隔符。
+    VatElectronicSpecialInvoiceVerifyRequest:
+      title: 增值税电子专用发票
+      type: object
+      additionalProperties: true
+      description: 增值税电子专用发票验真请求。选择该票种后，仅需填写本模型展示的查验字段。
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpCode
+        - fpNoTaxAmount
+      properties:
+        type_key:
+          type: string
+          const: vat_electronic_special_invoice
+          default: vat_electronic_special_invoice
+          description: 发票票种标识。
+        fpCode:
+          type: string
+          description: 发票代码，必须使用字符串传输。
+        fpNumber:
+          type: string
+          description: 发票号码，必须使用字符串传输。
+        fpDate:
+          type: string
+          format: date
+          description: 开票日期、填制日期或乘车日期，格式为 YYYY-MM-DD。
+        fpNoTaxAmount:
+          type: string
+          description: 不含税金额，不包含货币符号或千位分隔符。
+    VatCommonInvoiceVerifyRequest:
+      title: 增值税普通发票
+      type: object
+      additionalProperties: true
+      description: 增值税普通发票验真请求。选择该票种后，仅需填写本模型展示的查验字段。
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpCode
+        - fpCRC
+      properties:
+        type_key:
+          type: string
+          const: vat_common_invoice
+          default: vat_common_invoice
+          description: 发票票种标识。
+        fpCode:
+          type: string
+          description: 发票代码，必须使用字符串传输。
+        fpNumber:
+          type: string
+          description: 发票号码，必须使用字符串传输。
+        fpDate:
+          type: string
+          format: date
+          description: 开票日期、填制日期或乘车日期，格式为 YYYY-MM-DD。
+        fpCRC:
+          type: string
+          description: 校验码，可传完整校验码；查验时服务端使用末 6 位。
+    VatElectronicInvoiceVerifyRequest:
+      title: 增值税电子普通发票
+      type: object
+      additionalProperties: true
+      description: 增值税电子普通发票验真请求。选择该票种后，仅需填写本模型展示的查验字段。
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpCode
+        - fpCRC
+      properties:
+        type_key:
+          type: string
+          const: vat_electronic_invoice
+          default: vat_electronic_invoice
+          description: 发票票种标识。
+        fpCode:
+          type: string
+          description: 发票代码，必须使用字符串传输。
+        fpNumber:
+          type: string
+          description: 发票号码，必须使用字符串传输。
+        fpDate:
+          type: string
+          format: date
+          description: 开票日期、填制日期或乘车日期，格式为 YYYY-MM-DD。
+        fpCRC:
+          type: string
+          description: 校验码，可传完整校验码；查验时服务端使用末 6 位。
+    VatRollInvoiceVerifyRequest:
+      title: 增值税发票卷票
+      type: object
+      additionalProperties: true
+      description: 增值税发票卷票验真请求。选择该票种后，仅需填写本模型展示的查验字段。
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpCode
+        - fpCRC
+      properties:
+        type_key:
+          type: string
+          const: vat_roll_invoice
+          default: vat_roll_invoice
+          description: 发票票种标识。
+        fpCode:
+          type: string
+          description: 发票代码，必须使用字符串传输。
+        fpNumber:
+          type: string
+          description: 发票号码，必须使用字符串传输。
+        fpDate:
+          type: string
+          format: date
+          description: 开票日期、填制日期或乘车日期，格式为 YYYY-MM-DD。
+        fpCRC:
+          type: string
+          description: 校验码，可传完整校验码；查验时服务端使用末 6 位。
+    VatElectronicSpecialInvoiceNewVerifyRequest:
+      title: 电子发票增值税专用发票
+      type: object
+      additionalProperties: true
+      description: 电子发票增值税专用发票验真请求。选择该票种后，仅需填写本模型展示的查验字段。
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpAmount
+      properties:
+        type_key:
+          type: string
+          const: vat_electronic_special_invoice_new
+          default: vat_electronic_special_invoice_new
+          description: 发票票种标识。
+        fpNumber:
+          type: string
+          description: 发票号码，必须使用字符串传输。
+        fpDate:
+          type: string
+          format: date
+          description: 开票日期、填制日期或乘车日期，格式为 YYYY-MM-DD。
+        fpAmount:
+          type: string
+          description: 价税合计、合计金额或票价，不包含货币符号或千位分隔符。
+    VatElectronicInvoiceNewVerifyRequest:
+      title: 电子发票普通发票
+      type: object
+      additionalProperties: true
+      description: 电子发票普通发票验真请求。选择该票种后，仅需填写本模型展示的查验字段。
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpAmount
+      properties:
+        type_key:
+          type: string
+          const: vat_electronic_invoice_new
+          default: vat_electronic_invoice_new
+          description: 发票票种标识。
+        fpNumber:
+          type: string
+          description: 发票号码，必须使用字符串传输。
+        fpDate:
+          type: string
+          format: date
+          description: 开票日期、填制日期或乘车日期，格式为 YYYY-MM-DD。
+        fpAmount:
+          type: string
+          description: 价税合计、合计金额或票价，不包含货币符号或千位分隔符。
+    MotorVehicleSaleInvoiceVerifyRequest:
+      title: 机动车销售统一发票
+      type: object
+      additionalProperties: true
+      description: 机动车销售统一发票验真请求。选择该票种后，仅需填写本模型展示的查验字段。
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpCode
+        - fpNoTaxAmount
+      properties:
+        type_key:
+          type: string
+          const: motor_vehicle_sale_invoice
+          default: motor_vehicle_sale_invoice
+          description: 发票票种标识。
+        fpCode:
+          type: string
+          description: 发票代码，必须使用字符串传输。
+        fpNumber:
+          type: string
+          description: 发票号码，必须使用字符串传输。
+        fpDate:
+          type: string
+          format: date
+          description: 开票日期、填制日期或乘车日期，格式为 YYYY-MM-DD。
+        fpNoTaxAmount:
+          type: string
+          description: 不含税金额，不包含货币符号或千位分隔符。
+    UsedCarPurchaseInvoiceVerifyRequest:
+      title: 二手车销售统一发票
+      type: object
+      additionalProperties: true
+      description: 二手车销售统一发票验真请求。选择该票种后，仅需填写本模型展示的查验字段。
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpCode
+        - fpAmount
+      properties:
+        type_key:
+          type: string
+          const: used_car_purchase_invoice
+          default: used_car_purchase_invoice
+          description: 发票票种标识。
+        fpCode:
+          type: string
+          description: 发票代码，必须使用字符串传输。
+        fpNumber:
+          type: string
+          description: 发票号码，必须使用字符串传输。
+        fpDate:
+          type: string
+          format: date
+          description: 开票日期、填制日期或乘车日期，格式为 YYYY-MM-DD。
+        fpAmount:
+          type: string
+          description: 价税合计、合计金额或票价，不包含货币符号或千位分隔符。
+    ElectronicAirTransportVerifyRequest:
+      title: 电子发票航空运输电子客票行程单
+      type: object
+      additionalProperties: true
+      description: 电子发票航空运输电子客票行程单验真请求。选择该票种后，仅需填写本模型展示的查验字段。
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpAmount
+      properties:
+        type_key:
+          type: string
+          const: electronic_air_transport
+          default: electronic_air_transport
+          description: 发票票种标识。
+        fpNumber:
+          type: string
+          description: 发票号码，必须使用字符串传输。
+        fpDate:
+          type: string
+          format: date
+          description: 开票日期、填制日期或乘车日期，格式为 YYYY-MM-DD。
+        fpAmount:
+          type: string
+          description: 价税合计、合计金额或票价，不包含货币符号或千位分隔符。
+    ElectronicTrainTicketVerifyRequest:
+      title: 电子发票铁路电子客票
+      type: object
+      additionalProperties: true
+      description: 电子发票铁路电子客票验真请求。选择该票种后，仅需填写本模型展示的查验字段。
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpAmount
+      properties:
+        type_key:
+          type: string
+          const: electronic_train_ticket
+          default: electronic_train_ticket
+          description: 发票票种标识。
+        fpNumber:
+          type: string
+          description: 发票号码，必须使用字符串传输。
+        fpDate:
+          type: string
+          format: date
+          description: 开票日期、填制日期或乘车日期，格式为 YYYY-MM-DD。
+        fpAmount:
+          type: string
+          description: 价税合计、合计金额或票价，不包含货币符号或千位分隔符。
+  headers:
+    ProcessTime:
+      description: 服务端处理耗时，单位为秒。
+      schema:
+        type: string
+      example: '0.248'

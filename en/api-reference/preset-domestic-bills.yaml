@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Domestic general bills
-  version: 1.0.0
+  version: 1.1.0
   description: ADP preset application API for extracting domestic general bills.
   license:
     name: MIT
@@ -67,9 +67,43 @@ paths:
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app/invoice/verify:
     post:
-      tags: [Domestic invoice verification]
-      summary: Verify domestic invoice
-      description: Verify an invoice from its invoice number, issue date, and tax-inclusive total.
+      tags:
+        - Domestic invoice verification
+      summary: Verify a domestic invoice
+      description: |-
+        Verify one domestic invoice from its invoice type and the required verification fields.
+
+        **Compatibility rules**
+
+        - The request body remains flat; do not use a batch array or a nested `verify_params` object.
+        - `type_key` is optional. If omitted, the request is handled as `vat_electronic_invoice_new`.
+        - `fpNumber` and `fpDate` are common to every invoice type. Other fields are conditionally required by `type_key`.
+        - Send codes, numbers, dates, amounts, and check codes as JSON strings to preserve leading zeros and numeric precision.
+        - Do not infer an invoice type from its field combination. Pass `type_key` for every non-default invoice type.
+
+        **Required fields by invoice type**
+
+        | type_key | Invoice type | Required fields |
+        | --- | --- | --- |
+        | `vat_special_invoice` | VAT special invoice | `fpCode`, `fpNumber`, `fpDate`, `fpNoTaxAmount` |
+        | `vat_electronic_special_invoice` | VAT electronic special invoice | `fpCode`, `fpNumber`, `fpDate`, `fpNoTaxAmount` |
+        | `vat_common_invoice` | VAT common invoice | `fpCode`, `fpNumber`, `fpDate`, `fpCRC` |
+        | `vat_electronic_invoice` | VAT electronic common invoice | `fpCode`, `fpNumber`, `fpDate`, `fpCRC` |
+        | `vat_roll_invoice` | VAT roll invoice | `fpCode`, `fpNumber`, `fpDate`, `fpCRC` |
+        | `vat_electronic_special_invoice_new` | Fully digitalized electronic special invoice | `fpNumber`, `fpDate`, `fpAmount` |
+        | `vat_electronic_invoice_new` | Fully digitalized electronic common invoice | `fpNumber`, `fpDate`, `fpAmount` |
+        | `motor_vehicle_sale_invoice` | Motor vehicle sales invoice | `fpCode`, `fpNumber`, `fpDate`, `fpNoTaxAmount` |
+        | `used_car_purchase_invoice` | Used-car sales invoice | `fpCode`, `fpNumber`, `fpDate`, `fpAmount` |
+        | `electronic_air_transport` | Electronic air transport itinerary invoice | `fpNumber`, `fpDate`, `fpAmount` |
+        | `electronic_train_ticket` | Electronic railway ticket invoice | `fpNumber`, `fpDate`, `fpAmount` |
+
+        **Interpreting the result**
+
+        HTTP 200 with `code=success` means that the API processed the request. It does not mean that the invoice passed verification. Read `data.result.fpVerification` for the verification conclusion. Missing conditional fields and downstream verification failures can still return HTTP 200, with details in `fpVerification` and `fpVerificationMsg`.
+
+        **Billing metadata**
+
+        `attempt_verify_page_count` is the number of invoices with complete fields submitted to the verification service. For this single-invoice API, it is 0 or 1. `actual_consume_page_count` is the number of invoices that reached a billable state and is also 0 or 1. A feature package can still cover the actual credit consumption.
       operationId: verifyDomesticInvoice
       security:
         - ApiKeyAuth: []
@@ -80,25 +114,30 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/InvoiceVerifyResponse'
-        '400':
-          $ref: '#/components/responses/BusinessError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/TenantNotFoundError'
         '422':
           $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 components:
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
       in: header
-      name: X-API-KEY
+      name: X-API-Key
+      description: ADP OpenAPI key.
   parameters:
     TenantName:
       name: tenant_name
       in: path
       required: true
-      description: "Tenant name. Default: laiye."
+      description: Tenant name. This path parameter must be provided explicitly.
       schema:
         type: string
-        default: laiye
+      example: laiye
     TaskId:
       name: task_id
       in: path
@@ -119,6 +158,164 @@ components:
         file_url: &domesticBillsFileUrl https://adp.laiye.com/web/agentic_doc_processor/laiye/file/2003c711818811f1a36200163e358400
         app_id: *domesticBillsAppId
         enable_invoice_verify: true
+    LegacyElectronicInvoiceRequest:
+      summary: Legacy three-field request
+      description: Request structure example. Omitting `type_key` uses the fully digitalized electronic common invoice type. Replace all values with values from the invoice.
+      value:
+        fpNumber: '23322000000000000000'
+        fpDate: '2026-08-25'
+        fpAmount: '106.00'
+    VatSpecialInvoiceRequest:
+      summary: VAT special invoice
+      value:
+        type_key: vat_special_invoice
+        fpCode: '044001900111'
+        fpNumber: '12345678'
+        fpDate: '2026-08-25'
+        fpNoTaxAmount: '100.00'
+    VatElectronicSpecialInvoiceRequest:
+      summary: VAT electronic special invoice
+      value:
+        type_key: vat_electronic_special_invoice
+        fpCode: '044001900111'
+        fpNumber: '12345678'
+        fpDate: '2026-08-25'
+        fpNoTaxAmount: '100.00'
+    VatCommonInvoiceRequest:
+      summary: VAT common invoice
+      value:
+        type_key: vat_common_invoice
+        fpCode: '044001900111'
+        fpNumber: '12345678'
+        fpDate: '2026-08-25'
+        fpCRC: '123456'
+    VatElectronicInvoiceRequest:
+      summary: VAT electronic common invoice
+      value:
+        type_key: vat_electronic_invoice
+        fpCode: '044001900111'
+        fpNumber: '12345678'
+        fpDate: '2026-08-25'
+        fpCRC: '123456'
+    VatRollInvoiceRequest:
+      summary: VAT roll invoice
+      value:
+        type_key: vat_roll_invoice
+        fpCode: '044001900111'
+        fpNumber: '12345678'
+        fpDate: '2026-08-25'
+        fpCRC: '123456'
+    VatElectronicSpecialInvoiceNewRequest:
+      summary: Fully digitalized electronic special invoice
+      value:
+        type_key: vat_electronic_special_invoice_new
+        fpNumber: '23322000000000000001'
+        fpDate: '2026-08-25'
+        fpAmount: '106.00'
+    VatElectronicInvoiceNewRequest:
+      summary: Fully digitalized electronic common invoice
+      value:
+        type_key: vat_electronic_invoice_new
+        fpNumber: '23322000000000000000'
+        fpDate: '2026-08-25'
+        fpAmount: '106.00'
+    MotorVehicleSaleInvoiceRequest:
+      summary: Motor vehicle sales invoice
+      value:
+        type_key: motor_vehicle_sale_invoice
+        fpCode: '044001900111'
+        fpNumber: '12345678'
+        fpDate: '2026-08-25'
+        fpNoTaxAmount: '100000.00'
+    UsedCarPurchaseInvoiceRequest:
+      summary: Used-car sales invoice
+      value:
+        type_key: used_car_purchase_invoice
+        fpCode: '044001900111'
+        fpNumber: '12345678'
+        fpDate: '2026-08-25'
+        fpAmount: '80000.00'
+    ElectronicAirTransportRequest:
+      summary: Electronic air transport itinerary invoice
+      value:
+        type_key: electronic_air_transport
+        fpNumber: '23322000000000000002'
+        fpDate: '2026-08-25'
+        fpAmount: '1280.00'
+    ElectronicTrainTicketRequest:
+      summary: Electronic railway ticket invoice
+      value:
+        type_key: electronic_train_ticket
+        fpNumber: '23322000000000000003'
+        fpDate: '2026-08-25'
+        fpAmount: '553.00'
+    VerifiedInvoiceResponse:
+      summary: Verified and consistent invoice
+      value:
+        code: success
+        message: ''
+        tips: null
+        data:
+          result:
+            type_key: vat_electronic_invoice_new
+            instance_id: customer-order-001
+            invoice_pdf_page_number: 1
+            fpVerification: 查验成功发票一致
+            fpVerificationMsg: ''
+            fpIsVoided: 未作废
+            fpType: 电子发票普通发票
+            fpCode: null
+            fpNumber: '23322000000000000000'
+            fpDate: '2026-08-25'
+            fpAmount: '106.00'
+            fpNoTaxAmount: '100.00'
+            fpTotalTaxAmount: '6.00'
+            fpSellerName: 示例销售方有限公司
+            fpSellerID: '91310000XXXXXXXXXX'
+            fpPayerName: 示例购买方有限公司
+            fpPayerID: '91320000XXXXXXXXXX'
+            fpRemarks: ''
+            fpItems:
+              - itemName: 技术服务
+                itemModel: null
+                itemUnit: 次
+                itemQuantity: '1'
+                itemUnitPrice: '100.00'
+                itemAmount: '100.00'
+                itemTaxRate: '6%'
+                itemTaxAmount: '6.00'
+          metadata:
+            trace_id: 94fe9b74e0e311f091505e345594c618
+            attempt_verify_page_count: 1
+            actual_consume_page_count: 1
+            billable_pages: [1]
+    MissingRequiredElementResponse:
+      summary: Missing conditionally required field
+      description: Verification did not complete, but v1 compatibility behavior still returns HTTP 200 and `code=success`.
+      value:
+        code: success
+        message: ''
+        tips: null
+        data:
+          result:
+            type_key: vat_special_invoice
+            instance_id: vat_special_invoice_0
+            invoice_pdf_page_number: 1
+            fpVerification: 未能查验
+            fpVerificationMsg: 增值税专用发票 识别结果缺少查验必须字段 不含税金额
+            fpIsVoided: ''
+          metadata:
+            trace_id: 94fe9b74e0e311f091505e345594c619
+            attempt_verify_page_count: 0
+            actual_consume_page_count: 0
+            billable_pages: []
+    FrameworkBusinessErrorResponse:
+      summary: Framework-level business error
+      description: The current v1 compatibility framework can return a non-`success` API error with HTTP 200.
+      value:
+        code: http_server_error
+        message: 业务处理失败
+        tips: null
   requestBodies:
     DocumentExtractRequest:
       required: true
@@ -133,17 +330,36 @@ components:
               $ref: '#/components/examples/DomesticBillsFileBase64'
     InvoiceVerifyRequest:
       required: true
+      description: Fields for verifying one invoice. Examples show request structure only; replace them with values from the invoice.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/InvoiceVerifyRequest'
           examples:
-            electronicInvoice:
-              summary: Verify a VAT electronic invoice
-              value:
-                fpNumber: '0123456789'
-                fpDate: '2026-06-01'
-                fpAmount: '100.00'
+            legacyElectronicInvoice:
+              $ref: '#/components/examples/LegacyElectronicInvoiceRequest'
+            vatSpecialInvoice:
+              $ref: '#/components/examples/VatSpecialInvoiceRequest'
+            vatElectronicSpecialInvoice:
+              $ref: '#/components/examples/VatElectronicSpecialInvoiceRequest'
+            vatCommonInvoice:
+              $ref: '#/components/examples/VatCommonInvoiceRequest'
+            vatElectronicInvoice:
+              $ref: '#/components/examples/VatElectronicInvoiceRequest'
+            vatRollInvoice:
+              $ref: '#/components/examples/VatRollInvoiceRequest'
+            vatElectronicSpecialInvoiceNew:
+              $ref: '#/components/examples/VatElectronicSpecialInvoiceNewRequest'
+            vatElectronicInvoiceNew:
+              $ref: '#/components/examples/VatElectronicInvoiceNewRequest'
+            motorVehicleSaleInvoice:
+              $ref: '#/components/examples/MotorVehicleSaleInvoiceRequest'
+            usedCarPurchaseInvoice:
+              $ref: '#/components/examples/UsedCarPurchaseInvoiceRequest'
+            electronicAirTransport:
+              $ref: '#/components/examples/ElectronicAirTransportRequest'
+            electronicTrainTicket:
+              $ref: '#/components/examples/ElectronicTrainTicketRequest'
   responses:
     DocumentExtractResponse:
       description: Extraction result.
@@ -185,31 +401,22 @@ components:
                                 - field_value: ''
                                   confidence: 0.0
     InvoiceVerifyResponse:
-      description: Invoice verification result.
+      description: |-
+        The request result. `code=success` means processing completed; use `data.result.fpVerification` for the invoice verification conclusion.
+      headers:
+        X-Process-Time:
+          $ref: '#/components/headers/ProcessTime'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/InvoiceVerifyResponse'
           examples:
             verifiedInvoice:
-              summary: Successfully verified invoice
-              value:
-                code: success
-                message: ''
-                data:
-                  result:
-                    type_key: vat_electronic_invoice_new
-                    fpVerification: Invoice verified and matched
-                    fpVerificationMsg: ''
-                    fpIsVoided: Not voided
-                    fpNumber: '0123456789'
-                    fpDate: '2026-06-01'
-                    fpAmount: '100.00'
-                  metadata:
-                    trace_id: 94fe9b74e0e311f091505e345594c618
-                    attempt_verify_page_count: 1
-                    actual_consume_page_count: 1
-                    billable_pages: [1]
+              $ref: '#/components/examples/VerifiedInvoiceResponse'
+            missingRequiredElement:
+              $ref: '#/components/examples/MissingRequiredElementResponse'
+            frameworkBusinessError:
+              $ref: '#/components/examples/FrameworkBusinessErrorResponse'
     TaskCreateResponse:
       description: Task creation result.
       content:
@@ -223,11 +430,54 @@ components:
           schema:
             $ref: '#/components/schemas/SimpleResponse'
     ValidationError:
-      description: Validation error.
+      description: The request body, path parameter, or field type failed validation.
+      headers:
+        X-Process-Time:
+          $ref: '#/components/headers/ProcessTime'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/HTTPValidationError'
+          example:
+            detail:
+              - type: missing
+                loc: [body, fpNumber]
+                msg: Field required
+                input:
+                  fpDate: '2026-08-25'
+                  fpAmount: '100.00'
+    UnauthorizedError:
+      description: A valid OpenAPI key was not provided.
+      headers:
+        X-Process-Time:
+          $ref: '#/components/headers/ProcessTime'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPError'
+          example:
+            detail: Invalid API Key
+    TenantNotFoundError:
+      description: The tenant in the request path does not exist.
+      headers:
+        X-Process-Time:
+          $ref: '#/components/headers/ProcessTime'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPError'
+          example:
+            detail: Tenant invalid-tenant not found
+    InternalServerError:
+      description: An unhandled server error occurred.
+      headers:
+        X-Process-Time:
+          $ref: '#/components/headers/ProcessTime'
+      content:
+        text/plain:
+          schema:
+            type: string
+          example: Internal server error
   schemas:
     DocumentExtractRequest:
       oneOf:
@@ -272,44 +522,57 @@ components:
           required: [app_id, file_base64]
     SimpleResponse:
       type: object
+      additionalProperties: true
+      required: [code, message, tips]
       properties:
         code:
           oneOf:
             - type: string
             - type: integer
+          description: |-
+            API processing code. It is `success` after entering the verification flow; `success` does not mean that the invoice passed verification.
         message:
           type: string
+          description: API-level message.
         tips:
-          type:
-            - string
-            - 'null'
+          type: [string, 'null']
+          description: Optional information.
+      description: API response envelope.
     HTTPValidationError:
       type: object
+      additionalProperties: true
+      required: [detail]
       properties:
         detail:
           type: array
           items:
             $ref: '#/components/schemas/ValidationErrorItem'
-      required: [detail]
+      description: Request validation error response.
     ValidationErrorItem:
       type: object
       additionalProperties: true
+      required: [type, loc, msg]
       properties:
         type:
           type: string
+          description: Validation error type.
         loc:
           type: array
+          description: Location of the invalid field.
           items:
             oneOf:
               - type: string
               - type: integer
         msg:
           type: string
-        input: {}
+          description: Validation error message.
+        input:
+          description: Input value that caused the validation error.
         ctx:
           type: object
           additionalProperties: true
-      required: [type, loc, msg]
+          description: Optional validation context.
+      description: One request validation error.
     TaskCreateResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -325,53 +588,127 @@ components:
                   additionalProperties: true
                   description: Document processing task metadata.
     InvoiceVerifyRequest:
-      type: object
-      additionalProperties: false
-      required: [fpNumber, fpDate, fpAmount]
-      properties:
-        fpNumber:
-          type: string
-          description: Invoice number.
-        fpDate:
-          type: string
-          format: date
-          description: Invoice issue date in YYYY-MM-DD format.
-        fpAmount:
-          type: string
-          description: Tax-inclusive total.
+      description: Select a request model by invoice type. After choosing type_key, the API reference shows only the verification fields for that type. Existing callers can use compatibility mode and omit type_key.
+      oneOf:
+        - $ref: '#/components/schemas/LegacyInvoiceVerifyRequest'
+        - $ref: '#/components/schemas/VatSpecialInvoiceVerifyRequest'
+        - $ref: '#/components/schemas/VatElectronicSpecialInvoiceVerifyRequest'
+        - $ref: '#/components/schemas/VatCommonInvoiceVerifyRequest'
+        - $ref: '#/components/schemas/VatElectronicInvoiceVerifyRequest'
+        - $ref: '#/components/schemas/VatRollInvoiceVerifyRequest'
+        - $ref: '#/components/schemas/VatElectronicSpecialInvoiceNewVerifyRequest'
+        - $ref: '#/components/schemas/VatElectronicInvoiceNewVerifyRequest'
+        - $ref: '#/components/schemas/MotorVehicleSaleInvoiceVerifyRequest'
+        - $ref: '#/components/schemas/UsedCarPurchaseInvoiceVerifyRequest'
+        - $ref: '#/components/schemas/ElectronicAirTransportVerifyRequest'
+        - $ref: '#/components/schemas/ElectronicTrainTicketVerifyRequest'
+      discriminator:
+        propertyName: type_key
+        mapping:
+          vat_special_invoice: '#/components/schemas/VatSpecialInvoiceVerifyRequest'
+          vat_electronic_special_invoice: '#/components/schemas/VatElectronicSpecialInvoiceVerifyRequest'
+          vat_common_invoice: '#/components/schemas/VatCommonInvoiceVerifyRequest'
+          vat_electronic_invoice: '#/components/schemas/VatElectronicInvoiceVerifyRequest'
+          vat_roll_invoice: '#/components/schemas/VatRollInvoiceVerifyRequest'
+          vat_electronic_special_invoice_new: '#/components/schemas/VatElectronicSpecialInvoiceNewVerifyRequest'
+          vat_electronic_invoice_new: '#/components/schemas/VatElectronicInvoiceNewVerifyRequest'
+          motor_vehicle_sale_invoice: '#/components/schemas/MotorVehicleSaleInvoiceVerifyRequest'
+          used_car_purchase_invoice: '#/components/schemas/UsedCarPurchaseInvoiceVerifyRequest'
+          electronic_air_transport: '#/components/schemas/ElectronicAirTransportVerifyRequest'
+          electronic_train_ticket: '#/components/schemas/ElectronicTrainTicketVerifyRequest'
+      x-required-fields-by-type:
+        vat_special_invoice:
+          - fpNumber
+          - fpDate
+          - fpCode
+          - fpNoTaxAmount
+        vat_electronic_special_invoice:
+          - fpNumber
+          - fpDate
+          - fpCode
+          - fpNoTaxAmount
+        vat_common_invoice:
+          - fpNumber
+          - fpDate
+          - fpCode
+          - fpCRC
+        vat_electronic_invoice:
+          - fpNumber
+          - fpDate
+          - fpCode
+          - fpCRC
+        vat_roll_invoice:
+          - fpNumber
+          - fpDate
+          - fpCode
+          - fpCRC
+        vat_electronic_special_invoice_new:
+          - fpNumber
+          - fpDate
+          - fpAmount
+        vat_electronic_invoice_new:
+          - fpNumber
+          - fpDate
+          - fpAmount
+        motor_vehicle_sale_invoice:
+          - fpNumber
+          - fpDate
+          - fpCode
+          - fpNoTaxAmount
+        used_car_purchase_invoice:
+          - fpNumber
+          - fpDate
+          - fpCode
+          - fpAmount
+        electronic_air_transport:
+          - fpNumber
+          - fpDate
+          - fpAmount
+        electronic_train_ticket:
+          - fpNumber
+          - fpDate
+          - fpAmount
     InvoiceVerifyResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
         - type: object
           properties:
             data:
-              type: object
-              properties:
-                result:
-                  $ref: '#/components/schemas/InvoiceVerifyResult'
-                metadata:
-                  $ref: '#/components/schemas/InvoiceVerifyMetadata'
+              oneOf:
+                - $ref: '#/components/schemas/InvoiceVerifyData'
+                - type: 'null'
+              description: |-
+                Verification data when the request enters the business flow. It can be null or omitted for framework-level business errors.
     InvoiceVerifyResult:
       type: object
+      additionalProperties: true
+      description: |-
+        The verification result for one invoice. The verification service can return additional authoritative fields by invoice type. Depend only on fields declared in this contract and ignore unknown fields.
       properties:
         type_key:
           type: [string, 'null']
-          description: Invoice type.
+          description: Invoice type identifier used for the request.
         instance_id:
           type: [string, 'null']
-          description: Your business instance ID.
+          description: Customer-provided or server-generated business instance ID.
+        invoice_pdf_page_number:
+          type: [integer, 'null']
+          description: Invoice page number. Always 1 for standalone single-invoice verification.
+          minimum: 1
         fpVerification:
           type: [string, 'null']
-          description: Verification status.
+          description: |-
+            Verification status. Known values include `查验成功发票一致`, `查验成功发票不一致`, `发票不存在`, `未能查验`, `不支持查验`, and `未知`.
         fpVerificationMsg:
           type: [string, 'null']
-          description: Verification message or error details.
+          description: Verification details, missing-field explanation, or downstream error message.
         fpIsVoided:
           type: [string, 'null']
-          description: Void status.
+          enum: [已作废, 未作废, '', null]
+          description: Voided status. An empty string or null means it could not be determined.
         fpType:
           type: [string, 'null']
-          description: Invoice type name.
+          description: Invoice type name returned by the verification service.
         fpCode:
           type: [string, 'null']
           description: Invoice code.
@@ -380,13 +717,13 @@ components:
           description: Invoice number.
         fpDate:
           type: [string, 'null']
-          description: Invoice issue date, creation date, or travel date.
+          description: Invoice date, issue date, or travel date.
         fpAmount:
           type: [string, 'null']
-          description: Tax-inclusive total, fare, or total amount.
+          description: Tax-inclusive total, total amount, or fare.
         fpNoTaxAmount:
           type: [string, 'null']
-          description: Tax-exclusive amount.
+          description: Amount excluding tax.
         fpTotalTaxAmount:
           type: [string, 'null']
           description: Total tax amount.
@@ -395,31 +732,32 @@ components:
           description: Seller name.
         fpSellerID:
           type: [string, 'null']
-          description: Seller taxpayer ID.
+          description: Seller taxpayer identification number.
         fpPayerName:
           type: [string, 'null']
           description: Buyer name.
         fpPayerID:
           type: [string, 'null']
-          description: Buyer taxpayer ID.
+          description: Buyer taxpayer identification number.
         fpRemarks:
           type: [string, 'null']
-          description: Remarks.
+          description: Invoice remarks.
         fpItems:
           type: [array, 'null']
-          description: Invoice line items.
+          description: Invoice goods or service line items.
           items:
             $ref: '#/components/schemas/InvoiceVerifyItem'
     InvoiceVerifyItem:
       type: object
       additionalProperties: true
+      description: Invoice line item. Different invoice types can return additional fields.
       properties:
         itemName:
           type: [string, 'null']
-          description: Item or service name.
+          description: Item name.
         itemModel:
           type: [string, 'null']
-          description: Model or specification.
+          description: Specification or model.
         itemUnit:
           type: [string, 'null']
           description: Unit.
@@ -434,27 +772,39 @@ components:
           description: Amount.
         itemTaxRate:
           type: [string, 'null']
-          description: Tax rate.
+          description: Tax rate or levy rate.
         itemTaxAmount:
           type: [string, 'null']
           description: Tax amount.
     InvoiceVerifyMetadata:
       type: object
+      additionalProperties: true
+      required:
+        - trace_id
+        - attempt_verify_page_count
+        - actual_consume_page_count
+        - billable_pages
       properties:
         trace_id:
           type: string
-          description: Trace ID.
+          description: Trace ID. Include it in support requests when troubleshooting.
         attempt_verify_page_count:
           type: integer
-          description: Number of pages submitted for verification.
+          enum: [0, 1]
+          description: Number of invoices with complete fields submitted to the verification service.
         actual_consume_page_count:
           type: integer
-          description: Number of pages charged.
+          enum: [0, 1]
+          description: |-
+            Number of invoices that reached a billable state. This is not necessarily the final credit deduction because a feature package can cover consumption.
         billable_pages:
           type: array
-          description: Charged page numbers.
+          maxItems: 1
+          uniqueItems: true
+          description: Billable page numbers. For standalone single-invoice verification, this is `[1]` when billable and an empty array otherwise.
           items:
             type: integer
+            const: 1
     DocumentExtractResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -560,3 +910,380 @@ components:
           type: number
           format: float
           description: Confidence score of an invoice verification field.
+    InvoiceTypeKey:
+      type: string
+      description: Invoice type identifier.
+      enum:
+        - vat_special_invoice
+        - vat_electronic_special_invoice
+        - vat_common_invoice
+        - vat_electronic_invoice
+        - vat_roll_invoice
+        - vat_electronic_special_invoice_new
+        - vat_electronic_invoice_new
+        - motor_vehicle_sale_invoice
+        - used_car_purchase_invoice
+        - electronic_air_transport
+        - electronic_train_ticket
+    InvoiceVerifyData:
+      type: object
+      additionalProperties: false
+      required: [result, metadata]
+      properties:
+        result:
+          $ref: '#/components/schemas/InvoiceVerifyResult'
+        metadata:
+          $ref: '#/components/schemas/InvoiceVerifyMetadata'
+      description: Invoice verification result and processing metadata.
+    HTTPError:
+      type: object
+      additionalProperties: true
+      required: [detail]
+      properties:
+        detail:
+          type: string
+          description: HTTP error details.
+      description: HTTP error response.
+    LegacyInvoiceVerifyRequest:
+      title: 'Compatibility mode: omit type_key'
+      type: object
+      additionalProperties: true
+      description: Compatibility mode for existing three-field requests. Omitting type_key uses the fully digitalized electronic common invoice type.
+      required:
+        - fpNumber
+        - fpDate
+        - fpAmount
+      not:
+        required:
+          - type_key
+      properties:
+        fpNumber:
+          type: string
+          description: Invoice number. Send it as a string.
+        fpDate:
+          type: string
+          format: date
+          description: Invoice date, issue date, or travel date in YYYY-MM-DD format.
+        fpAmount:
+          type: string
+          description: Tax-inclusive total, total amount, or fare, without a currency symbol or thousands separator.
+    VatSpecialInvoiceVerifyRequest:
+      title: VAT special invoice
+      type: object
+      additionalProperties: true
+      description: Verification request for vat special invoice. After selecting this type, provide only the fields shown in this schema.
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpCode
+        - fpNoTaxAmount
+      properties:
+        type_key:
+          type: string
+          const: vat_special_invoice
+          default: vat_special_invoice
+          description: Invoice type identifier.
+        fpCode:
+          type: string
+          description: Invoice code. Send it as a string.
+        fpNumber:
+          type: string
+          description: Invoice number. Send it as a string.
+        fpDate:
+          type: string
+          format: date
+          description: Invoice date, issue date, or travel date in YYYY-MM-DD format.
+        fpNoTaxAmount:
+          type: string
+          description: Amount excluding tax, without a currency symbol or thousands separator.
+    VatElectronicSpecialInvoiceVerifyRequest:
+      title: VAT electronic special invoice
+      type: object
+      additionalProperties: true
+      description: Verification request for vat electronic special invoice. After selecting this type, provide only the fields shown in this schema.
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpCode
+        - fpNoTaxAmount
+      properties:
+        type_key:
+          type: string
+          const: vat_electronic_special_invoice
+          default: vat_electronic_special_invoice
+          description: Invoice type identifier.
+        fpCode:
+          type: string
+          description: Invoice code. Send it as a string.
+        fpNumber:
+          type: string
+          description: Invoice number. Send it as a string.
+        fpDate:
+          type: string
+          format: date
+          description: Invoice date, issue date, or travel date in YYYY-MM-DD format.
+        fpNoTaxAmount:
+          type: string
+          description: Amount excluding tax, without a currency symbol or thousands separator.
+    VatCommonInvoiceVerifyRequest:
+      title: VAT common invoice
+      type: object
+      additionalProperties: true
+      description: Verification request for vat common invoice. After selecting this type, provide only the fields shown in this schema.
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpCode
+        - fpCRC
+      properties:
+        type_key:
+          type: string
+          const: vat_common_invoice
+          default: vat_common_invoice
+          description: Invoice type identifier.
+        fpCode:
+          type: string
+          description: Invoice code. Send it as a string.
+        fpNumber:
+          type: string
+          description: Invoice number. Send it as a string.
+        fpDate:
+          type: string
+          format: date
+          description: Invoice date, issue date, or travel date in YYYY-MM-DD format.
+        fpCRC:
+          type: string
+          description: Check code. You can pass the complete code; the server uses its last six digits.
+    VatElectronicInvoiceVerifyRequest:
+      title: VAT electronic common invoice
+      type: object
+      additionalProperties: true
+      description: Verification request for vat electronic common invoice. After selecting this type, provide only the fields shown in this schema.
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpCode
+        - fpCRC
+      properties:
+        type_key:
+          type: string
+          const: vat_electronic_invoice
+          default: vat_electronic_invoice
+          description: Invoice type identifier.
+        fpCode:
+          type: string
+          description: Invoice code. Send it as a string.
+        fpNumber:
+          type: string
+          description: Invoice number. Send it as a string.
+        fpDate:
+          type: string
+          format: date
+          description: Invoice date, issue date, or travel date in YYYY-MM-DD format.
+        fpCRC:
+          type: string
+          description: Check code. You can pass the complete code; the server uses its last six digits.
+    VatRollInvoiceVerifyRequest:
+      title: VAT roll invoice
+      type: object
+      additionalProperties: true
+      description: Verification request for vat roll invoice. After selecting this type, provide only the fields shown in this schema.
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpCode
+        - fpCRC
+      properties:
+        type_key:
+          type: string
+          const: vat_roll_invoice
+          default: vat_roll_invoice
+          description: Invoice type identifier.
+        fpCode:
+          type: string
+          description: Invoice code. Send it as a string.
+        fpNumber:
+          type: string
+          description: Invoice number. Send it as a string.
+        fpDate:
+          type: string
+          format: date
+          description: Invoice date, issue date, or travel date in YYYY-MM-DD format.
+        fpCRC:
+          type: string
+          description: Check code. You can pass the complete code; the server uses its last six digits.
+    VatElectronicSpecialInvoiceNewVerifyRequest:
+      title: Fully digitalized electronic special invoice
+      type: object
+      additionalProperties: true
+      description: Verification request for fully digitalized electronic special invoice. After selecting this type, provide only the fields shown in this schema.
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpAmount
+      properties:
+        type_key:
+          type: string
+          const: vat_electronic_special_invoice_new
+          default: vat_electronic_special_invoice_new
+          description: Invoice type identifier.
+        fpNumber:
+          type: string
+          description: Invoice number. Send it as a string.
+        fpDate:
+          type: string
+          format: date
+          description: Invoice date, issue date, or travel date in YYYY-MM-DD format.
+        fpAmount:
+          type: string
+          description: Tax-inclusive total, total amount, or fare, without a currency symbol or thousands separator.
+    VatElectronicInvoiceNewVerifyRequest:
+      title: Fully digitalized electronic common invoice
+      type: object
+      additionalProperties: true
+      description: Verification request for fully digitalized electronic common invoice. After selecting this type, provide only the fields shown in this schema.
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpAmount
+      properties:
+        type_key:
+          type: string
+          const: vat_electronic_invoice_new
+          default: vat_electronic_invoice_new
+          description: Invoice type identifier.
+        fpNumber:
+          type: string
+          description: Invoice number. Send it as a string.
+        fpDate:
+          type: string
+          format: date
+          description: Invoice date, issue date, or travel date in YYYY-MM-DD format.
+        fpAmount:
+          type: string
+          description: Tax-inclusive total, total amount, or fare, without a currency symbol or thousands separator.
+    MotorVehicleSaleInvoiceVerifyRequest:
+      title: Motor vehicle sales invoice
+      type: object
+      additionalProperties: true
+      description: Verification request for motor vehicle sales invoice. After selecting this type, provide only the fields shown in this schema.
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpCode
+        - fpNoTaxAmount
+      properties:
+        type_key:
+          type: string
+          const: motor_vehicle_sale_invoice
+          default: motor_vehicle_sale_invoice
+          description: Invoice type identifier.
+        fpCode:
+          type: string
+          description: Invoice code. Send it as a string.
+        fpNumber:
+          type: string
+          description: Invoice number. Send it as a string.
+        fpDate:
+          type: string
+          format: date
+          description: Invoice date, issue date, or travel date in YYYY-MM-DD format.
+        fpNoTaxAmount:
+          type: string
+          description: Amount excluding tax, without a currency symbol or thousands separator.
+    UsedCarPurchaseInvoiceVerifyRequest:
+      title: Used-car sales invoice
+      type: object
+      additionalProperties: true
+      description: Verification request for used-car sales invoice. After selecting this type, provide only the fields shown in this schema.
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpCode
+        - fpAmount
+      properties:
+        type_key:
+          type: string
+          const: used_car_purchase_invoice
+          default: used_car_purchase_invoice
+          description: Invoice type identifier.
+        fpCode:
+          type: string
+          description: Invoice code. Send it as a string.
+        fpNumber:
+          type: string
+          description: Invoice number. Send it as a string.
+        fpDate:
+          type: string
+          format: date
+          description: Invoice date, issue date, or travel date in YYYY-MM-DD format.
+        fpAmount:
+          type: string
+          description: Tax-inclusive total, total amount, or fare, without a currency symbol or thousands separator.
+    ElectronicAirTransportVerifyRequest:
+      title: Electronic air transport itinerary invoice
+      type: object
+      additionalProperties: true
+      description: Verification request for electronic air transport itinerary invoice. After selecting this type, provide only the fields shown in this schema.
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpAmount
+      properties:
+        type_key:
+          type: string
+          const: electronic_air_transport
+          default: electronic_air_transport
+          description: Invoice type identifier.
+        fpNumber:
+          type: string
+          description: Invoice number. Send it as a string.
+        fpDate:
+          type: string
+          format: date
+          description: Invoice date, issue date, or travel date in YYYY-MM-DD format.
+        fpAmount:
+          type: string
+          description: Tax-inclusive total, total amount, or fare, without a currency symbol or thousands separator.
+    ElectronicTrainTicketVerifyRequest:
+      title: Electronic railway ticket invoice
+      type: object
+      additionalProperties: true
+      description: Verification request for electronic railway ticket invoice. After selecting this type, provide only the fields shown in this schema.
+      required:
+        - type_key
+        - fpNumber
+        - fpDate
+        - fpAmount
+      properties:
+        type_key:
+          type: string
+          const: electronic_train_ticket
+          default: electronic_train_ticket
+          description: Invoice type identifier.
+        fpNumber:
+          type: string
+          description: Invoice number. Send it as a string.
+        fpDate:
+          type: string
+          format: date
+          description: Invoice date, issue date, or travel date in YYYY-MM-DD format.
+        fpAmount:
+          type: string
+          description: Tax-inclusive total, total amount, or fare, without a currency symbol or thousands separator.
+  headers:
+    ProcessTime:
+      description: Server processing time in seconds.
+      schema:
+        type: string
+      example: '0.248'

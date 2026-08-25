@@ -141,6 +141,27 @@
                     "icon": "asterisk"
                   },
                   {
+                    "group": "文档转换",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/doc/convert",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/doc/convert/create/task",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/doc/convert/query/task/{task_id}"
+                    ],
+                    "icon": "asterisk"
+                  },
+                  {
+                    "group": "Webhook",
+                    "pages": [
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/webhook/events",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/webhook/create",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/webhook/list",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/webhook/update",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/webhook/delete",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/webhook/logs"
+                    ],
+                    "icon": "asterisk"
+                  },
+                  {
                     "group": "应用管理",
                     "pages": [
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create",
@@ -157,11 +178,14 @@
                     "group": "工作流",
                     "icon": "network",
                     "pages": [
+                      "GET /open/agentic_engine/laiye/v1/app/applications",
+                      "GET /open/agentic_engine/laiye/v1/app/applications/{application_id}",
                       "POST /open/agentic_engine/laiye/v1/app/run",
                       "POST /open/agentic_engine/laiye/v1/app/run/create/task",
                       "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}",
                       "POST /open/agentic_engine/laiye/v1/app/run/{run_id}/rerun",
-                      "POST /open/agentic_engine/laiye/v1/app/run/{run_id}/cancel"
+                      "POST /open/agentic_engine/laiye/v1/app/run/{run_id}/cancel",
+                      "POST /open/agentic_engine/laiye/v1/app/runs/export"
                     ]
                   },
                   {
@@ -317,13 +341,37 @@
                     "icon": "asterisk"
                   },
                   {
+                    "group": "Document conversion",
+                    "pages": [
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/doc/convert",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/doc/convert/create/task",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/doc/convert/query/task/{task_id}"
+                    ],
+                    "icon": "asterisk"
+                  },
+                  {
+                    "group": "Webhook",
+                    "pages": [
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/webhook/events",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/webhook/create",
+                      "GET /open/agentic_doc_processor/{tenant_name}/v1/webhook/list",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/webhook/update",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/webhook/delete",
+                      "POST /open/agentic_doc_processor/{tenant_name}/v1/webhook/logs"
+                    ],
+                    "icon": "asterisk"
+                  },
+                  {
                     "group": "Workflow",
                     "pages": [
+                      "GET /open/agentic_engine/laiye/v1/app/applications",
+                      "GET /open/agentic_engine/laiye/v1/app/applications/{application_id}",
                       "POST /open/agentic_engine/laiye/v1/app/run",
                       "POST /open/agentic_engine/laiye/v1/app/run/create/task",
                       "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}",
                       "POST /open/agentic_engine/laiye/v1/app/run/{run_id}/rerun",
-                      "POST /open/agentic_engine/laiye/v1/app/run/{run_id}/cancel"
+                      "POST /open/agentic_engine/laiye/v1/app/run/{run_id}/cancel",
+                      "POST /open/agentic_engine/laiye/v1/app/runs/export"
                     ],
                     "icon": "network"
                   },

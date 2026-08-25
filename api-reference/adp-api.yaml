@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: ADP API
   version: 1.0.0
-  description: Laiye ADP 官方 OpenAPI 接口规范，覆盖文档抽取、文档解析、抽取应用管理、积分查询、工作流运行和工作流文件管理。
+  description: Laiye ADP 官方 OpenAPI 接口规范，覆盖文档抽取、解析与转换，抽取应用管理、Webhook、积分查询，以及工作流发现、运行、导出和文件管理。
   license:
     name: MIT
     identifier: MIT
@@ -14,8 +14,12 @@ tags:
     description: 从上传的文档中抽取结构化字段。
   - name: 文档解析
     description: 识别上传文档中的文字、版面块和位置信息。
+  - name: 文档转换
+    description: 将 PDF、Office、OFD 和图片转换为页面图片或电子表格结构。
   - name: 应用管理
     description: 创建、修改、删除和查询抽取应用及配置。
+  - name: Webhook
+    description: 查询事件目录并管理事件回调。
   - name: 账户
     description: 查询账户积分和使用情况。
   - name: 工作流
@@ -126,6 +130,189 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/DocumentRecognizeResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/doc/convert:
+    post:
+      tags: [文档转换]
+      summary: 文档转换（同步）
+      description: |
+        将 PDF、DOC/DOCX、XLS/XLSX、PPT/PPTX、OFD 或常见图片转换为页面图片；XLSX 也可能返回原生电子表格结构。file_url 与 file_base64 必须二选一。
+
+        当前实现限制输入最大 50 MiB、最多 260 页；同步请求可能在约 120 秒达到服务超时，生产集成优先使用异步创建与查询接口。失败分支可能以 HTTP 200、code=success、data=null 返回，调用方必须确认 data 存在，并检查 task_id、img_detail_list 或电子表格结构字段。返回 URL 当前通常约 1 小时有效，应及时下载。
+      operationId: convertDocument
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentConvertRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentConvertResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/doc/convert/create/task:
+    post:
+      tags: [文档转换]
+      summary: 创建文档转换异步任务
+      description: |
+        创建文档转换任务并立即返回 task_id。当前队列消息保留约 1 小时，单任务消费超时约 180 秒，结果文件通常约 1 小时有效；这些时长尚未作为稳定 SLA。
+
+        创建失败仍可能表现为 HTTP 200、code=success、data=null，必须确认 data.task_id 非空。请使用查询接口轮询结果，并采用退避策略。
+      operationId: createDocumentConvertTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentConvertAsyncRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentConvertTaskResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/doc/convert/query/task/{task_id}:
+    get:
+      tags: [文档转换]
+      summary: 查询文档转换异步任务
+      description: |
+        根据 task_id 查询转换结果。当前响应没有独立的任务状态字段；任务仍在处理时可能返回 code=success 以及空的 img_detail_list/total_num。请使用退避轮询，并在取得页面结果或电子表格结构后再结束。
+
+        空结果不能可靠区分“处理中”和“无可视页面”，请为客户端设置总超时和最大轮询次数。
+      operationId: queryDocumentConvertTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - name: task_id
+          in: path
+          required: true
+          description: 创建异步转换任务后返回的任务 ID。
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentConvertResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/webhook/events:
+    get:
+      tags: [Webhook]
+      summary: 查询 Webhook 事件目录
+      description: |
+        返回当前服务注册、可用于配置订阅的系统事件类型。事件目录只说明事件名称可被配置，不等于每种事件都已提供投递 SLA；回调 data 的字段也可能因事件而异。
+
+        当前目录包含文档解析完成、文档抽取完成，以及人工协作开始/成功/失败/完成/超时等 7 个事件。collaboration_timeout 当前仅表示已注册事件，不承诺一定产生实际投递。
+      operationId: listWebhookEvents
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      responses:
+        '200':
+          $ref: '#/components/responses/WebhookEventListResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/webhook/create:
+    post:
+      tags: [Webhook]
+      summary: 创建 Webhook
+      description: |
+        创建 Webhook 配置。每个账号最多保留 5 个配置；app_id 省略、为 null 或空数组时，订阅当前账号下所有应用，传数组时只订阅指定应用。
+
+        回调使用 POST application/json，请求体为 `{event_type, timestamp, data}`。正式环境会发送 `X-Webhook-Signature: sha256=...` 和 `X-Webhook-Timestamp`；签名计算为 `HMAC-SHA256(secret, timestamp + "." + raw_body)`。
+
+        当前 OpenAPI 不返回、设置或轮换 secret，因此外部调用方无法独立完成验签；失败重试也没有公开 SLA。只可配置由你控制的公网 HTTPS 地址，接收端应快速返回 HTTP 200。
+      operationId: createWebhook
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/WebhookCreateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/WebhookMutationResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/webhook/list:
+    get:
+      tags: [Webhook]
+      summary: 查询 Webhook 配置
+      description: 查询当前账号的 Webhook 配置。可使用 app_id 过滤包含该抽取应用的配置；全应用范围的配置也会匹配。响应不会返回回调签名密钥。
+      operationId: listWebhooks
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - name: app_id
+          in: query
+          required: false
+          description: 按抽取应用 ID 或应用 Key 过滤。
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/WebhookListResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/webhook/update:
+    post:
+      tags: [Webhook]
+      summary: 修改 Webhook
+      description: |
+        修改回调地址、事件类型或应用范围。省略 app_id 表示不修改应用范围；显式传 null 或空数组会清除范围并改为订阅当前账号下所有应用。
+
+        仅传 webhook_id 在后端是合法的空操作。公开合同要求至少提供一个待修改字段；回调地址只应使用由你控制的公网 HTTPS 地址。
+      operationId: updateWebhook
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/WebhookUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/WebhookMutationResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/webhook/delete:
+    post:
+      tags: [Webhook]
+      summary: 删除 Webhook
+      description: 删除当前账号的 Webhook 配置。删除配置不会同步删除已经生成的历史投递日志。
+      operationId: deleteWebhook
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/WebhookDeleteRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyMutationResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/webhook/logs:
+    post:
+      tags: [Webhook]
+      summary: 查询 Webhook 投递日志
+      description: |
+        查询 Webhook 投递结果。默认返回最近 72 小时，单次时间范围最多 30 天；response_body 最多保留约 2000 个字符，可能包含接收端返回的业务或敏感信息。
+
+        当前服务按租户范围查询日志，而不是按创建 Webhook 的用户二次隔离。该接口只应由受控租户的管理员 Access Key 使用，并应尽量传 webhook_id 收窄范围。不要向普通终端用户暴露日志响应。
+      operationId: queryWebhookLogs
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        $ref: '#/components/requestBodies/WebhookLogQueryRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/WebhookLogResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create:
@@ -424,6 +611,67 @@ paths:
           $ref: '#/components/responses/UserPaymentResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/v1/app/applications:
+    get:
+      tags: [工作流]
+      summary: 查询可运行的工作流应用
+      description: 查询当前 Access Key 可见且已发布的工作流应用，可按名称搜索并分页。使用返回的 id 作为运行接口的 application_id。
+      operationId: listWorkflowApplications
+      security:
+        - EngineApiKeyAuth: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          description: 按应用名称搜索。
+          schema:
+            type: string
+        - name: offset
+          in: query
+          required: false
+          description: 分页偏移量。
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: size
+          in: query
+          required: false
+          description: 每页数量。
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          $ref: '#/components/responses/WorkflowApplicationListResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/v1/app/applications/{application_id}:
+    get:
+      tags: [工作流]
+      summary: 查询工作流应用详情（受限预览）
+      description: |
+        根据应用 ID 查询名称、描述、状态和标签。
+
+        受限预览：当前详情路由的可见性校验与列表路由不完全一致。仅查询由当前账号拥有或明确共享给当前租户、且已从列表中取得的 application_id；不要把任意外部 ID 直接传入该接口。
+      operationId: getWorkflowApplication
+      security:
+        - EngineApiKeyAuth: []
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          description: 从工作流应用列表取得的应用 ID。
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          $ref: '#/components/responses/WorkflowApplicationResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /open/agentic_engine/laiye/v1/app/run:
     post:
       tags: [工作流]
@@ -499,6 +747,24 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/DocFlowRunResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/v1/app/runs/export:
+    post:
+      tags: [工作流]
+      summary: 导出工作流运行记录（受限预览）
+      description: |
+        将指定工作流运行记录导出为 Excel、Word、Markdown 或 JSON，并返回临时下载地址及运行摘要。公开合同要求显式提供至少一个 run_id，不开放后端“空列表导出应用全部运行”的兼容行为。
+
+        当前实现单次最多处理 200 个运行、最多生成 500,000 行，临时文件通常约 1 小时有效。受限预览：路由只校验 Access Key 和租户，没有独立的管理员角色或应用可见性校验。仅可在受控租户中，由管理员导出自己确认有权访问的 application_id 和 run_ids。导出内容可能包含工作流输入、节点输出和业务数据；下载后应按原始数据等级保护。
+      operationId: exportWorkflowRuns
+      security:
+        - EngineApiKeyAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/WorkflowRunExportRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/WorkflowRunExportResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_engine/laiye/files/upload:
@@ -833,6 +1099,86 @@ components:
             $ref: '#/components/schemas/DocFlowCancelRunRequest'
           example:
             reason: 用户主动取消
+    DocumentConvertRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentConvertRequest'
+          examples:
+            fileUrl:
+              value:
+                file_url: https://example.com/invoice.pdf
+                scale: 1
+                first_convert_page: 1
+                last_convert_page: 5
+                result_mode: url
+            fileBase64:
+              value:
+                file_base64: JVBERi0xLjQKJcfs...
+                result_mode: base64
+    DocumentConvertAsyncRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentConvertAsyncRequest'
+          example:
+            file_url: https://example.com/long-document.pdf
+            first_convert_page: 1
+            last_convert_page: 20
+    WebhookCreateRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WebhookCreateRequest'
+          example:
+            webhook_url: https://hooks.example.com/adp
+            event_types: [doc_extract_completed]
+            app_id: [app_abc123]
+    WebhookUpdateRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WebhookUpdateRequest'
+          example:
+            webhook_id: webhook_abc123
+            event_types: [doc_parse_completed, doc_extract_completed]
+    WebhookDeleteRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WebhookDeleteRequest'
+          example:
+            webhook_id: webhook_abc123
+    WebhookLogQueryRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WebhookLogQueryRequest'
+          example:
+            webhook_id: webhook_abc123
+            start_time: '2026-08-01 00:00:00'
+            end_time: '2026-08-02 00:00:00'
+            page: 1
+            page_size: 20
+    WorkflowRunExportRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WorkflowRunExportRequest'
+          example:
+            application_id: app_abc123
+            run_ids: [run_xyz789]
+            format: excel
+            report_mode: merged
+            include_failed_runs: false
+            max_text_length: 10000
   responses:
     SimpleResponse:
       description: 通用响应。
@@ -1140,7 +1486,640 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/FileInfoResponse'
+    DocumentConvertTaskResponse:
+      description: 文档转换异步任务创建结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentConvertTaskResponse'
+          examples:
+            created:
+              value:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  task_id: task_abc123
+            failedButWrappedAsSuccess:
+              summary: 当前失败分支可能出现的响应
+              value:
+                code: success
+                message: ''
+                tips: null
+                data: null
+    DocumentConvertResponse:
+      description: 文档转换结果。处理中或失败时可能返回空结果或 data=null。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentConvertResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              task_id: task_abc123
+              img_detail_list:
+                - page_num: 1
+                  img_base64: ''
+                  img_url: https://example.com/temp/task_abc123/page-1.png
+                  width: 1240
+                  height: 1754
+                  preprocess: {}
+              total_num: 1
+              metadata: {}
+              file_type: pdf
+              source_file_type: pdf
+              spreadsheet_manifest_file_id: ''
+              spreadsheet_manifest_url: ''
+              view_type: ''
+              page_count: 1
+              sheet_count: 0
+              logical_unit_count: 0
+              document_contents: []
+              document_details: []
+              warnings: []
+              billing: {}
+    WebhookEventListResponse:
+      description: Webhook 系统事件目录。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WebhookEventListResponse'
+    WebhookMutationResponse:
+      description: Webhook 创建或修改结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WebhookMutationResponse'
+    EmptyMutationResponse:
+      description: 操作成功，data 为空对象。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EmptyDataResponse'
+    WebhookListResponse:
+      description: 当前账号的 Webhook 配置列表，不包含签名密钥。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WebhookListResponse'
+    WebhookLogResponse:
+      description: Webhook 投递日志。response_body 可能包含敏感数据。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WebhookLogResponse'
+    WorkflowApplicationListResponse:
+      description: 当前 Access Key 可见的已发布工作流应用列表。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WorkflowApplicationListResponse'
+    WorkflowApplicationResponse:
+      description: 工作流应用详情。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WorkflowApplicationResponse'
+    WorkflowRunExportResponse:
+      description: 工作流运行记录导出结果。下载地址按临时敏感链接处理。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WorkflowRunExportResponse'
   schemas:
+    # Schemas for the public and limited-preview operations above.
+    DocumentConvertRequest:
+      type: object
+      additionalProperties: false
+      oneOf:
+        - title: 使用文件 URL
+          required: [file_url]
+        - title: 使用 Base64 文件
+          required: [file_base64]
+      properties:
+        file_url:
+          type: string
+          format: uri
+          maxLength: 2048
+          description: 待转换文件的公网 HTTPS URL。不要传入内网地址或带长期凭证的 URL。
+        file_base64:
+          type: string
+          format: byte
+          description: 待转换文件的 Base64 内容。解码后最大 50 MiB。
+        scale:
+          type: number
+          exclusiveMinimum: 0
+          default: 1
+          description: 页面缩放比例。服务端当前未设置稳定上限，建议使用默认值。
+        first_convert_page:
+          type: integer
+          minimum: 1
+          description: 转换起始页，从 1 开始；省略表示从第一页开始。
+        last_convert_page:
+          type: integer
+          minimum: 1
+          description: 转换结束页，从 1 开始且不能小于起始页；省略表示到最后一页。
+        result_mode:
+          type: string
+          enum: [url, base64]
+          default: url
+          description: 页面图片返回方式。URL 为临时结果；Base64 会显著增加响应体。
+    DocumentConvertAsyncRequest:
+      type: object
+      additionalProperties: false
+      oneOf:
+        - title: 使用文件 URL
+          required: [file_url]
+        - title: 使用 Base64 文件
+          required: [file_base64]
+      properties:
+        file_url:
+          type: string
+          format: uri
+          maxLength: 2048
+          description: 待转换文件的公网 HTTPS URL。
+        file_base64:
+          type: string
+          format: byte
+          description: 待转换文件的 Base64 内容。解码后最大 50 MiB。
+        scale:
+          type: number
+          exclusiveMinimum: 0
+          default: 1
+        first_convert_page:
+          type: integer
+          minimum: 1
+        last_convert_page:
+          type: integer
+          minimum: 1
+      description: 异步转换当前固定以 URL 返回页面结果，后端会忽略 result_mode，因此公共合同不暴露该字段。
+    DocumentConvertTaskResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              oneOf:
+                - type: object
+                  properties:
+                    task_id:
+                      type: string
+                  required: [task_id]
+                - type: 'null'
+    DocumentConvertResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              oneOf:
+                - $ref: '#/components/schemas/DocumentConvertData'
+                - type: 'null'
+    DocumentConvertData:
+      type: object
+      properties:
+        task_id:
+          type: string
+        img_detail_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentConvertImage'
+        total_num:
+          type: integer
+          minimum: 0
+        metadata:
+          type: object
+          additionalProperties: true
+        file_type:
+          type: string
+          description: 转换结果类型，例如 pdf、image 或 spreadsheet。
+        source_file_type:
+          type: string
+          description: 检测到的源文件扩展类型。
+        spreadsheet_manifest_file_id:
+          type: string
+        spreadsheet_manifest_url:
+          type: string
+          description: Excel 原生预览 Manifest 临时下载地址。
+        view_type:
+          type: string
+          description: Excel 原生解析时为 spreadsheet。
+        page_count:
+          type: integer
+          minimum: 0
+        sheet_count:
+          type: integer
+          minimum: 0
+        logical_unit_count:
+          type: integer
+          minimum: 0
+        document_contents:
+          type: array
+          items:
+            type: string
+        document_details:
+          type: array
+          items: {}
+        warnings:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        billing:
+          type: object
+          additionalProperties: true
+      required: [task_id, img_detail_list, total_num, metadata, file_type, source_file_type, spreadsheet_manifest_file_id, spreadsheet_manifest_url, view_type, page_count, sheet_count, logical_unit_count, document_contents, document_details, warnings, billing]
+    DocumentConvertImage:
+      type: object
+      properties:
+        page_num: {type: integer, minimum: 0}
+        img_base64:
+          type: string
+          description: result_mode=base64 时的页面图片内容，否则通常为空字符串。
+        img_url:
+          type: string
+          description: result_mode=url 时的临时页面地址，否则通常为空字符串。
+        width: {type: integer, minimum: 0}
+        height: {type: integer, minimum: 0}
+        preprocess:
+          type: object
+          additionalProperties: true
+      required: [page_num, img_base64, img_url, width, height, preprocess]
+    EmptyDataResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+          required: [data]
+    WebhookEventType:
+      type: string
+      enum:
+        - doc_parse_completed
+        - doc_extract_completed
+        - collaboration_start
+        - collaboration_success
+        - collaboration_failed
+        - collaboration_completed
+        - collaboration_timeout
+    WebhookEventListResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                events:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/WebhookEvent'
+              required: [events]
+          required: [data]
+    WebhookEvent:
+      type: object
+      properties:
+        event_type:
+          $ref: '#/components/schemas/WebhookEventType'
+        name:
+          type: string
+        description:
+          type: string
+      required: [event_type, name, description]
+    WebhookCreateRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        webhook_url:
+          type: string
+          format: uri
+          pattern: '^https://'
+          maxLength: 512
+          description: 由调用方控制的公网 HTTPS 回调地址。公共合同不接受 HTTP 或内网地址。
+        event_types:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/WebhookEventType'
+        app_id:
+          type: [array, 'null']
+          uniqueItems: true
+          description: 应用范围；省略、null 或空数组表示当前账号的全部应用。
+          items:
+            type: string
+            minLength: 1
+      required: [webhook_url, event_types]
+    WebhookUpdateRequest:
+      type: object
+      additionalProperties: false
+      anyOf:
+        - required: [webhook_url]
+        - required: [event_types]
+        - required: [app_id]
+      properties:
+        webhook_id:
+          type: string
+          minLength: 1
+        webhook_url:
+          type: string
+          format: uri
+          pattern: '^https://'
+          maxLength: 512
+          description: 新的公网 HTTPS 回调地址。
+        event_types:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/WebhookEventType'
+        app_id:
+          type: [array, 'null']
+          uniqueItems: true
+          description: 显式 null 或空数组会清空应用范围；省略时保持不变。
+          items:
+            type: string
+            minLength: 1
+      required: [webhook_id]
+    WebhookDeleteRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        webhook_id:
+          type: string
+          minLength: 1
+      required: [webhook_id]
+    WebhookMutationResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              oneOf:
+                - type: object
+                  properties:
+                    webhook_id:
+                      type: string
+                  required: [webhook_id]
+                - type: 'null'
+    WebhookListResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                webhook_list:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/WebhookConfig'
+              required: [webhook_list]
+          required: [data]
+    WebhookConfig:
+      type: object
+      properties:
+        webhook_id: {type: string}
+        webhook_url:
+          type: string
+          format: uri
+        event_types:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookEventType'
+        app_id:
+          type: [array, 'null']
+          items:
+            type: string
+        is_active:
+          type: integer
+          enum: [0, 1]
+        created_at:
+          type: [string, 'null']
+          format: date-time
+        updated_at:
+          type: [string, 'null']
+          format: date-time
+      required: [webhook_id, webhook_url, event_types, is_active]
+    WebhookLogQueryRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        webhook_id:
+          type: [string, 'null']
+          description: Webhook 配置 ID；建议始终提供以收窄日志查询范围。
+        start_time:
+          type: [string, 'null']
+          pattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
+          description: 起始时间，格式 YYYY-MM-DD HH:mm:ss。省略时默认为结束时间前 72 小时。
+        end_time:
+          type: [string, 'null']
+          pattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
+          description: 结束时间，格式 YYYY-MM-DD HH:mm:ss。省略时为当前时间。
+        page:
+          type: integer
+          default: 1
+          minimum: 1
+        page_size:
+          type: integer
+          default: 20
+          minimum: 1
+          maximum: 100
+    WebhookLogResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                logs:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/WebhookLog'
+                total: {type: integer, minimum: 0}
+                page: {type: integer, minimum: 1}
+                page_size: {type: integer, minimum: 1, maximum: 100}
+              required: [logs, total, page, page_size]
+          required: [data]
+    WebhookLog:
+      type: object
+      properties:
+        id: {type: string}
+        webhook_id: {type: string}
+        webhook_url:
+          type: string
+          format: uri
+        event_type:
+          $ref: '#/components/schemas/WebhookEventType'
+        app_id: {type: [string, 'null']}
+        app_name: {type: [string, 'null']}
+        status:
+          type: string
+          enum: [pending, success, failed, final_failed]
+        retry_count: {type: integer, minimum: 0}
+        next_retry_at:
+          type: [string, 'null']
+          format: date-time
+        response_code: {type: [integer, 'null']}
+        response_body:
+          type: [string, 'null']
+          maxLength: 2000
+          description: 接收端最后一次响应或错误信息，可能包含敏感数据。
+        delivered_at:
+          type: [string, 'null']
+          format: date-time
+        created_at:
+          type: [string, 'null']
+          format: date-time
+      required: [id, webhook_id, webhook_url, event_type, status, retry_count]
+    WorkflowApplication:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 工作流应用 ID。
+        name:
+          type: string
+        description:
+          type: [string, 'null']
+        status:
+          type: string
+        tags:
+          type: [array, 'null']
+          items:
+            type: string
+      required: [id, name, description, status, tags]
+    WorkflowApplicationListResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                range:
+                  type: object
+                  properties:
+                    offset: {type: integer, minimum: 0}
+                    size: {type: integer, minimum: 1}
+                    total: {type: [integer, 'null'], minimum: 0}
+                  required: [offset, size, total]
+                list:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/WorkflowApplication'
+              required: [range, list]
+          required: [data]
+    WorkflowApplicationResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              oneOf:
+                - $ref: '#/components/schemas/WorkflowApplication'
+                - type: 'null'
+    WorkflowRunExportRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        application_id:
+          type: string
+          minLength: 1
+          description: 工作流应用 ID。
+        run_ids:
+          type: array
+          minItems: 1
+          maxItems: 200
+          uniqueItems: true
+          description: 明确授权导出的运行 ID。公共合同不允许 null 或空数组导出全部运行。
+          items:
+            type: string
+            minLength: 1
+        node_ids:
+          type: array
+          uniqueItems: true
+          description: 可选的节点 ID 列表；省略时包含运行中的全部可导出节点。
+          items:
+            type: string
+            minLength: 1
+        format:
+          type: string
+          enum: [excel, word, markdown, json]
+          default: excel
+        report_mode:
+          type: string
+          enum: [merged, per_run]
+          default: merged
+          description: merged 合并为一份报告；per_run 按运行拆分。
+        include_failed_runs:
+          type: boolean
+          default: false
+        primary_key_variable:
+          type: string
+          description: 可选的工作流输入变量名，用作导出主键。
+        max_text_length:
+          type: integer
+          minimum: 1
+          maximum: 30000
+          default: 10000
+          description: 单个文本值导出的最大字符数；当前路由实际默认 10000。
+      required: [application_id, run_ids]
+    WorkflowRunExportResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              oneOf:
+                - $ref: '#/components/schemas/WorkflowRunExportData'
+                - type: 'null'
+    WorkflowRunExportData:
+      type: object
+      properties:
+        file_id: {type: string}
+        download_url:
+          type: string
+          format: uri
+          description: 临时下载地址；当前实现通常约 1 小时，未作为稳定 SLA。
+        filename: {type: string}
+        file_size: {type: integer, minimum: 0}
+        format:
+          type: string
+          enum: [excel, word, markdown, json]
+        report_mode:
+          type: string
+          enum: [merged, per_run]
+        total_runs: {type: integer, minimum: 0, maximum: 200}
+        included_runs: {type: integer, minimum: 0, maximum: 200}
+        skipped_runs: {type: integer, minimum: 0, maximum: 200}
+        run_summaries:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowRunExportSummary'
+        export_time:
+          type: string
+          format: date-time
+      required: [file_id, download_url, filename, file_size, format, report_mode, total_runs, included_runs, skipped_runs, run_summaries, export_time]
+    WorkflowRunExportSummary:
+      type: object
+      properties:
+        run_id: {type: string}
+        status: {type: string}
+        started_at:
+          type: [string, 'null']
+          format: date-time
+        ended_at:
+          type: [string, 'null']
+          format: date-time
+        included_nodes: {type: integer, minimum: 0}
+        skipped_nodes: {type: integer, minimum: 0}
+      required: [run_id, status, started_at, ended_at, included_nodes, skipped_nodes]
     SimpleResponse:
       type: object
       properties:
@@ -1244,24 +2223,25 @@ components:
     DocumentRecognizeConfig:
       type: object
       additionalProperties: false
-      description: |
-        本次调用使用的解析配置。不同解析模式支持的配置能力不同：
-
-        - standard：标准解析，适用于清晰的电子版文档，支持显示来源位置、PDF 文本优先和印章识别。
-        - advance：增强解析 1.0，适用于印章、签名、多表格等格式较复杂的文档；不支持显示来源位置。
-        - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，支持显示来源位置、PDF 文本优先和印章识别。
-        - agentic：智能解析，自动组合多种模型处理复杂文档，支持显示来源位置、PDF 文本优先和印章识别。
+      description: 本次调用使用的解析配置。
       properties:
         recognize_mode:
           type: string
-          enum: [standard, advance, fast_vlm, agentic, agentic_v2]
+          enum: [standard, advance, agentic, fast_vlm, agentic_v2]
           default: standard
-          description: 解析模式。
+          description: |
+            解析模式。可选值如下：
+
+            - standard：标准解析，主要使用 LaiyeOCR / dotsOCR。
+            - advance：增强解析，主要使用 Nanonets OCR。
+            - agentic：智能解析，组合标准解析与增强解析，并按条件进行二次解析。
+            - fast_vlm：快速 VLM 解析，图片直接转换为 Markdown。
+            - agentic_v2：智能解析 2.0，使用 NaviDC-OCR 处理链路。
         enable_highlight:
           type: integer
           enum: [0, 1]
           default: 1
-          description: 是否显示来源位置。1 表示保留文本块和表格在原文中的位置；0 表示不返回位置。仅 standard、fast_vlm、agentic 模式支持。
+          description: 是否显示来源位置。1 表示保留文本块和表格在原文中的位置；0 表示不返回位置。standard、agentic、fast_vlm、agentic_v2 模式支持，advance 模式不支持。
         enable_pdf_parse:
           type: boolean
           default: false
@@ -1625,20 +2605,20 @@ components:
             $ref: '#/components/schemas/ExtractionFieldConfig'
         parse_mode:
           type: string
-          enum: [standard, advance, fast_vlm, agentic, agentic_v2]
+          enum: [standard, advance, agentic, fast_vlm, agentic_v2]
           description: |
-            解析模式。标准版自定义抽取应用必填；不同模式适用于不同版式复杂度和准确率要求的文档。模式能力与 Web 端解析配置一致：
+            解析模式。标准版自定义抽取应用必填。可选解析模式如下：
 
-            - standard：标准解析，适用于清晰的电子版文档，支持显示来源位置、PDF 文本优先和印章识别。
-            - advance：增强解析 1.0，适用于印章、签名、多表格等格式较复杂的文档；不支持显示来源位置。
-            - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，支持显示来源位置、PDF 文本优先和印章识别。
-            - agentic：智能解析，自动组合多种模型处理复杂文档，支持显示来源位置、PDF 文本优先和印章识别。
-            - agentic_v2：智能解析 2.0，使用新版智能解析流程处理复杂文档。
+            - standard：标准解析，主要使用 LaiyeOCR / dotsOCR。
+            - advance：增强解析，主要使用 Nanonets OCR。
+            - agentic：智能解析，组合标准解析与增强解析，并按条件进行二次解析。
+            - fast_vlm：快速 VLM 解析，图片直接转换为 Markdown。
+            - agentic_v2：智能解析 2.0，使用 NaviDC-OCR 处理链路。
         enable_highlight:
           type: integer
           enum: [0, 1]
           default: 1
-          description: 是否显示来源位置。传 1 开启，传 0 关闭；standard、fast_vlm、agentic 支持，advance 不支持。
+          description: 是否显示来源位置。传 1 开启，传 0 关闭；standard、agentic、fast_vlm、agentic_v2 支持，advance 不支持。
         enable_pdf_parse:
           type: boolean
           default: false
@@ -1798,20 +2778,20 @@ components:
             $ref: '#/components/schemas/ExtractionFieldConfig'
         parse_mode:
           type: string
-          enum: [standard, advance, fast_vlm, agentic, agentic_v2]
+          enum: [standard, advance, agentic, fast_vlm, agentic_v2]
           description: |
-            解析模式。标准版自定义抽取应用必填；高速版自定义抽取应用不支持设置该参数。模式能力与 Web 端解析配置一致：
+            解析模式。标准版自定义抽取应用必填；高速版自定义抽取应用不支持设置该参数。可选解析模式如下：
 
-            - standard：标准解析，适用于清晰的电子版文档，支持显示来源位置、PDF 文本优先和印章识别。
-            - advance：增强解析 1.0，适用于印章、签名、多表格等格式较复杂的文档；不支持显示来源位置。
-            - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，支持显示来源位置、PDF 文本优先和印章识别。
-            - agentic：智能解析，自动组合多种模型处理复杂文档，支持显示来源位置、PDF 文本优先和印章识别。
-            - agentic_v2：智能解析 2.0，使用新版智能解析流程处理复杂文档。
+            - standard：标准解析，主要使用 LaiyeOCR / dotsOCR。
+            - advance：增强解析，主要使用 Nanonets OCR。
+            - agentic：智能解析，组合标准解析与增强解析，并按条件进行二次解析。
+            - fast_vlm：快速 VLM 解析，图片直接转换为 Markdown。
+            - agentic_v2：智能解析 2.0，使用 NaviDC-OCR 处理链路。
         enable_highlight:
           type: integer
           enum: [0, 1]
           default: 1
-          description: 是否显示来源位置。传 1 开启，传 0 关闭；standard、fast_vlm、agentic 支持，advance 不支持。
+          description: 是否显示来源位置。传 1 开启，传 0 关闭；standard、agentic、fast_vlm、agentic_v2 支持，advance 不支持。
         enable_pdf_parse:
           type: boolean
           default: false
