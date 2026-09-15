@@ -2232,11 +2232,11 @@ components:
           description: |
             解析模式。可选值如下：
 
-            - standard：标准解析，主要使用 LaiyeOCR / dotsOCR。
-            - advance：增强解析，主要使用 Nanonets OCR。
+            - standard：标准解析，适用于清晰的电子版文档，速度和准确率均衡。
+            - advance：增强解析 1.0，适用于印章、签名、多表格等版式较复杂的文档。
             - agentic：智能解析，组合标准解析与增强解析，并按条件进行二次解析。
-            - fast_vlm：快速 VLM 解析，图片直接转换为 Markdown。
-            - agentic_v2：智能解析 2.0，使用 NaviDC-OCR 处理链路。
+            - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，提升解析稳定性。
+            - agentic_v2：智能解析 2.0，采用两阶段版面分析与内容识别，适用于复杂版式、表格和公式文档。
         enable_highlight:
           type: integer
           enum: [0, 1]
@@ -2609,11 +2609,11 @@ components:
           description: |
             解析模式。标准版自定义抽取应用必填。可选解析模式如下：
 
-            - standard：标准解析，主要使用 LaiyeOCR / dotsOCR。
-            - advance：增强解析，主要使用 Nanonets OCR。
+            - standard：标准解析，适用于清晰的电子版文档，速度和准确率均衡。
+            - advance：增强解析 1.0，适用于印章、签名、多表格等版式较复杂的文档。
             - agentic：智能解析，组合标准解析与增强解析，并按条件进行二次解析。
-            - fast_vlm：快速 VLM 解析，图片直接转换为 Markdown。
-            - agentic_v2：智能解析 2.0，使用 NaviDC-OCR 处理链路。
+            - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，提升解析稳定性。
+            - agentic_v2：智能解析 2.0，采用两阶段版面分析与内容识别，适用于复杂版式、表格和公式文档。
         enable_highlight:
           type: integer
           enum: [0, 1]
@@ -2782,11 +2782,11 @@ components:
           description: |
             解析模式。标准版自定义抽取应用必填；高速版自定义抽取应用不支持设置该参数。可选解析模式如下：
 
-            - standard：标准解析，主要使用 LaiyeOCR / dotsOCR。
-            - advance：增强解析，主要使用 Nanonets OCR。
+            - standard：标准解析，适用于清晰的电子版文档，速度和准确率均衡。
+            - advance：增强解析 1.0，适用于印章、签名、多表格等版式较复杂的文档。
             - agentic：智能解析，组合标准解析与增强解析，并按条件进行二次解析。
-            - fast_vlm：快速 VLM 解析，图片直接转换为 Markdown。
-            - agentic_v2：智能解析 2.0，使用 NaviDC-OCR 处理链路。
+            - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，提升解析稳定性。
+            - agentic_v2：智能解析 2.0，采用两阶段版面分析与内容识别，适用于复杂版式、表格和公式文档。
         enable_highlight:
           type: integer
           enum: [0, 1]

@@ -2223,11 +2223,11 @@ components:
           description: |
             Parsing mode. Available values are:
 
-            - standard: Standard parsing, primarily using LaiyeOCR / dotsOCR.
-            - advance: Enhanced parsing, primarily using Nanonets OCR.
+            - standard: Standard parsing for clear digital documents, balancing speed and accuracy.
+            - advance: Enhanced parsing 1.0 for documents with stamps, signatures, multiple tables, or moderately complex layouts.
             - agentic: Smart parsing that combines standard and enhanced parsing and performs secondary parsing when conditions are met.
-            - fast_vlm: Fast VLM parsing that converts images directly to Markdown.
-            - agentic_v2: Smart parsing 2.0 using the NaviDC-OCR processing pipeline.
+            - fast_vlm: Enhanced parsing 2.0 for complex layouts, scanned documents, and documents with multiple tables, improving parsing stability.
+            - agentic_v2: Smart parsing 2.0 with two-stage layout analysis and content recognition for documents with complex layouts, tables, and formulas.
         enable_highlight:
           type: integer
           enum: [0, 1]
@@ -2614,11 +2614,11 @@ components:
           description: |
             Parsing mode. Required for standard custom extraction applications. Available parsing modes are:
 
-            - standard: Standard parsing, primarily using LaiyeOCR / dotsOCR.
-            - advance: Enhanced parsing, primarily using Nanonets OCR.
+            - standard: Standard parsing for clear digital documents, balancing speed and accuracy.
+            - advance: Enhanced parsing 1.0 for documents with stamps, signatures, multiple tables, or moderately complex layouts.
             - agentic: Smart parsing that combines standard and enhanced parsing and performs secondary parsing when conditions are met.
-            - fast_vlm: Fast VLM parsing that converts images directly to Markdown.
-            - agentic_v2: Smart parsing 2.0 using the NaviDC-OCR processing pipeline.
+            - fast_vlm: Enhanced parsing 2.0 for complex layouts, scanned documents, and documents with multiple tables, improving parsing stability.
+            - agentic_v2: Smart parsing 2.0 with two-stage layout analysis and content recognition for documents with complex layouts, tables, and formulas.
         enable_highlight:
           type: integer
           enum: [0, 1]
@@ -2787,11 +2787,11 @@ components:
           description: |
             Parsing mode. Required for standard custom extraction applications. High-speed custom extraction applications do not support setting this parameter. Available parsing modes are:
 
-            - standard: Standard parsing, primarily using LaiyeOCR / dotsOCR.
-            - advance: Enhanced parsing, primarily using Nanonets OCR.
+            - standard: Standard parsing for clear digital documents, balancing speed and accuracy.
+            - advance: Enhanced parsing 1.0 for documents with stamps, signatures, multiple tables, or moderately complex layouts.
             - agentic: Smart parsing that combines standard and enhanced parsing and performs secondary parsing when conditions are met.
-            - fast_vlm: Fast VLM parsing that converts images directly to Markdown.
-            - agentic_v2: Smart parsing 2.0 using the NaviDC-OCR processing pipeline.
+            - fast_vlm: Enhanced parsing 2.0 for complex layouts, scanned documents, and documents with multiple tables, improving parsing stability.
+            - agentic_v2: Smart parsing 2.0 with two-stage layout analysis and content recognition for documents with complex layouts, tables, and formulas.
         enable_highlight:
           type: integer
           enum: [0, 1]
