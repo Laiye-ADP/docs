@@ -55,9 +55,9 @@
                     "group": "海外发票和收据",
                     "root": "api-reference/preset-overseas-documents",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+                      "api-reference/preset-overseas-documents/extract-overseas-documents",
+                      "api-reference/preset-overseas-documents/create-overseas-document-extract-task",
+                      "api-reference/preset-overseas-documents/query-overseas-document-extract-task"
                     ],
                     "openapi": {
                       "source": "/api-reference/preset-overseas-documents.yaml",
@@ -69,9 +69,9 @@
                     "group": "采购订单",
                     "root": "api-reference/preset-purchase-orders",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+                      "api-reference/preset-purchase-orders/extract-purchase-order",
+                      "api-reference/preset-purchase-orders/create-purchase-order-extract-task",
+                      "api-reference/preset-purchase-orders/query-purchase-order-extract-task"
                     ],
                     "openapi": {
                       "source": "/api-reference/preset-purchase-orders.yaml",
@@ -83,10 +83,10 @@
                     "group": "国内通用票据",
                     "root": "api-reference/preset-domestic-bills",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/invoice/verify"
+                      "api-reference/preset-domestic-bills/extract-domestic-bill",
+                      "api-reference/preset-domestic-bills/create-domestic-bill-extract-task",
+                      "api-reference/preset-domestic-bills/query-domestic-bill-extract-task",
+                      "api-reference/preset-domestic-bills/verify-domestic-invoice"
                     ],
                     "openapi": {
                       "source": "/api-reference/preset-domestic-bills.yaml",
@@ -98,9 +98,9 @@
                     "group": "卡证",
                     "root": "api-reference/preset-cards",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+                      "api-reference/preset-cards/extract-card-document",
+                      "api-reference/preset-cards/create-card-document-extract-task",
+                      "api-reference/preset-cards/query-card-document-extract-task"
                     ],
                     "openapi": {
                       "source": "/api-reference/preset-cards.yaml",
@@ -111,39 +111,39 @@
                   {
                     "group": "自定义抽取应用",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+                      "api-reference/adp-api/document-extraction/extract-document",
+                      "api-reference/adp-api/document-extraction/create-document-extract-task",
+                      "api-reference/adp-api/document-extraction/query-document-extract-task"
                     ],
                     "icon": "asterisk"
                   },                
                   {
                     "group": "文档解析",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize/create/task",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize/query/task/{task_id}"
+                      "api-reference/adp-api/document-parsing/recognize-document",
+                      "api-reference/adp-api/document-parsing/create-document-recognize-task",
+                      "api-reference/adp-api/document-parsing/query-document-recognize-task"
                     ],
                     "icon": "asterisk"
                   },
                   {
                     "group": "文档转换",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/doc/convert",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/doc/convert/create/task",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/doc/convert/query/task/{task_id}"
+                      "api-reference/adp-api/document-conversion/convert-document",
+                      "api-reference/adp-api/document-conversion/create-document-convert-task",
+                      "api-reference/adp-api/document-conversion/query-document-convert-task"
                     ],
                     "icon": "asterisk"
                   },
                   {
                     "group": "Webhook",
                     "pages": [
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/webhook/events",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/webhook/create",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/webhook/list",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/webhook/update",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/webhook/delete",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/webhook/logs"
+                      "api-reference/adp-api/webhooks/list-webhook-events",
+                      "api-reference/adp-api/webhooks/create-webhook",
+                      "api-reference/adp-api/webhooks/list-webhooks",
+                      "api-reference/adp-api/webhooks/update-webhook",
+                      "api-reference/adp-api/webhooks/delete-webhook",
+                      "api-reference/adp-api/webhooks/query-webhook-logs"
                     ],
                     "icon": "asterisk"
                   },
@@ -151,13 +151,13 @@
                     "group": "应用管理",
                     "root": "api-reference/application-management",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app-list",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend"
+                      "api-reference/adp-api/application-management/create-extraction-application",
+                      "api-reference/adp-api/application-management/delete-extraction-application",
+                      "api-reference/adp-api/application-management/update-extraction-application",
+                      "api-reference/adp-api/application-management/list-applications",
+                      "api-reference/adp-api/application-management/get-application-configuration",
+                      "api-reference/adp-api/application-management/delete-application-configuration",
+                      "api-reference/adp-api/application-management/generate-extraction-field-prompts"
                     ],
                     "icon": "asterisk"
                   },
@@ -165,21 +165,21 @@
                     "group": "工作流",
                     "icon": "network",
                     "pages": [
-                      "GET /open/agentic_engine/laiye/v1/app/applications",
-                      "GET /open/agentic_engine/laiye/v1/app/applications/{application_id}",
-                      "POST /open/agentic_engine/laiye/v1/app/run",
-                      "POST /open/agentic_engine/laiye/v1/app/run/create/task",
-                      "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}",
-                      "POST /open/agentic_engine/laiye/v1/app/run/{run_id}/rerun",
-                      "POST /open/agentic_engine/laiye/v1/app/run/{run_id}/cancel",
-                      "POST /open/agentic_engine/laiye/v1/app/runs/export"
+                      "api-reference/adp-api/workflows/list-workflow-applications",
+                      "api-reference/adp-api/workflows/get-workflow-application",
+                      "api-reference/adp-api/workflows/run-doc-flow-app",
+                      "api-reference/adp-api/workflows/create-doc-flow-run-task",
+                      "api-reference/adp-api/workflows/query-doc-flow-run-task",
+                      "api-reference/adp-api/workflows/rerun-doc-flow-run-task",
+                      "api-reference/adp-api/workflows/cancel-doc-flow-run-task",
+                      "api-reference/adp-api/workflows/export-workflow-runs"
                     ]
                   },
                   {
                     "group": "获取文件URL",
                     "pages": [
-                      "POST /open/agentic_engine/laiye/files/upload",
-                      "GET /open/agentic_engine/laiye/files/{file_id}"
+                      "api-reference/adp-api/workflow-files/upload-doc-flow-file",
+                      "api-reference/adp-api/workflow-files/get-doc-flow-file"
                     ],
                     "icon": "file-output"
                   },
@@ -187,7 +187,7 @@
                     "group": "账户",
                     "icon": "circle-dollar-sign",
                     "pages": [
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/user/payment"
+                      "api-reference/adp-api/account/get-user-payment"
                     ]
                   }
                 ],
