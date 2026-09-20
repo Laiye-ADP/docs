@@ -128,7 +128,7 @@ components:
       type: apiKey
       in: header
       name: X-API-Key
-      description: ADP OpenAPI key.
+      description: ADP API Key.
   parameters:
     TenantName:
       name: tenant_name
@@ -447,7 +447,7 @@ components:
                   fpDate: '2026-08-25'
                   fpAmount: '100.00'
     UnauthorizedError:
-      description: A valid OpenAPI key was not provided.
+      description: A valid API Key was not provided.
       headers:
         X-Process-Time:
           $ref: '#/components/headers/ProcessTime'

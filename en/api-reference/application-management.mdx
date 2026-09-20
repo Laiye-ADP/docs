@@ -1,0 +1,59 @@
+---
+title: "Application management"
+description: "Learn about ADP application types and review the available ready-to-use applications."
+---
+
+ADP organizes document processing capabilities as applications. You can use system-provided ready-to-use applications or create custom extraction and workflow applications for your business.
+
+<Columns cols={3}>
+  <Card title="Ready-to-use applications" icon="sparkles">
+    These applications include predefined fields and processing rules for common document scenarios. Select an application and use its `app_id` with the document extraction or recognition APIs.
+  </Card>
+  <Card title="Custom extraction applications" icon="sliders-horizontal">
+    Define fields, table columns, labels, and extraction rules for your documents. The APIs in this section create, update, delete, and query applications and configuration versions.
+  </Card>
+  <Card title="Workflow applications" icon="network">
+    Combine multiple processing steps for scenarios that require decisions, branches, or downstream actions. Use the APIs under Workflow to discover and run workflow applications.
+  </Card>
+</Columns>
+
+<Note>
+  The Create extraction application API creates custom extraction applications. Ready-to-use applications are provided by the system. Create workflow applications in ADP, then use the APIs under Workflow to discover and run them.
+</Note>
+
+## Ready-to-use applications
+
+Ready-to-use applications cover document recognition, invoices, orders, and commonly used cards and certificates. The following table lists the current preset catalog with each application's name, labels, and purpose.
+
+<Info>
+  Availability may vary by site, account entitlement, and product version. Use the List applications API as the source of truth for your account. To list all ready-to-use applications, set `app_type=0` and omit `ai_function`.
+</Info>
+
+| Application | Labels | Description |
+| --- | --- | --- |
+| Document parsing | Document Parsing, Image Extraction, OCR, Structured Parsing, Batch Parsing | Recognizes text, layout, and reading order from documents and images and returns structured parsing results. |
+| Global invoices and receipts (standard) | Invoice, Receipt | Extracts general information, amounts, tax details, and line items from global invoices, receipts, and sales slips. |
+| Global invoices and receipts (high-speed) | Invoice, Receipt, Global Invoice, High Accuracy, Fast Extraction | Processes general global invoices and receipts for field extraction scenarios that prioritize throughput. |
+| Global invoices and receipts (Southeast Asia) | Invoice, Receipt, Southeast Asia Invoice, High Accuracy, Fast Extraction | Adds payer-country, withholding-tax, and line-level withholding-tax fields for Southeast Asian invoices and receipts. |
+| Purchase order | Purchase Order, E-commerce Logistics, Inventory Management, Information Extraction | Extracts order, buyer, seller, delivery, and line-item information from multilingual purchase orders. |
+| Domestic multi-bill | Domestic Multi-Bill, Multi-Invoice Recognition, Financial Reimbursement, All-In-One Invoice, Invoice Component, Invoice Verification | Recognizes multiple domestic bill types and returns the corresponding business fields for expense and finance workflows. |
+| ID card | ID Card, Chinese Resident ID, Identity Document, Personal Document, Information Extraction | Extracts names, ID numbers, addresses, validity periods, and other information from both sides of a resident ID card. |
+| Bank card | Bank Card, Banking Service, Payment Tool, Personal Document, Information Extraction | Extracts the card number, expiration date, issuing institution, and card type. |
+| Vehicle certificate | Vehicle Certificate, Vehicle Document, Vehicle Management, Certificate, Information Extraction | Extracts vehicle model, engine number, VIN, manufacture date, and other vehicle information. |
+| Account opening permit | Account Opening Permit, Bank Document, Corporate Account, Financial Document, Information Extraction | Extracts approval numbers, account information, depositors, and opening-bank details. |
+| Driver license | Driver's License, Motor Vehicle License, Traffic Management, Certificate, Information Extraction | Extracts the license number, name, permitted vehicle class, validity period, and issuing authority. |
+| Business license | Business License, Corporate Qualification, Business Document, Commercial Certificate, Information Extraction | Extracts the unified social credit code, company name, business type, scope, and registration information. |
+| Passport (China) | Passport (China), Travel Document, Entry/Exit Document, Personal Document, Information Extraction | Extracts the passport number, name, nationality, date of birth, issue information, and validity period. |
+| Vehicle license | Vehicle License, Motor Vehicle License, Traffic Management, Certificate, Information Extraction | Extracts the plate number, vehicle type, owner, VIN, registration date, and other vehicle information. |
+| Organization code certificate | Organization Code Certificate, Commercial Document, Certificate, Information Extraction | Extracts the organization code, organization name and type, address, and validity period. |
+| Household register | Household Register, Hukou Document, Population Management, Family Document, Information Extraction | Extracts household and member information, including names, places of origin, ID numbers, and relationships. |
+| Hong Kong and Macao pass | HK/Macao Pass, Travel Document, Entry/Exit Document, Personal Document, Information Extraction | Extracts the document number, name, place of issue, validity period, and issuing authority. |
+
+## Common management operations
+
+| Operation | Endpoint |
+| --- | --- |
+| Create a custom extraction application | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create` |
+| List applications | `GET /open/agentic_doc_processor/{tenant_name}/v1/app-list` |
+| Update or delete an application | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update`, `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete` |
+| Query or delete a configuration version | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config`, `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete` |

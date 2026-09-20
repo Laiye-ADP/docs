@@ -23,52 +23,61 @@ GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{tas
 | 名称 | 类型 | 是否必填 | 描述 |
 | --- | --- | --- | --- |
 | `tenant_name` | string | 是 | 租户名称，默认 `laiye`。 |
-| `app_id` | string | 是 | 预置应用的唯一标识，在应用的 **查看 API** 中查看。 |
+| `app_id` | string | 是 | 预置应用标识。高速版（国际通用）为默认选项，也可选择东南亚版或标准版。 |
 | `file_base64` | string | 可选 | 待抽取文件的 Base64，与 `file_url` 二选一。 |
 | `file_url` | string | 可选 | 待抽取文件 URL，与 `file_base64` 二选一。仅支持 HTTP 开头的线上地址。 |
 | `file_name` | string | 可选 | 文件名（含扩展名）。使用 Base64，或无法从 URL 判断文件名时传入。 |
-| `with_rec_result` | boolean | 否 | 是否返回文档解析结果，默认 `false`。 |
 
-## 海外发票字段
+## 版本选择
 
-| 中文名 | 英文名 | 类型 |
+三个版本共用同一组同步和异步接口，仅通过 `app_id` 选择。
+
+| 版本 | `app_id` | 说明 |
 | --- | --- | --- |
-| 发票号码 | Invoice Number | 文本 |
-| 发票日期 | Invoice Date | 日期 |
-| 供应商名称 | Supplier Name | 文本 |
-| 供应商增值税号 | Supplier VAT Number | 文本 |
-| 客户名称 | Customer Name | 文本 |
-| 客户增值税号 | Customer VAT Number | 文本 |
-| 币种 | Currency | 文本 |
-| 总额（未税） | Total Without Tax | 文本 |
-| 增值税税率 | VAT Rate | 文本 |
-| 总金额（含税） | Total Amount (Inc. Tax) | 文本 |
-| 应付金额 | Amount Due | 文本 |
-| 商品明细表格 | Line Items | 表格 |
-| 项目代码 | Item Code | 表格子字段 |
-| 描述 | Description | 表格子字段 |
-| 数量 | Quantity | 表格子字段 |
-| 单价 | Unit Price | 表格子字段 |
-| 总金额 | Total Amount | 表格子字段 |
+| 高速版（国际通用） | `ootb_r3s6t9u2v5w8x1y4z7a0b3c6d9e2` | 默认选项，适用于国际通用的海外发票和收据。 |
+| 东南亚版 | `ootb_u2v5w8x1y4z7a0b3c6d9e2f5g8` | 面向东南亚发票和收据，额外提供付款方国家、预扣税及行级预扣税字段。 |
+| 标准版 | `ootb_a3f8h1j5k9n2p7q4w6x0y3b5c8d1` | 使用标准抽取方式处理海外发票和收据。 |
 
-## 收据字段
+## 字段
 
-| 中文名 | 英文名 | 类型 |
-| --- | --- | --- |
-| 发票号码 | Receipt Number | 文本 |
-| 发票日期 | Receipt Date | 日期 |
-| 供应商名称 | Supplier Name | 文本 |
-| 供应商增值税号 | Supplier VAT Number | 文本 |
-| 客户名称 | Customer Name | 文本 |
-| 客户增值税号 | Customer VAT Number | 文本 |
-| 币种 | Currency | 文本 |
-| 总额（未税） | Total Without Tax | 文本 |
-| 增值税税率 | VAT Rate | 文本 |
-| 总金额（含税） | Total Amount (Inc. Tax) | 文本 |
-| 应付金额 | Amount Due | 文本 |
-| 商品明细表格 | Line Items | 表格 |
-| 项目代码 | Item Code | 表格子字段 |
-| 描述 | Description | 表格子字段 |
-| 数量 | Quantity | 表格子字段 |
-| 单价 | Unit Price | 表格子字段 |
-| 总金额 | Total Amount | 表格子字段 |
+下表汇总可能返回的字段。实际返回字段取决于所选 `app_id` 和文档内容。
+
+| 中文名 | 英文名 | 类型 | 备注 |
+| --- | --- | --- | --- |
+| 国家 | Country Code | 文本 |  |
+| 发票号码 | Invoice Number | 文本 |  |
+| 发票日期 | Invoice Date | 文本 |  |
+| 供应商名称 | Supplier Name | 文本 |  |
+| 供应商地址 | Supplier Address | 文本 |  |
+| 供应商增值税号 | Supplier VAT Number | 文本 |  |
+| 供应商电话 | Supplier Phone | 文本 |  |
+| 客户名称 | Customer Name | 文本 |  |
+| 客户地址 | Customer Address | 文本 |  |
+| 客户增值税号 | Customer VAT Number | 文本 |  |
+| 客户电话 | Customer Phone | 文本 |  |
+| 付款方国家 | Payer Country | 文本 | 东南亚版特有 |
+| 币种 | Currency | 文本 |  |
+| 总额（未税） | Total Without Tax | 文本 |  |
+| 增值税税率 | VAT Rate | 文本 |  |
+| 增值税金额 | VAT Amount | 文本 |  |
+| 总税额 | Total Tax | 文本 |  |
+| 总金额 | Total Amount | 文本 |  |
+| 应付金额 | Amount Due | 文本 |  |
+| 供应商开户行 | Supplier Bank Name | 文本 |  |
+| 供应商账号 | Supplier Account Number | 文本 |  |
+| 预扣税类型 | WHT Type | 文本 | 东南亚版特有 |
+| 预扣税税率 | WHT Rate | 文本 | 东南亚版特有 |
+| 预扣税金额 | WHT Amount | 文本 | 东南亚版特有 |
+| 商品明细表格 | Line Items | 表格 |  |
+| 项目代码 | Item Code | 表格子字段 |  |
+| 描述 | Description | 表格子字段 |  |
+| 数量 | Quantity | 表格子字段 |  |
+| 单价 | Unit Price | 表格子字段 |  |
+| 税率 | Tax Rate | 表格子字段 |  |
+| 税金 | Tax Amount | 表格子字段 |  |
+| 行预扣税税率 | Line WHT Rate | 表格子字段 | 东南亚版特有 |
+| 行预扣税税金 | Line WHT Tax | 表格子字段 | 东南亚版特有 |
+| 总金额 | Total Amount | 表格子字段 |  |
+| 收据号码 | Receipt Number | 表格子字段 |  |
+| 收据日期 | Receipt Date | 表格子字段 |  |
+| 总金额（含税） | Total Amount (Inc. Tax) | 表格子字段 |  |

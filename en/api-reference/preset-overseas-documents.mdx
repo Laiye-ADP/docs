@@ -23,52 +23,61 @@ GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{tas
 | Name | Type | Required | Description |
 | --- | --- | --- | --- |
 | `tenant_name` | string | Yes | Tenant name. Default: `laiye`. |
-| `app_id` | string | Yes | Unique ID of the preset application. View it in **View API**. |
+| `app_id` | string | Yes | Preset application ID. High-speed (global) is selected by default; you can also select the Southeast Asia or standard version. |
 | `file_base64` | string | Optional | Base64 content of the file. Use either `file_base64` or `file_url`. |
 | `file_url` | string | Optional | Online file URL. Use either `file_url` or `file_base64`. Only HTTP URLs are supported. |
 | `file_name` | string | Optional | File name. Provide it for Base64 input or when the name cannot be determined from the URL. |
-| `with_rec_result` | boolean | No | Whether to return document recognition results. Default: `false`. |
 
-## Global Invoice fields
+## Version selection
 
-| Field | Type |
-| --- | --- |
-| Invoice Number | Text |
-| Invoice Date | Date |
-| Supplier Name | Text |
-| Supplier VAT Number | Text |
-| Customer Name | Text |
-| Customer VAT Number | Text |
-| Currency | Text |
-| Total Without Tax | Text |
-| VAT Rate | Text |
-| Total Amount (Inc. Tax) | Text |
-| Amount Due | Text |
-| Line Items | Table |
-| Item Code | Table subfield |
-| Description | Table subfield |
-| Quantity | Table subfield |
-| Unit Price | Table subfield |
-| Total Amount | Table subfield |
+All three versions use the same synchronous and asynchronous endpoints. Select a version with `app_id`.
 
-## Receipt fields
+| Version | `app_id` | Description |
+| --- | --- | --- |
+| High-speed (global) | `ootb_r3s6t9u2v5w8x1y4z7a0b3c6d9e2` | Default. Designed for global invoices and receipts. |
+| Southeast Asia | `ootb_u2v5w8x1y4z7a0b3c6d9e2f5g8` | Designed for Southeast Asian invoices and receipts, with additional payer-country, withholding-tax, and line-level withholding-tax fields. |
+| Standard | `ootb_a3f8h1j5k9n2p7q4w6x0y3b5c8d1` | Uses standard extraction for global invoices and receipts. |
 
-| Field | Type |
-| --- | --- |
-| Receipt Number | Text |
-| Receipt Date | Date |
-| Supplier Name | Text |
-| Supplier VAT Number | Text |
-| Customer Name | Text |
-| Customer VAT Number | Text |
-| Currency | Text |
-| Total Without Tax | Text |
-| VAT Rate | Text |
-| Total Amount (Inc. Tax) | Text |
-| Amount Due | Text |
-| Line Items | Table |
-| Item Code | Table subfield |
-| Description | Table subfield |
-| Quantity | Table subfield |
-| Unit Price | Table subfield |
-| Total Amount | Table subfield |
+## Fields
+
+The following table summarizes the fields that may be returned. Actual fields depend on the selected `app_id` and document content.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| Country Code | Text |  |
+| Invoice Number | Text |  |
+| Invoice Date | Text |  |
+| Supplier Name | Text |  |
+| Supplier Address | Text |  |
+| Supplier VAT Number | Text |  |
+| Supplier Phone | Text |  |
+| Customer Name | Text |  |
+| Customer Address | Text |  |
+| Customer VAT Number | Text |  |
+| Customer Phone | Text |  |
+| Payer Country | Text | SEA version only |
+| Currency | Text |  |
+| Total Without Tax | Text |  |
+| VAT Rate | Text |  |
+| VAT Amount | Text |  |
+| Total Tax | Text |  |
+| Total Amount | Text |  |
+| Amount Due | Text |  |
+| Supplier Bank Name | Text |  |
+| Supplier Account Number | Text |  |
+| WHT Type | Text | SEA version only |
+| WHT Rate | Text | SEA version only |
+| WHT Amount | Text | SEA version only |
+| Line Items | Table |  |
+| Item Code | Table subfield |  |
+| Description | Table subfield |  |
+| Quantity | Table subfield |  |
+| Unit Price | Table subfield |  |
+| Tax Rate | Table subfield |  |
+| Tax Amount | Table subfield |  |
+| Line WHT Rate | Table subfield | SEA version only |
+| Line WHT Tax | Table subfield | SEA version only |
+| Total Amount | Table subfield |  |
+| Receipt Number | Table subfield |  |
+| Receipt Date | Table subfield |  |
+| Total Amount (Inc. Tax) | Table subfield |  |

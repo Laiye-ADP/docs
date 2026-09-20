@@ -302,7 +302,7 @@ paths:
       description: |
         查询 Webhook 投递结果。默认返回最近 72 小时，单次时间范围最多 30 天；response_body 最多保留约 2000 个字符，可能包含接收端返回的业务或敏感信息。
 
-        当前服务按租户范围查询日志，而不是按创建 Webhook 的用户二次隔离。该接口只应由受控租户的管理员 Access Key 使用，并应尽量传 webhook_id 收窄范围。不要向普通终端用户暴露日志响应。
+        当前服务按租户范围查询日志，而不是按创建 Webhook 的用户二次隔离。该接口只应由受控租户的管理员 API Key 使用，并应尽量传 webhook_id 收窄范围。不要向普通终端用户暴露日志响应。
       operationId: queryWebhookLogs
       security:
         - ApiKeyAuth: []
@@ -494,10 +494,11 @@ paths:
           schema:
             type: integer
             enum: [1406, 1425]
+            default: 1425
         - name: app_type
           in: query
           required: false
-          description: 应用类型。1=自定义应用，0=系统预设。
+          description: 应用类型。1=自定义应用，0=开箱即用。
           schema:
             type: integer
             enum: [0, 1]
@@ -615,7 +616,7 @@ paths:
     get:
       tags: [工作流]
       summary: 查询可运行的工作流应用
-      description: 查询当前 Access Key 可见且已发布的工作流应用，可按名称搜索并分页。使用返回的 id 作为运行接口的 application_id。
+      description: 查询当前 API Key 可见且已发布的工作流应用，可按名称搜索并分页。使用返回的 id 作为运行接口的 application_id。
       operationId: listWorkflowApplications
       security:
         - EngineApiKeyAuth: []
@@ -756,7 +757,7 @@ paths:
       description: |
         将指定工作流运行记录导出为 Excel、Word、Markdown 或 JSON，并返回临时下载地址及运行摘要。公开合同要求显式提供至少一个 run_id，不开放后端“空列表导出应用全部运行”的兼容行为。
 
-        当前实现单次最多处理 200 个运行、最多生成 500,000 行，临时文件通常约 1 小时有效。受限预览：路由只校验 Access Key 和租户，没有独立的管理员角色或应用可见性校验。仅可在受控租户中，由管理员导出自己确认有权访问的 application_id 和 run_ids。导出内容可能包含工作流输入、节点输出和业务数据；下载后应按原始数据等级保护。
+        当前实现单次最多处理 200 个运行、最多生成 500,000 行，临时文件通常约 1 小时有效。受限预览：路由只校验 API Key 和租户，没有独立的管理员角色或应用可见性校验。仅可在受控租户中，由管理员导出自己确认有权访问的 application_id 和 run_ids。导出内容可能包含工作流输入、节点输出和业务数据；下载后应按原始数据等级保护。
       operationId: exportWorkflowRuns
       security:
         - EngineApiKeyAuth: []
@@ -807,12 +808,12 @@ components:
       type: apiKey
       in: header
       name: X-API-KEY
-      description: 生产环境的用户 OpenAPI Accessor access_key，在 ADP 平台的「我的 API」中查看。key 被禁用、过期或不属于生产环境时会返回 Accessor not found。
+      description: 生产环境 API Key，可在 ADP 平台的「我的 API」中查看。请确保 API Key 有效且属于生产环境。
     EngineApiKeyAuth:
       type: apiKey
       in: header
       name: X-API-Key
-      description: 工作流智能引擎 API 访问密钥。
+      description: 用于调用工作流接口的 API Key。
   parameters:
     TenantName:
       name: tenant_name
@@ -1571,7 +1572,7 @@ components:
           schema:
             $ref: '#/components/schemas/WebhookLogResponse'
     WorkflowApplicationListResponse:
-      description: 当前 Access Key 可见的已发布工作流应用列表。
+      description: 当前 API Key 可见的已发布工作流应用列表。
       content:
         application/json:
           schema:
@@ -3018,7 +3019,7 @@ components:
           description: 应用 ID。
         app_type:
           type: integer
-          description: 应用类型。1 表示自定义应用，0 表示系统预设。
+          description: 应用类型。1 表示自定义应用，0 表示开箱即用。
         ai_function:
           type: integer
           description: AI 能力类型。
@@ -3306,7 +3307,7 @@ components:
       properties:
         user_id:
           type: string
-          description: 当前 Access Key 所属用户 ID。
+          description: 当前 API Key 所属用户 ID。
         payment_type:
           type: string
           enum: [paid, free]

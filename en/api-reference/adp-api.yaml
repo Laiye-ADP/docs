@@ -302,7 +302,7 @@ paths:
       description: |
         Query Webhook delivery results. The default window is the last 72 hours, and one request can span at most 30 days. `response_body` retains at most approximately 2,000 characters and may contain business or sensitive information returned by the receiver.
 
-        The current service queries logs at tenant scope and does not further isolate them by the user who created the Webhook. Use this endpoint only with an administrator Access Key in a controlled tenant, and pass `webhook_id` whenever possible to narrow the scope. Do not expose log responses to ordinary end users.
+        The current service queries logs at tenant scope and does not further isolate them by the user who created the Webhook. Use this endpoint only with an administrator API Key in a controlled tenant, and pass `webhook_id` whenever possible to narrow the scope. Do not expose log responses to ordinary end users.
       operationId: queryWebhookLogs
       security:
         - ApiKeyAuth: []
@@ -494,10 +494,11 @@ paths:
           schema:
             type: integer
             enum: [1406, 1425]
+            default: 1425
         - name: app_type
           in: query
           required: false
-          description: Application type. 1 means custom application. 0 means system preset.
+          description: Application type. 1 means a custom application. 0 means an out-of-the-box application.
           schema:
             type: integer
             enum: [0, 1]
@@ -615,7 +616,7 @@ paths:
     get:
       tags: [Workflow]
       summary: List runnable workflow applications
-      description: List published workflow applications visible to the current Access Key. Results can be searched by name and paginated. Use the returned `id` as `application_id` when calling a run endpoint.
+      description: List published workflow applications visible to the current API Key. Results can be searched by name and paginated. Use the returned `id` as `application_id` when calling a run endpoint.
       operationId: listWorkflowApplications
       security:
         - EngineApiKeyAuth: []
@@ -756,7 +757,7 @@ paths:
       description: |
         Export specified workflow runs as Excel, Word, Markdown, or JSON, and return a temporary download URL plus run summaries. The public contract requires at least one explicit `run_id`; it does not expose the backend compatibility behavior that treats an empty list as "export all runs for the application."
 
-        The current implementation processes at most 200 runs and generates at most 500,000 rows per request. Temporary files are generally valid for approximately one hour. Limited preview: this route validates only the Access Key and tenant; it has no independent administrator-role or application-visibility check. Use it only as an administrator in a controlled tenant, and export only `application_id` and `run_ids` that you have independently confirmed you can access. Exports may contain workflow inputs, node outputs, and business data. Protect the downloaded file at the same classification level as its source data.
+        The current implementation processes at most 200 runs and generates at most 500,000 rows per request. Temporary files are generally valid for approximately one hour. Limited preview: this route validates only the API Key and tenant; it has no independent administrator-role or application-visibility check. Use it only as an administrator in a controlled tenant, and export only `application_id` and `run_ids` that you have independently confirmed you can access. Exports may contain workflow inputs, node outputs, and business data. Protect the downloaded file at the same classification level as its source data.
       operationId: exportWorkflowRuns
       security:
         - EngineApiKeyAuth: []
@@ -807,12 +808,12 @@ components:
       type: apiKey
       in: header
       name: X-API-KEY
-      description: Production OpenAPI Accessor access_key. You can find it in My API in the ADP platform. If the key is disabled, expired, or does not belong to the production environment, the API returns Accessor not found.
+      description: Production API Key. You can find it under My API in the ADP platform. Make sure the API Key is active and belongs to the production environment.
     EngineApiKeyAuth:
       type: apiKey
       in: header
       name: X-API-Key
-      description: Workflow engine API access key.
+      description: API Key for workflow endpoints.
   parameters:
     TenantName:
       name: tenant_name
@@ -1563,7 +1564,7 @@ components:
           schema:
             $ref: '#/components/schemas/WebhookLogResponse'
     WorkflowApplicationListResponse:
-      description: Published workflow applications visible to the current Access Key.
+      description: Published workflow applications visible to the current API Key.
       content:
         application/json:
           schema:
@@ -3023,7 +3024,7 @@ components:
           description: Application ID.
         app_type:
           type: integer
-          description: Application type. 1 means a custom application and 0 means a system preset.
+          description: Application type. 1 means a custom application and 0 means an out-of-the-box application.
         ai_function:
           type: integer
           description: AI capability type.
@@ -3311,7 +3312,7 @@ components:
       properties:
         user_id:
           type: string
-          description: ID of the user associated with the current Access Key.
+          description: ID of the user associated with the current API Key.
         payment_type:
           type: string
           enum: [paid, free]

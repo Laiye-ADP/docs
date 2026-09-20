@@ -66,20 +66,6 @@
                     "icon": "asterisk"
                   },
                   {
-                    "group": "海外发票和收据-高速版",
-                    "icon": "asterisk",
-                    "root": "api-reference/preset-overseas-invoices-fast",
-                    "openapi": {
-                      "source": "/api-reference/preset-overseas-invoices-fast.yaml",
-                      "directory": "api-reference/preset-overseas-invoices-fast"
-                    },
-                    "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
-                    ]
-                  },
-                  {
                     "group": "采购订单",
                     "root": "api-reference/preset-purchase-orders",
                     "pages": [
@@ -163,6 +149,7 @@
                   },
                   {
                     "group": "应用管理",
+                    "root": "api-reference/application-management",
                     "pages": [
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete",
@@ -266,20 +253,6 @@
                     "icon": "asterisk"
                   },
                   {
-                    "group": "Global Invoices and receipts - high-speed",
-                    "icon": "asterisk",
-                    "root": "en/api-reference/preset-overseas-invoices-fast",
-                    "openapi": {
-                      "source": "/en/api-reference/preset-overseas-invoices-fast.yaml",
-                      "directory": "en/api-reference/preset-overseas-invoices-fast"
-                    },
-                    "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
-                    ]
-                  },
-                  {
                     "group": "Purchase orders",
                     "root": "en/api-reference/preset-purchase-orders",
                     "pages": [
@@ -377,6 +350,7 @@
                   },
                   {
                     "group": "Application Management",
+                    "root": "en/api-reference/application-management",
                     "pages": [
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create",
                       "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete",
@@ -452,6 +426,16 @@
   "icons": {
     "library": "lucide"
   },
+  "redirects": [
+    {
+      "source": "/api-reference/preset-overseas-invoices-fast",
+      "destination": "/api-reference/preset-overseas-documents"
+    },
+    {
+      "source": "/en/api-reference/preset-overseas-invoices-fast",
+      "destination": "/en/api-reference/preset-overseas-documents"
+    }
+  ],
   "background": {
     "decoration": "gradient",
     "color": {
