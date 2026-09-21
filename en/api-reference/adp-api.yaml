@@ -941,25 +941,6 @@ components:
           schema:
             $ref: '#/components/schemas/ExtractionAppCreateRequest'
           examples:
-            standardCustomExtractionApp:
-              summary: Create standard custom extraction application
-              value:
-                ai_function: 1406
-                app_name: Purchase order extraction app
-                app_label: [purchase-order]
-                extract_fields:
-                  - field_name: Order number
-                    field_type: string
-                    field_prompt: Extract the purchase order number.
-                  - field_name: Order date
-                    field_type: date
-                    field_prompt: Extract the order date.
-                parse_mode: standard
-                enable_highlight: 1
-                enable_pdf_parse: false
-                pdf_pic_second_parsing: false
-                enable_stamp_recognition: false
-                enable_long_doc: false
             highSpeedCustomExtractionApp:
               summary: Create high-speed custom extraction application
               value:
@@ -986,6 +967,25 @@ components:
                         field_name: Date
                         field_type: date
                 enable_field_value_translation: false
+            standardCustomExtractionApp:
+              summary: Create standard custom extraction application
+              value:
+                ai_function: 1406
+                app_name: Purchase order extraction app
+                app_label: [purchase-order]
+                extract_fields:
+                  - field_name: Order number
+                    field_type: string
+                    field_prompt: Extract the purchase order number.
+                  - field_name: Order date
+                    field_type: date
+                    field_prompt: Extract the order date.
+                parse_mode: standard
+                enable_highlight: 1
+                enable_pdf_parse: false
+                pdf_pic_second_parsing: false
+                enable_stamp_recognition: false
+                enable_long_doc: false
     ExtractionAppUpdateRequest:
       required: true
       content:
@@ -2579,8 +2579,8 @@ components:
           '1406': '#/components/schemas/StandardExtractionAppCreateRequest'
           '1425': '#/components/schemas/HighSpeedExtractionAppCreateRequest'
       oneOf:
-        - $ref: '#/components/schemas/StandardExtractionAppCreateRequest'
         - $ref: '#/components/schemas/HighSpeedExtractionAppCreateRequest'
+        - $ref: '#/components/schemas/StandardExtractionAppCreateRequest'
     StandardExtractionAppCreateRequest:
       type: object
       additionalProperties: false

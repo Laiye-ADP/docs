@@ -59,10 +59,6 @@
                       "api-reference/preset-overseas-documents/create-overseas-document-extract-task",
                       "api-reference/preset-overseas-documents/query-overseas-document-extract-task"
                     ],
-                    "openapi": {
-                      "source": "/api-reference/preset-overseas-documents.yaml",
-                      "directory": "api-reference/preset-overseas-documents"
-                    },
                     "icon": "asterisk"
                   },
                   {
@@ -73,10 +69,6 @@
                       "api-reference/preset-purchase-orders/create-purchase-order-extract-task",
                       "api-reference/preset-purchase-orders/query-purchase-order-extract-task"
                     ],
-                    "openapi": {
-                      "source": "/api-reference/preset-purchase-orders.yaml",
-                      "directory": "api-reference/preset-purchase-orders"
-                    },
                     "icon": "asterisk"
                   },
                   {
@@ -88,10 +80,6 @@
                       "api-reference/preset-domestic-bills/query-domestic-bill-extract-task",
                       "api-reference/preset-domestic-bills/verify-domestic-invoice"
                     ],
-                    "openapi": {
-                      "source": "/api-reference/preset-domestic-bills.yaml",
-                      "directory": "api-reference/preset-domestic-bills"
-                    },
                     "icon": "asterisk"
                   },
                   {
@@ -102,10 +90,6 @@
                       "api-reference/preset-cards/create-card-document-extract-task",
                       "api-reference/preset-cards/query-card-document-extract-task"
                     ],
-                    "openapi": {
-                      "source": "/api-reference/preset-cards.yaml",
-                      "directory": "api-reference/preset-cards"
-                    },
                     "icon": "asterisk"
                   },
                   {
@@ -190,11 +174,7 @@
                       "api-reference/adp-api/account/get-user-payment"
                     ]
                   }
-                ],
-                "openapi": {
-                  "source": "/api-reference/adp-api.yaml",
-                  "directory": "api-reference/adp-api"
-                }
+                ]
               },
               "products/adp-cli",
               "products/adp-mcp"
@@ -242,109 +222,93 @@
                     "group": "Global Invoices and receipts",
                     "root": "en/api-reference/preset-overseas-documents",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+                      "en/api-reference/preset-overseas-documents/extract-overseas-documents",
+                      "en/api-reference/preset-overseas-documents/create-overseas-document-extract-task",
+                      "en/api-reference/preset-overseas-documents/query-overseas-document-extract-task"
                     ],
-                    "openapi": {
-                      "source": "/en/api-reference/preset-overseas-documents.yaml",
-                      "directory": "en/api-reference/preset-overseas-documents"
-                    },
                     "icon": "asterisk"
                   },
                   {
                     "group": "Purchase orders",
                     "root": "en/api-reference/preset-purchase-orders",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+                      "en/api-reference/preset-purchase-orders/extract-purchase-order",
+                      "en/api-reference/preset-purchase-orders/create-purchase-order-extract-task",
+                      "en/api-reference/preset-purchase-orders/query-purchase-order-extract-task"
                     ],
-                    "openapi": {
-                      "source": "/en/api-reference/preset-purchase-orders.yaml",
-                      "directory": "en/api-reference/preset-purchase-orders"
-                    },
                     "icon": "asterisk"
                   },
                   {
                     "group": "Domestic general bills",
                     "root": "en/api-reference/preset-domestic-bills",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/invoice/verify"
+                      "en/api-reference/preset-domestic-bills/extract-domestic-bill",
+                      "en/api-reference/preset-domestic-bills/create-domestic-bill-extract-task",
+                      "en/api-reference/preset-domestic-bills/query-domestic-bill-extract-task",
+                      "en/api-reference/preset-domestic-bills/verify-domestic-invoice"
                     ],
-                    "openapi": {
-                      "source": "/en/api-reference/preset-domestic-bills.yaml",
-                      "directory": "en/api-reference/preset-domestic-bills"
-                    },
                     "icon": "asterisk"
                   },
                   {
                     "group": "Cards and certificates",
                     "root": "en/api-reference/preset-cards",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+                      "en/api-reference/preset-cards/extract-card-document",
+                      "en/api-reference/preset-cards/create-card-document-extract-task",
+                      "en/api-reference/preset-cards/query-card-document-extract-task"
                     ],
-                    "openapi": {
-                      "source": "/en/api-reference/preset-cards.yaml",
-                      "directory": "en/api-reference/preset-cards"
-                    },
                     "icon": "asterisk"
                   },
                   {
                     "group": "Document extraction",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+                      "en/api-reference/adp-api/document-extraction/extract-document",
+                      "en/api-reference/adp-api/document-extraction/create-document-extract-task",
+                      "en/api-reference/adp-api/document-extraction/query-document-extract-task"
                     ],
                     "icon": "asterisk"
                   },
                   {
                     "group": "Document recognition",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize/create/task",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/recognize/query/task/{task_id}"
+                      "en/api-reference/adp-api/document-parsing/recognize-document",
+                      "en/api-reference/adp-api/document-parsing/create-document-recognize-task",
+                      "en/api-reference/adp-api/document-parsing/query-document-recognize-task"
                     ],
                     "icon": "asterisk"
                   },
                   {
                     "group": "Document conversion",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/doc/convert",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/doc/convert/create/task",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/doc/convert/query/task/{task_id}"
+                      "en/api-reference/adp-api/document-conversion/convert-document",
+                      "en/api-reference/adp-api/document-conversion/create-document-convert-task",
+                      "en/api-reference/adp-api/document-conversion/query-document-convert-task"
                     ],
                     "icon": "asterisk"
                   },
                   {
                     "group": "Webhook",
                     "pages": [
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/webhook/events",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/webhook/create",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/webhook/list",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/webhook/update",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/webhook/delete",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/webhook/logs"
+                      "en/api-reference/adp-api/webhooks/list-webhook-events",
+                      "en/api-reference/adp-api/webhooks/create-webhook",
+                      "en/api-reference/adp-api/webhooks/list-webhooks",
+                      "en/api-reference/adp-api/webhooks/update-webhook",
+                      "en/api-reference/adp-api/webhooks/delete-webhook",
+                      "en/api-reference/adp-api/webhooks/query-webhook-logs"
                     ],
                     "icon": "asterisk"
                   },
                   {
                     "group": "Workflow",
                     "pages": [
-                      "GET /open/agentic_engine/laiye/v1/app/applications",
-                      "GET /open/agentic_engine/laiye/v1/app/applications/{application_id}",
-                      "POST /open/agentic_engine/laiye/v1/app/run",
-                      "POST /open/agentic_engine/laiye/v1/app/run/create/task",
-                      "GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}",
-                      "POST /open/agentic_engine/laiye/v1/app/run/{run_id}/rerun",
-                      "POST /open/agentic_engine/laiye/v1/app/run/{run_id}/cancel",
-                      "POST /open/agentic_engine/laiye/v1/app/runs/export"
+                      "en/api-reference/adp-api/workflows/list-workflow-applications",
+                      "en/api-reference/adp-api/workflows/get-workflow-application",
+                      "en/api-reference/adp-api/workflows/run-doc-flow-app",
+                      "en/api-reference/adp-api/workflows/create-doc-flow-run-task",
+                      "en/api-reference/adp-api/workflows/query-doc-flow-run-task",
+                      "en/api-reference/adp-api/workflows/rerun-doc-flow-run-task",
+                      "en/api-reference/adp-api/workflows/cancel-doc-flow-run-task",
+                      "en/api-reference/adp-api/workflows/export-workflow-runs"
                     ],
                     "icon": "network"
                   },
@@ -352,21 +316,21 @@
                     "group": "Application Management",
                     "root": "en/api-reference/application-management",
                     "pages": [
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update",
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/app-list",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete",
-                      "POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend"
+                      "en/api-reference/adp-api/application-management/create-extraction-application",
+                      "en/api-reference/adp-api/application-management/delete-extraction-application",
+                      "en/api-reference/adp-api/application-management/update-extraction-application",
+                      "en/api-reference/adp-api/application-management/list-applications",
+                      "en/api-reference/adp-api/application-management/get-application-configuration",
+                      "en/api-reference/adp-api/application-management/delete-application-configuration",
+                      "en/api-reference/adp-api/application-management/generate-extraction-field-prompts"
                     ],
                     "icon": "asterisk"
                   },
                   {
                     "group": "Get file URL",
                     "pages": [
-                      "POST /open/agentic_engine/laiye/files/upload",
-                      "GET /open/agentic_engine/laiye/files/{file_id}"
+                      "en/api-reference/adp-api/workflow-files/upload-doc-flow-file",
+                      "en/api-reference/adp-api/workflow-files/get-doc-flow-file"
                     ],
                     "icon": "file-output"
                   },
@@ -374,14 +338,10 @@
                     "group": "Account",
                     "icon": "circle-dollar-sign",
                     "pages": [
-                      "GET /open/agentic_doc_processor/{tenant_name}/v1/user/payment"
+                      "en/api-reference/adp-api/account/get-user-payment"
                     ]
                   }
-                ],
-                "openapi": {
-                  "source": "/en/api-reference/adp-api.yaml",
-                  "directory": "en/api-reference/adp-api"
-                }
+                ]
               },
               "en/products/adp-cli",
               "en/products/adp-mcp"

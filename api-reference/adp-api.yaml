@@ -941,25 +941,6 @@ components:
           schema:
             $ref: '#/components/schemas/ExtractionAppCreateRequest'
           examples:
-            standardCustomExtractionApp:
-              summary: 创建标准版自定义抽取应用
-              value:
-                ai_function: 1406
-                app_name: 采购单抽取应用
-                app_label: [purchase-order]
-                extract_fields:
-                  - field_name: 订单号
-                    field_type: string
-                    field_prompt: 抽取采购订单编号。
-                  - field_name: 订单日期
-                    field_type: date
-                    field_prompt: 抽取订单日期。
-                parse_mode: standard
-                enable_highlight: 1
-                enable_pdf_parse: false
-                pdf_pic_second_parsing: false
-                enable_stamp_recognition: false
-                enable_long_doc: false
             highSpeedCustomExtractionApp:
               summary: 创建高速版自定义抽取应用
               value:
@@ -986,6 +967,25 @@ components:
                         field_name: 日期
                         field_type: date
                 enable_field_value_translation: false
+            standardCustomExtractionApp:
+              summary: 创建标准版自定义抽取应用
+              value:
+                ai_function: 1406
+                app_name: 采购单抽取应用
+                app_label: [purchase-order]
+                extract_fields:
+                  - field_name: 订单号
+                    field_type: string
+                    field_prompt: 抽取采购订单编号。
+                  - field_name: 订单日期
+                    field_type: date
+                    field_prompt: 抽取订单日期。
+                parse_mode: standard
+                enable_highlight: 1
+                enable_pdf_parse: false
+                pdf_pic_second_parsing: false
+                enable_stamp_recognition: false
+                enable_long_doc: false
     ExtractionAppUpdateRequest:
       required: true
       content:
@@ -2574,8 +2574,8 @@ components:
           '1406': '#/components/schemas/StandardExtractionAppCreateRequest'
           '1425': '#/components/schemas/HighSpeedExtractionAppCreateRequest'
       oneOf:
-        - $ref: '#/components/schemas/StandardExtractionAppCreateRequest'
         - $ref: '#/components/schemas/HighSpeedExtractionAppCreateRequest'
+        - $ref: '#/components/schemas/StandardExtractionAppCreateRequest'
     StandardExtractionAppCreateRequest:
       type: object
       additionalProperties: false
