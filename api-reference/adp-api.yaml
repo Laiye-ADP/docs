@@ -23,7 +23,7 @@ tags:
   - name: 账户
     description: 查询账户积分和使用情况。
   - name: 工作流
-    description: 运行工作流应用并查询执行结果。
+    description: 查询业务工作流模板、运行工作流应用并查询执行结果。
   - name: 工作流文件
     description: 上传和管理工作流应用使用的文件。
 paths:
@@ -610,6 +610,52 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/UserPaymentResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/v1/app/templates:
+    get:
+      tags: [工作流]
+      summary: 查询业务工作流模板
+      description: |
+        查询可用的业务工作流模板，以及当前 API Key 所属账号是否已添加、是否已发布和当前能否运行。
+
+        `application_id` 是面向 OpenAPI 的稳定公开 ID，可固定写入接口文档和集成配置：
+
+        - `finance_payable`: `wftp_app_n8q4v2m7x5p1r9t6c3a0b8d2`
+        - `expense_reimbursement`: `wftp_app_h3k9s1v6p4x8q2m7c5t0a9r1`
+        - `financial_report_extraction`: `wftp_app_y6p2m8q4v1c9t3x7n5r0h2k6`
+
+        这些固定 ID 不是添加模板后生成的账号应用 ID；本接口不返回后者。运行接口会按当前 API Key 关联已添加的对应应用。仅当 `can_run` 为 `true` 时，该固定 ID 才可用于运行接口；模板未添加、对应应用尚未发布，或没有当前可用的已发布版本时，`can_run` 为 `false`。
+      operationId: listBusinessWorkflowTemplates
+      security:
+        - EngineApiKeyAuth: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          description: 按模板名称搜索。
+          schema:
+            type: string
+        - name: offset
+          in: query
+          required: false
+          description: 分页偏移量。
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: size
+          in: query
+          required: false
+          description: 每页数量。
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          $ref: '#/components/responses/BusinessWorkflowTemplateListResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_engine/laiye/v1/app/applications:
@@ -1577,6 +1623,46 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/WorkflowApplicationListResponse'
+    BusinessWorkflowTemplateListResponse:
+      description: 业务工作流模板及当前账号的运行就绪状态。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BusinessWorkflowTemplateListResponse'
+          example:
+            code: success
+            message: ""
+            tips: null
+            data:
+              range:
+                offset: 0
+                size: 20
+                total: 3
+              list:
+                - template_key: finance_payable
+                  name: 财务应付
+                  description: 识别付款申请、合同、发票、入库、结算和验收材料，完成财务应付审核与业务结果交付。
+                  template_version: 1.0.2
+                  application_id: wftp_app_n8q4v2m7x5p1r9t6c3a0b8d2
+                  is_added: true
+                  application_status: published
+                  can_run: true
+                - template_key: expense_reimbursement
+                  name: 费用报销
+                  description: 识别报销申请、票据、出差审批、网约车行程和餐饮小票，按差旅或业务招待类型分别审核。
+                  template_version: 1.0.1
+                  application_id: wftp_app_h3k9s1v6p4x8q2m7c5t0a9r1
+                  is_added: true
+                  application_status: draft
+                  can_run: false
+                - template_key: financial_report_extraction
+                  name: 金融财报
+                  description: 拆分财务报告后，分别抽取基础信息、利润表、资产负债表和现金流量表，并在任务中集中查看结果。
+                  template_version: 1.0.26
+                  application_id: wftp_app_y6p2m8q4v1c9t3x7n5r0h2k6
+                  is_added: false
+                  application_status: null
+                  can_run: false
     WorkflowApplicationResponse:
       description: 工作流应用详情。
       content:
@@ -1978,6 +2064,59 @@ components:
           type: [string, 'null']
           format: date-time
       required: [id, webhook_id, webhook_url, event_type, status, retry_count]
+    BusinessWorkflowTemplate:
+      type: object
+      additionalProperties: false
+      properties:
+        template_key:
+          type: string
+          description: 业务工作流模板标识。
+        name:
+          type: string
+          description: 模板名称。
+        description:
+          type: [string, 'null']
+          description: 模板描述。
+        template_version:
+          type: string
+          description: 当前模板版本。版本可能随模板更新而变化。
+        application_id:
+          type: string
+          description: 可用于工作流运行接口的稳定公开 ID，不是添加模板后生成的账号应用 ID。
+        is_added:
+          type: boolean
+          description: 当前 API Key 所属账号是否已添加该模板。
+        application_status:
+          oneOf:
+            - type: string
+              enum: [draft, published]
+            - type: 'null'
+          description: 当前账号中对应应用的状态；未添加时为 null。
+        can_run:
+          type: boolean
+          description: 固定 application_id 当前是否可用于运行接口。只有当前账号已添加对应应用，且该应用存在当前可用的已发布版本时为 true。
+      required: [template_key, name, template_version, application_id, is_added, can_run]
+    BusinessWorkflowTemplateListResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                range:
+                  type: object
+                  properties:
+                    offset: {type: integer, minimum: 0}
+                    size: {type: integer, minimum: 1, maximum: 100}
+                    total: {type: integer, minimum: 0}
+                  required: [offset, size, total]
+                list:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/BusinessWorkflowTemplate'
+              required: [range, list]
+          required: [data]
     WorkflowApplication:
       type: object
       properties:

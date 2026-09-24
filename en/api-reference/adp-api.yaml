@@ -23,7 +23,7 @@ tags:
   - name: Account
     description: Query credit usage.
   - name: Workflow
-    description: Run workflow applications and query run results.
+    description: List business workflow templates, run workflow applications, and query run results.
   - name: Workflow files
     description: Upload and manage files used by workflow applications.
 paths:
@@ -610,6 +610,52 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/UserPaymentResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_engine/laiye/v1/app/templates:
+    get:
+      tags: [Workflow]
+      summary: List business workflow templates
+      description: |
+        List available business workflow templates and show whether the account associated with the current API key has added, published, and can currently run each template.
+
+        `application_id` is a stable public ID for OpenAPI calls. It can be stored in API documentation and integration configuration:
+
+        - `finance_payable`: `wftp_app_n8q4v2m7x5p1r9t6c3a0b8d2`
+        - `expense_reimbursement`: `wftp_app_h3k9s1v6p4x8q2m7c5t0a9r1`
+        - `financial_report_extraction`: `wftp_app_y6p2m8q4v1c9t3x7n5r0h2k6`
+
+        These stable IDs are not the account application IDs generated after a template is added; this endpoint does not return those generated IDs. A run endpoint associates the stable ID with the corresponding application added by the current API key's account. Use a stable ID with a run endpoint only when `can_run` is `true`. `can_run` is `false` when the template has not been added, its application has not been published, or it has no currently usable published version.
+      operationId: listBusinessWorkflowTemplates
+      security:
+        - EngineApiKeyAuth: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          description: Search by template name.
+          schema:
+            type: string
+        - name: offset
+          in: query
+          required: false
+          description: Pagination offset.
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: size
+          in: query
+          required: false
+          description: Number of templates per page.
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          $ref: '#/components/responses/BusinessWorkflowTemplateListResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /open/agentic_engine/laiye/v1/app/applications:
@@ -1569,6 +1615,46 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/WorkflowApplicationListResponse'
+    BusinessWorkflowTemplateListResponse:
+      description: Business workflow templates and their run-readiness state for the current account.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BusinessWorkflowTemplateListResponse'
+          example:
+            code: success
+            message: ""
+            tips: null
+            data:
+              range:
+                offset: 0
+                size: 20
+                total: 3
+              list:
+                - template_key: finance_payable
+                  name: 财务应付
+                  description: 识别付款申请、合同、发票、入库、结算和验收材料，完成财务应付审核与业务结果交付。
+                  template_version: 1.0.2
+                  application_id: wftp_app_n8q4v2m7x5p1r9t6c3a0b8d2
+                  is_added: true
+                  application_status: published
+                  can_run: true
+                - template_key: expense_reimbursement
+                  name: 费用报销
+                  description: 识别报销申请、票据、出差审批、网约车行程和餐饮小票，按差旅或业务招待类型分别审核。
+                  template_version: 1.0.1
+                  application_id: wftp_app_h3k9s1v6p4x8q2m7c5t0a9r1
+                  is_added: true
+                  application_status: draft
+                  can_run: false
+                - template_key: financial_report_extraction
+                  name: 金融财报
+                  description: 拆分财务报告后，分别抽取基础信息、利润表、资产负债表和现金流量表，并在任务中集中查看结果。
+                  template_version: 1.0.26
+                  application_id: wftp_app_y6p2m8q4v1c9t3x7n5r0h2k6
+                  is_added: false
+                  application_status: null
+                  can_run: false
     WorkflowApplicationResponse:
       description: Workflow application details.
       content:
@@ -1969,6 +2055,59 @@ components:
           type: [string, 'null']
           format: date-time
       required: [id, webhook_id, webhook_url, event_type, status, retry_count]
+    BusinessWorkflowTemplate:
+      type: object
+      additionalProperties: false
+      properties:
+        template_key:
+          type: string
+          description: Business workflow template key.
+        name:
+          type: string
+          description: Template name.
+        description:
+          type: [string, 'null']
+          description: Template description.
+        template_version:
+          type: string
+          description: Current template version. This value can change when the template is updated.
+        application_id:
+          type: string
+          description: Stable public ID accepted by workflow run endpoints. It is not the account application ID generated after the template is added.
+        is_added:
+          type: boolean
+          description: Whether the account associated with the current API key has added this template.
+        application_status:
+          oneOf:
+            - type: string
+              enum: [draft, published]
+            - type: 'null'
+          description: Status of the corresponding application in the current account. It is null when the template has not been added.
+        can_run:
+          type: boolean
+          description: Whether the stable application_id can currently be used with a run endpoint. It is true only when the current account has added the corresponding application and that application has a currently usable published version.
+      required: [template_key, name, template_version, application_id, is_added, can_run]
+    BusinessWorkflowTemplateListResponse:
+      allOf:
+        - $ref: '#/components/schemas/SimpleResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                range:
+                  type: object
+                  properties:
+                    offset: {type: integer, minimum: 0}
+                    size: {type: integer, minimum: 1, maximum: 100}
+                    total: {type: integer, minimum: 0}
+                  required: [offset, size, total]
+                list:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/BusinessWorkflowTemplate'
+              required: [range, list]
+          required: [data]
     WorkflowApplication:
       type: object
       properties:

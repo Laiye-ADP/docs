@@ -1,0 +1,44 @@
+---
+title: "Workflow"
+description: "Learn when to use ADP workflow applications, how to create them, and how to call them through OpenAPI."
+---
+
+Workflow applications combine document processing, business decisions, human review, and result delivery into repeatable business processes. They are suitable for multi-document or multi-step scenarios, especially when a single extraction API is not sufficient or conditional decisions are required.
+
+<Columns cols={2}>
+  <Card title="Business workflow templates" icon="layout-template">
+    ADP provides preset business processes for accounts payable, expense reimbursement, and financial reporting. Query the template catalog to obtain each template's stable public `application_id` and run-readiness state for your account.
+  </Card>
+  <Card title="Custom workflows" icon="messages-square">
+    Use the AI conversational assistant in the official ADP platform to create, refine, and publish a workflow for your documents, business rules, and desired outcomes.
+  </Card>
+</Columns>
+
+<Warning>
+  OpenAPI does not currently support creating custom workflows. Go to the [official ADP platform](https://adp-global.laiye.com/?utm_source=apidoc) and use the AI conversational assistant to describe your business requirements and create a workflow. Test and publish it in the platform before using the OpenAPIs in this section to discover and run it.
+</Warning>
+
+## Create and call a workflow
+
+1. **Choose how to create it**: Use an existing business workflow template, or use the AI conversational assistant in the official ADP platform to create a custom workflow.
+2. **Test and publish it**: Verify the workflow's inputs, processing steps, and outputs in the platform, then publish the application.
+3. **Obtain the application ID**: For a business workflow template, use the stable public `application_id` returned by List business workflow templates. For a custom workflow, use the `id` returned by List runnable workflow applications.
+4. **Run the workflow**: Choose synchronous execution when you need to wait for the result, or create an asynchronous task and then query, rerun, or cancel the run as needed.
+
+<Info>
+  Before calling a business workflow template, confirm that its `can_run` value is `true`. If it is `false`, add, configure, and publish the corresponding application in the official ADP platform first.
+</Info>
+
+## OpenAPI capabilities
+
+| Goal | Endpoint |
+| --- | --- |
+| List business workflow templates and stable public application IDs | `GET /open/agentic_engine/laiye/v1/app/templates` |
+| List workflow applications that the current account can run | `GET /open/agentic_engine/laiye/v1/app/applications` |
+| Get workflow application details (limited preview) | `GET /open/agentic_engine/laiye/v1/app/applications/{application_id}` |
+| Run a workflow synchronously | `POST /open/agentic_engine/laiye/v1/app/run` |
+| Create an asynchronous run task | `POST /open/agentic_engine/laiye/v1/app/run/create/task` |
+| Query an asynchronous run result | `GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}` |
+| Rerun or cancel a run | `POST /open/agentic_engine/laiye/v1/app/run/{run_id}/rerun`, `POST /open/agentic_engine/laiye/v1/app/run/{run_id}/cancel` |
+
+OpenAPI currently supports discovering business workflow templates. For workflows that have already been created and published, it also provides application discovery, execution, and run-management capabilities. Create, refine, and publish custom workflows in the official ADP platform.

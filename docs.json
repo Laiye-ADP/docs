@@ -147,8 +147,10 @@
                   },
                   {
                     "group": "工作流",
+                    "root": "api-reference/workflows",
                     "icon": "network",
                     "pages": [
+                      "api-reference/adp-api/workflows/list-business-workflow-templates",
                       "api-reference/adp-api/workflows/list-workflow-applications",
                       "api-reference/adp-api/workflows/get-workflow-application",
                       "api-reference/adp-api/workflows/run-doc-flow-app",
@@ -300,7 +302,9 @@
                   },
                   {
                     "group": "Workflow",
+                    "root": "en/api-reference/workflows",
                     "pages": [
+                      "en/api-reference/adp-api/workflows/list-business-workflow-templates",
                       "en/api-reference/adp-api/workflows/list-workflow-applications",
                       "en/api-reference/adp-api/workflows/get-workflow-application",
                       "en/api-reference/adp-api/workflows/run-doc-flow-app",

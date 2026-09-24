@@ -23,10 +23,29 @@ GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{tas
 | Name | Type | Required | Description |
 | --- | --- | --- | --- |
 | `tenant_name` | string | Yes | Tenant name. Default: `laiye`. |
+| `accept-language` | string | Optional | Language for returned field names. The default is `en`. Set it to `zh` for Chinese field names. This header also determines the target language for field-value translation. |
 | `app_id` | string | Yes | Preset application ID. High-speed (global) is selected by default; you can also select the Southeast Asia or standard version. |
 | `file_base64` | string | Optional | Base64 content of the file. Use either `file_base64` or `file_url`. |
 | `file_url` | string | Optional | Online file URL. Use either `file_url` or `file_base64`. Only HTTP URLs are supported. |
 | `file_name` | string | Optional | File name. Provide it for Base64 input or when the name cannot be determined from the URL. |
+| `enable_multi_ticket` | boolean | Optional | Whether to split multiple invoices or receipts in one file into separate results. Default: `true`. Only the high-speed (global) and Southeast Asia versions support this option. It applies only to the current request. |
+| `enable_field_value_translation` | boolean | Optional | Whether to enable field-value translation for the current request. If omitted, the saved application setting is used. Passing this option does not modify the application configuration. The `accept-language` header determines the target language. |
+
+## Result enhancement settings
+
+The high-speed (global) and Southeast Asia versions support the following result enhancement settings. Configure application-level settings in the ADP Console. API calls use the application's current saved settings.
+
+| Feature | Initial default | Configuration method | Description |
+| --- | --- | --- | --- |
+| Show source locations | Off | Application settings in the ADP Console | Preserve each field's location in the source document and include source information in extraction results for review and traceability. Enabling this setting increases processing time. |
+| Calculate confidence scores | Off | Application settings in the ADP Console | Calculate field-level confidence scores and include them in extraction results. Enabling this setting increases processing time. |
+| Post-process field values | Off | Application settings in the ADP Console | Normalize common field values such as dates, numeric amounts, and tax rates. |
+| Multiple invoices in one file | On | Request field `enable_multi_ticket` | Split multiple invoices or receipts in one file into separate results. Enable or disable this behavior for the current request. |
+| Translate field values | Off | Application settings or request field `enable_field_value_translation` | Determine whether translation is needed based on the field value and target language. Values such as quantities and amounts may remain unchanged. The request field overrides the saved setting for the current request only. |
+
+<Note>
+  Show source locations, calculate confidence scores, and post-process field values are not request fields for the document extraction API. Do not add them directly to the request body. Configure them in the application's settings in the ADP Console.
+</Note>
 
 ## Version selection
 

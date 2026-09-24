@@ -11,7 +11,6 @@ const contentTypeExtensions = new Map([
   ["image/jpg", ".jpg"],
   ["image/png", ".png"],
   ["image/gif", ".gif"],
-  ["image/webp", ".webp"],
   ["image/svg+xml", ".svg"],
   ["image/bmp", ".bmp"],
   ["image/tiff", ".tiff"],
@@ -61,7 +60,7 @@ function extensionFromUrl(url) {
   try {
     const { pathname } = new URL(url);
     const ext = path.extname(pathname).toLowerCase();
-    return [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp", ".tif", ".tiff", ".avif"].includes(ext)
+    return [".jpg", ".jpeg", ".png", ".gif", ".svg", ".bmp", ".tif", ".tiff", ".avif"].includes(ext)
       ? ext.replace(".jpeg", ".jpg").replace(".tif", ".tiff")
       : "";
   } catch {
