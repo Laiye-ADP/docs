@@ -1,0 +1,8 @@
+---
+title: "查询协同任务"
+description: "查询协同任务状态、原始抽取结果、审核内容和最终结果。"
+sidebarTitle: "查询协同任务"
+openapi: "/api-reference/adp-api.yaml GET /open/agentic_doc_processor/{tenant_name}/v1/collaboration/task/{task_id}"
+---
+
+`task_id` 使用异步抽取创建响应中的 `data.metadata.collaboration_task_id`。状态和结果字段说明见[人机协同](/api-reference/collaboration)。

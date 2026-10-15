@@ -100,7 +100,7 @@
                       "api-reference/adp-api/document-extraction/query-document-extract-task"
                     ],
                     "icon": "asterisk"
-                  },                
+                  },
                   {
                     "group": "文档解析",
                     "pages": [
@@ -144,6 +144,19 @@
                       "api-reference/adp-api/application-management/generate-extraction-field-prompts"
                     ],
                     "icon": "asterisk"
+                  },
+                  {
+                    "group": "人机协同",
+                    "root": "api-reference/collaboration",
+                    "icon": "messages-square",
+                    "pages": [
+                      "api-reference/adp-api/collaboration/create-collaboration-rule",
+                      "api-reference/adp-api/collaboration/get-collaboration-rule",
+                      "api-reference/adp-api/collaboration/update-collaboration-rule",
+                      "api-reference/adp-api/collaboration/delete-collaboration-rule",
+                      "api-reference/adp-api/collaboration/get-collaboration-task",
+                      "api-reference/adp-api/collaboration/update-collaboration-result"
+                    ]
                   },
                   {
                     "group": "工作流",
@@ -329,6 +342,19 @@
                       "en/api-reference/adp-api/application-management/generate-extraction-field-prompts"
                     ],
                     "icon": "asterisk"
+                  },
+                  {
+                    "group": "Human collaboration",
+                    "root": "en/api-reference/collaboration",
+                    "icon": "messages-square",
+                    "pages": [
+                      "en/api-reference/adp-api/collaboration/create-collaboration-rule",
+                      "en/api-reference/adp-api/collaboration/get-collaboration-rule",
+                      "en/api-reference/adp-api/collaboration/update-collaboration-rule",
+                      "en/api-reference/adp-api/collaboration/delete-collaboration-rule",
+                      "en/api-reference/adp-api/collaboration/get-collaboration-task",
+                      "en/api-reference/adp-api/collaboration/update-collaboration-result"
+                    ]
                   },
                   {
                     "group": "Get file URL",

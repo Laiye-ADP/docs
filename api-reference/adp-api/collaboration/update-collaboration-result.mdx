@@ -1,0 +1,8 @@
+---
+title: "更新协同结果"
+description: "提交待处理协同任务的人工修正并完成审核。"
+sidebarTitle: "更新协同结果"
+openapi: "/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/collaboration/result/update"
+---
+
+只在 `task_state=2` 时提交，`file_task_id` 使用协同任务的 `id`。普通字段、表格结构和提交后的核对步骤见[人机协同](/api-reference/collaboration)。

@@ -1,0 +1,10 @@
+---
+title: "Delete collaboration rule"
+description: "Delete an application's rule and associated historical collaboration tasks."
+sidebarTitle: "Delete collaboration rule"
+openapi: "/en/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/collaboration/rules/delete"
+---
+
+<Warning>
+  Deletion removes associated historical collaboration tasks and can currently affect subsequent extraction. Prefer updating the rule with `rule_status=false`, then verify with a new document that collaboration is disabled. See [Human collaboration](/en/api-reference/collaboration).
+</Warning>

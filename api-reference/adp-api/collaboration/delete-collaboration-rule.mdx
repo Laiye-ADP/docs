@@ -1,0 +1,10 @@
+---
+title: "删除协同规则"
+description: "删除应用的协同规则及关联历史协同任务。"
+sidebarTitle: "删除协同规则"
+openapi: "/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/collaboration/rules/delete"
+---
+
+<Warning>
+  删除会移除关联的历史协同任务，且当前可能影响后续抽取。优先通过更新规则设置 `rule_status=false`，并用新文档核验停用结果。详见[人机协同](/api-reference/collaboration)。
+</Warning>

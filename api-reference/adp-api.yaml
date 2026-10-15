@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: ADP API
   version: 1.0.0
-  description: Laiye ADP 官方 OpenAPI 接口规范，覆盖文档抽取、解析与转换，抽取应用管理、Webhook、积分查询，以及工作流发现、运行、导出和文件管理。
+  description: Laiye ADP 官方 OpenAPI 接口规范，覆盖文档抽取、解析与转换，抽取应用管理、Webhook、人机协同、积分查询，以及工作流发现、运行、导出和文件管理。
   license:
     name: MIT
     identifier: MIT
@@ -26,12 +26,14 @@ tags:
     description: 查询业务工作流模板、运行工作流应用并查询执行结果。
   - name: 工作流文件
     description: 上传和管理工作流应用使用的文件。
+  - name: 人机协同
+    description: 配置审核触发规则，查询协同任务并提交人工修正。
 paths:
   /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract:
     post:
       tags: [文档抽取]
       summary: 文档抽取（同步接口）
-      description: 针对用户上传的文档，调用指定的文档抽取应用，根据应用配置和规则从文件中提取指定内容。同一接口适用于自定义抽取应用、海外发票、收据、采购订单、国内通用票据和卡证等场景。
+      description: 针对用户上传的文档，调用指定的文档抽取应用，根据应用配置和规则从文件中提取指定内容。同一接口适用于自定义抽取应用、海外发票、收据、采购订单、国内通用票据和卡证等场景。 同步抽取默认禁用人机协同；需要人工审核时请使用异步创建与查询接口。
       operationId: extractDocument
       security:
         - ApiKeyAuth: []
@@ -49,7 +51,10 @@ paths:
     post:
       tags: [文档抽取]
       summary: 创建文档抽取异步任务
-      description: 创建文档抽取任务并立即返回 task_id。适用于大文档或长时间抽取任务。
+      description: |
+        创建文档抽取任务并立即返回 task_id。适用于大文档或长时间抽取任务。
+
+        启用人机协同时，data.metadata.collaboration_task_id 是协同任务 ID，data.task_id 是异步抽取任务 ID，二者不能互换。高速自定义抽取不支持人机协同。
       operationId: createDocumentExtractTask
       security:
         - ApiKeyAuth: []
@@ -67,7 +72,7 @@ paths:
     get:
       tags: [文档抽取]
       summary: 查询文档抽取任务结果
-      description: 根据创建任务接口返回的 task_id 查询文档抽取状态和结果。
+      description: 根据创建任务接口返回的 task_id 查询文档抽取状态和结果。 人机协同完成后，extraction_result 保留原始抽取值，output_result 返回最终修正值；协同状态请使用协同任务查询接口确认。
       operationId: queryDocumentExtractTask
       security:
         - ApiKeyAuth: []
@@ -848,6 +853,309 @@ paths:
           $ref: '#/components/responses/FileInfoResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/collaboration/rules/create:
+    post:
+      tags:
+        - 人机协同
+      summary: 创建人机协同规则
+      description: |-
+        为应用创建一组命中后进入人工审核的触发条件；每个应用使用一组规则。
+
+        保存后必须查询规则并核对名称、条件和组合逻辑；不支持的自然语言条件可能返回 success 但没有保存。rule_status 当前回读不可靠，需验证实际启停效果。
+
+        HTTP 200 不保证业务成功，请检查 code。
+
+        接入步骤与当前限制见[人机协同](/api-reference/collaboration)。
+      operationId: createCollaborationRule
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollaborationRuleRequest'
+            example:
+              app_id: app_abc123
+              rule_name: 发票人工审核
+              rule_status: true
+              rule:
+                - rule_dimension: 发票号码
+                  rule_setting: 等于 INV-AUDIT-001
+              rule_logic: 1
+      responses:
+        '200':
+          description: 业务响应。请检查 code，并在写入后回查业务结果。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollaborationEmptyResponse'
+              example:
+                code: success
+                message: ''
+                tips: null
+                data: {}
+        '401':
+          description: 缺少 API Key。
+        '404':
+          description: API Key 无效或请求不可访问。
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/collaboration/rules/{app_id}:
+    get:
+      tags:
+        - 人机协同
+      summary: 查询人机协同规则
+      description: |-
+        使用实际 app_id 查询规则内容。当前停用后 rule_status 仍可能返回 true；不要据此判断实际启停状态。开箱即用应用别名也存在查询限制，优先使用实际应用 ID。
+
+        HTTP 200 不保证业务成功，请检查 code。
+
+        接入步骤与当前限制见[人机协同](/api-reference/collaboration)。
+      operationId: getCollaborationRule
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - name: app_id
+          in: path
+          required: true
+          description: 应用实际 ID。
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 业务响应。请检查 code，并在写入后回查业务结果。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollaborationRuleResponse'
+              example:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  app_id: app_abc123
+                  rule_name: 发票人工审核
+                  rule_status: true
+                  rule:
+                    - rule_dimension: 发票号码
+                      rule_setting: 等于 INV-AUDIT-001
+                  rule_logic: 1
+                  created_at: '2026-10-15T10:00:00Z'
+                  updated_at: '2026-10-15T10:00:00Z'
+        '401':
+          description: 缺少 API Key。
+        '404':
+          description: API Key 无效或请求不可访问。
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/collaboration/rules/update:
+    post:
+      tags:
+        - 人机协同
+      summary: 修改人机协同规则
+      description: |-
+        按应用替换规则名称、完整条件列表、组合逻辑及启用状态。请传完整内容；停用时显式传 rule_status=false。
+
+        保存后必须查询规则并核对名称、条件和组合逻辑；不支持的自然语言条件可能返回 success 但没有保存。rule_status 当前回读不可靠，需验证实际启停效果。
+
+        HTTP 200 不保证业务成功，请检查 code。
+
+        接入步骤与当前限制见[人机协同](/api-reference/collaboration)。
+      operationId: updateCollaborationRule
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollaborationRuleRequest'
+            example:
+              app_id: app_abc123
+              rule_name: 发票人工审核
+              rule_status: true
+              rule:
+                - rule_dimension: 发票号码
+                  rule_setting: 等于 INV-AUDIT-001
+              rule_logic: 1
+      responses:
+        '200':
+          description: 业务响应。请检查 code，并在写入后回查业务结果。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollaborationEmptyResponse'
+              example:
+                code: success
+                message: ''
+                tips: null
+                data: {}
+        '401':
+          description: 缺少 API Key。
+        '404':
+          description: API Key 无效或请求不可访问。
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/collaboration/rules/delete:
+    post:
+      tags:
+        - 人机协同
+      summary: 删除人机协同规则
+      description: |-
+        删除应用的规则，同时删除关联协同任务和审核历史。当前删除后还可能导致该应用后续抽取失败。仍需继续抽取时，优先通过修改接口停用并验证效果；确认不再使用相关任务和历史后再删除。
+
+        HTTP 200 不保证业务成功，请检查 code。
+
+        接入步骤与当前限制见[人机协同](/api-reference/collaboration)。
+      operationId: deleteCollaborationRule
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollaborationAppRequest'
+            example:
+              app_id: app_abc123
+      responses:
+        '200':
+          description: 业务响应。请检查 code，并在写入后回查业务结果。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollaborationEmptyResponse'
+              example:
+                code: success
+                message: ''
+                tips: null
+                data: {}
+        '401':
+          description: 缺少 API Key。
+        '404':
+          description: API Key 无效或请求不可访问。
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/collaboration/task/{task_id}:
+    get:
+      tags:
+        - 人机协同
+      summary: 查询人机协同任务
+      description: |-
+        task_id 是协同任务主键 ID，来自异步抽取创建响应 data.metadata.collaboration_task_id。它不是原异步抽取 task_id、展示编号 task_number 或数据 ID。只读取本页列出的业务字段，避免记录或转发完整响应。
+
+        HTTP 200 不保证业务成功，请检查 code。
+
+        接入步骤与当前限制见[人机协同](/api-reference/collaboration)。
+      operationId: getCollaborationTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - name: task_id
+          in: path
+          required: true
+          description: 协同任务主键 ID。
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 业务响应。请检查 code，并在写入后回查业务结果。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollaborationTaskResponse'
+              example:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  id: collaboration_task_id
+                  task_number: COLLAB-001
+                  app_id: app_abc123
+                  task_state: 2
+                  created_at: '2026-10-15T10:00:00Z'
+                  updated_at: '2026-10-15T10:00:00Z'
+                  extraction_result: []
+                  collaboration_result: []
+                  output_result: []
+        '401':
+          description: 缺少 API Key。
+        '404':
+          description: API Key 无效或请求不可访问。
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/collaboration/result/update:
+    post:
+      tags:
+        - 人机协同
+      summary: 修改人机协同结果
+      description: |-
+        仅为 task_state=2 的协同任务提交已有字段的确认或修正。成功实际返回 file_status=4；请再查询任务确认状态和值，并在异步抽取查询结果的 output_result 中读取最终修正值。
+
+        提交前校验字段名、类型和值；未知字段可能被忽略却完成任务，遗漏值可能清空原值，缩短多值列表可能残留旧值。普通字段只传 field_values，表格只传 table_values。表格会整块替换，请复制要保留的 field_key/references 等信息。失败响应也可能已保存数据，请先回查，勿盲目重试。
+
+        HTTP 200 不保证业务成功，请检查 code。
+
+        接入步骤与当前限制见[人机协同](/api-reference/collaboration)。
+      operationId: updateCollaborationResult
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollaborationResultRequest'
+            example:
+              file_task_id: collaboration_task_id
+              collaboration_result:
+                - field_name: 发票号码
+                  field_type: string
+                  field_values:
+                    - CORRECTED-002
+                - field_name: 明细
+                  field_type: table
+                  table_values:
+                    - - field_name: 名称
+                        field_values:
+                          - field_value: Corrected item
+                            references: []
+                        field_key: 名称
+                      - field_name: 数量
+                        field_values:
+                          - field_value: '3'
+                            references: []
+                        field_key: 数量
+      responses:
+        '200':
+          description: 业务响应。请检查 code，并在写入后回查业务结果。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollaborationResultResponse'
+              example:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  file_status: 4
+        '401':
+          description: 缺少 API Key。
+        '404':
+          description: API Key 无效或请求不可访问。
+        '422':
+          $ref: '#/components/responses/ValidationError'
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -1268,6 +1576,12 @@ components:
                         type: object
                         additionalProperties: true
                         description: 文档处理任务元数据。
+                        properties:
+                          collaboration_task_id:
+                            type:
+                            - string
+                            - 'null'
+                            description: 启用协同时返回的协同任务主键 ID，用于查询协同任务及提交 file_task_id。与外层 task_id 不同。
           example:
             code: success
             message: ''
@@ -2463,6 +2777,7 @@ components:
           items:
             $ref: '#/components/schemas/RecognizePage'
         extraction_result:
+          description: 原始机器抽取结果，人工修正后仍保留。
           type: array
           items:
             $ref: '#/components/schemas/ExtractionField'
@@ -2470,11 +2785,13 @@ components:
           type: string
           description: 本次抽取使用的配置版本。
         collaboration_result:
+          description: 人机协同审核详情。人工是否完成请查询协同任务 task_state。
           type: array
           items:
             type: object
             additionalProperties: true
         output_result:
+          description: 最终结果；人工完成后包含修正值，请确认协同任务已通过或完成。
           type: array
           items:
             type: object
@@ -2485,6 +2802,12 @@ components:
             - 'null'
           additionalProperties: true
           description: 文档处理任务元数据。
+          properties:
+            collaboration_task_id:
+              type:
+              - string
+              - 'null'
+              description: 协同任务主键 ID；仅在启用人机协同时存在。
         aigc:
           oneOf:
             - $ref: '#/components/schemas/AigcLabel'
@@ -3620,3 +3943,437 @@ components:
           type: string
           description: 文件状态。
       required: [id, file_name, file_size, content_type, status]
+    CollaborationAppRequest:
+      type: object
+      properties:
+        app_id:
+          type: string
+          description: 应用 ID。请使用当前账号已发布的标准自定义抽取应用的实际 ID。
+          example: app_abc123
+      required:
+        - app_id
+    CollaborationRuleItem:
+      type: object
+      properties:
+        rule_dimension:
+          type: string
+          description: 审核维度：整体文档、文档置信度或已发布的字段名称。当前优先使用名称与 key 一致的普通字段；系统维度和名称/key 不同的字段需先验证实际触发效果。
+        rule_setting:
+          type: string
+          description: 触发人工审核的自然语言条件，例如“等于 INV-AUDIT-001”。条件命中后进入人工审核。
+      required:
+        - rule_dimension
+        - rule_setting
+    CollaborationRuleRequest:
+      type: object
+      properties:
+        app_id:
+          type: string
+          description: 应用 ID。请使用当前账号已发布的标准自定义抽取应用的实际 ID。
+          example: app_abc123
+        rule_name:
+          type: string
+          description: 规则名称。当前最多 50 个字符，同一账号下跨应用不能重名。
+          minLength: 1
+          maxLength: 50
+        rule_status:
+          type: boolean
+          default: true
+          description: 是否启用规则。false 用于停用；查询接口当前可能仍返回 true，需通过实际抽取核验启停效果。
+        rule:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollaborationRuleItem'
+          minItems: 1
+          maxItems: 100
+          description: 审核触发条件列表，1–100 条。
+        rule_logic:
+          type: integer
+          default: 1
+          enum:
+            - 1
+            - 2
+          description: 1=任一条件命中（OR）；2=所有条件命中（AND）。只传 1 或 2，其他值当前可能被误接受。
+      required:
+        - app_id
+        - rule_name
+        - rule
+    CollaborationRuleData:
+      type: object
+      properties:
+        rule_name:
+          type: string
+        app_id:
+          type: string
+        rule_status:
+          type: boolean
+          description: 启用状态。当前停用后可能仍返回 true，不能单独作为启停确认。
+        rule:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollaborationRuleItem'
+        rule_logic:
+          type: integer
+          description: 1=OR，2=AND。
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required:
+        - rule_name
+        - app_id
+        - rule_status
+        - rule_logic
+    CollaborationTableCell:
+      type: object
+      properties:
+        field_name:
+          type: string
+          description: 已发布的表格列名称。
+        field_key:
+          type: string
+          description: 原单元格的字段 key。需要保留时，从任务详情完整复制。
+        field_values:
+          type: array
+          items:
+            type: object
+            properties:
+              field_value:
+                type: string
+                description: 修正后的单元格文本。
+              references:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+                description: 原字段值的文档定位信息，需要保留时从查询结果完整复制。
+            required:
+              - field_value
+            additionalProperties: true
+          description: 注意：单元格值是对象数组，与普通字段的字符串数组不同。
+        references:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+          description: 原单元格来源位置。需要保留回标时，从任务详情完整复制。
+      required:
+        - field_name
+        - field_values
+      additionalProperties: true
+    CollaborationResultField:
+      type: object
+      properties:
+        field_name:
+          type: string
+          description: 已有抽取字段的准确名称。未知名称可能被忽略但仍完成任务，请在提交前校验。
+        field_type:
+          type: string
+          description: 字段类型：string=文本，date=日期，table=表格。必须与原字段类型一致。
+        field_values:
+          type: array
+          items:
+            type: string
+          default: []
+          description: 普通字段的完整值列表。请显式提供，不要遗漏；当前缩短列表可能保留旧尾值，应回查完整结果。表格字段不要同时传此参数。
+        table_values:
+          anyOf:
+            - type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CollaborationTableCell'
+            - type: 'null'
+          description: 表格整块替换：外层是行，行内是单元格对象。提交完整目标表格，并复制需要保留的 field_key/references 等信息。不要同时传 field_values。
+      required:
+        - field_name
+        - field_type
+    CollaborationResultRequest:
+      type: object
+      properties:
+        file_task_id:
+          type: string
+          description: 协同任务主键 ID，即异步抽取响应 data.metadata.collaboration_task_id 或任务详情 data.id；不是展示编号 task_number、异步抽取 task_id 或 data_id。
+        collaboration_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollaborationResultField'
+          description: 本次确认或修正的已有字段。仅对 task_state=2 的任务提交有效字段和明确的值；提交后任务会完成。
+      required:
+        - file_task_id
+        - collaboration_result
+    CollaborationResultData:
+      type: object
+      properties:
+        file_status:
+          type: integer
+          description: 提交成功实际返回 4=已完成。完整协同状态字典见任务详情的 task_state。
+          example: 4
+      required:
+        - file_status
+    CollaborationTaskData:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 协同任务主键 ID，用于查询和 file_task_id。
+        task_number:
+          type: string
+          description: 任务展示编号，不能用于查询或修正。
+        app_id:
+          type: string
+        app_name:
+          type:
+            - string
+            - 'null'
+        rule_id:
+          type:
+            - string
+            - 'null'
+        rule_name:
+          type:
+            - string
+            - 'null'
+        rule_logic_operator:
+          type:
+            - string
+            - 'null'
+        file_id:
+          type:
+            - string
+            - 'null'
+        file_name:
+          type:
+            - string
+            - 'null'
+        data_id:
+          type:
+            - string
+            - 'null'
+          description: 抽取数据 ID，与协同任务 ID 不同。
+        data_name:
+          type:
+            - string
+            - 'null'
+        message:
+          type:
+            - string
+            - 'null'
+        task_state:
+          type: integer
+          description: 1=等待中，2=待处理，3=已通过（自动通过），4=已完成（人工处理完成），5=已失败，6=已取消。只在 2 时提交修正。
+        task_state_name:
+          type:
+            - string
+            - 'null'
+        completed_time:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        thumbnail_file_url:
+          type:
+            - string
+            - 'null'
+        converted_file_url_result:
+          type:
+            - array
+            - 'null'
+          items:
+            type: string
+        extraction_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtractionField'
+          description: 原始机器抽取结果，人工修正后仍保留。
+        collaboration_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollaborationReviewField'
+          description: 协同审核详情，包含字段审核状态和值；不要将原机器校验结论当作人工完成状态。
+        output_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollaborationOutputField'
+          description: 合并后的最终结果。先确认 task_state=3 或 4，再消费；人工完成后应以此字段读取修正值。
+      required:
+        - id
+        - task_number
+        - app_id
+        - task_state
+        - created_at
+        - updated_at
+      description: 仅列出集成所需的业务字段。响应可能还含未列字段，请按白名单读取，不要直接记录或转发完整响应。
+    CollaborationEmptyResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: 业务结果码。成功为 success；失败可能为 server_error、http_server_error 等字符串，必须检查，不能只看 HTTP 200。
+        message:
+          type: string
+        tips:
+          type:
+            - string
+            - 'null'
+        data:
+          anyOf:
+            - type: object
+            - type: 'null'
+    CollaborationRuleResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: 业务结果码。成功为 success；失败可能为 server_error、http_server_error 等字符串，必须检查，不能只看 HTTP 200。
+        message:
+          type: string
+        tips:
+          type:
+            - string
+            - 'null'
+        data:
+          anyOf:
+            - $ref: '#/components/schemas/CollaborationRuleData'
+            - type: 'null'
+    CollaborationTaskResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: 业务结果码。成功为 success；失败可能为 server_error、http_server_error 等字符串，必须检查，不能只看 HTTP 200。
+        message:
+          type: string
+        tips:
+          type:
+            - string
+            - 'null'
+        data:
+          anyOf:
+            - $ref: '#/components/schemas/CollaborationTaskData'
+            - type: 'null'
+    CollaborationResultResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: 业务结果码。成功为 success；失败可能为 server_error、http_server_error 等字符串，必须检查，不能只看 HTTP 200。
+        message:
+          type: string
+        tips:
+          type:
+            - string
+            - 'null'
+        data:
+          anyOf:
+            - $ref: '#/components/schemas/CollaborationResultData'
+            - type: 'null'
+    CollaborationOutputField:
+      type: object
+      additionalProperties: true
+      properties:
+        field_key:
+          type: string
+        field_name:
+          type: string
+        field_values:
+          type: array
+          items:
+            anyOf:
+              - type: object
+                additionalProperties: true
+              - type: array
+                items:
+                  type: object
+                  additionalProperties: true
+          description: 表格字段可能在此同时返回二维单元格数组，表格行列请优先读取 table_values。
+        references:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        table_values:
+          type: array
+          items:
+            type: array
+            items:
+              type: object
+              additionalProperties: true
+      description: 最终输出字段。普通字段值为对象数组；表格以二维 table_values 读取。
+    CollaborationReviewField:
+      type: object
+      additionalProperties: true
+      properties:
+        field_key:
+          type: string
+        field_name:
+          type: string
+        field_values:
+          type: array
+          items:
+            anyOf:
+              - type: object
+                additionalProperties: true
+              - type: array
+                items:
+                  type: object
+                  additionalProperties: true
+          description: 审核中的当前字段值；表格可能为二维数组。
+        references:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        table_values:
+          type: array
+          items:
+            type: array
+            items:
+              type: object
+              additionalProperties: true
+        field_verify_values:
+          type: array
+          items:
+            anyOf:
+              - type: object
+                additionalProperties: true
+              - type: array
+                items:
+                  type: object
+                  additionalProperties: true
+          description: 确认或修正后的字段值。
+        table_verify_values:
+          type: array
+          items:
+            type: array
+            items:
+              type: object
+              additionalProperties: true
+          description: 确认或修正后的完整表格。
+        field_verify_state:
+          type: integer
+          description: 字段人工确认状态，1 表示已确认。任务是否完成以 task_state 为准。
+        field_verify_detail:
+          type: object
+          additionalProperties: true
+          properties:
+            verification_passed:
+              type: boolean
+              description: 可能保留原机器判断，不代表人工审核是否完成。
+            rule_matched:
+              type: boolean
+            matched_reason:
+              type: string
+      description: 字段审核详情。原始抽取结果请读取 extraction_result。

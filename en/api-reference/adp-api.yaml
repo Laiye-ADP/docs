@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: ADP API
   version: 1.0.0
-  description: Laiye ADP OpenAPI reference for document extraction, recognition, and conversion; extraction application management; webhooks; credit usage; workflow discovery, runs, exports, and file management.
+  description: Laiye ADP OpenAPI reference for document extraction, recognition, and conversion; extraction application management; webhooks; human collaboration; credit usage; workflow discovery, runs, exports, and file management.
   license:
     name: MIT
     identifier: MIT
@@ -26,12 +26,14 @@ tags:
     description: List business workflow templates, run workflow applications, and query run results.
   - name: Workflow files
     description: Upload and manage files used by workflow applications.
+  - name: Human collaboration
+    description: Configure review triggers, query collaboration tasks, and submit human corrections.
 paths:
   /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract:
     post:
       tags: [Document extraction]
       summary: Extract document (sync)
-      description: For a user-uploaded document, call the specified document extraction application and extract content from the file based on the application configuration and rules. The same endpoint applies to custom extraction applications, overseas invoices, receipts, purchase orders, domestic general bills, and cards.
+      description: For a user-uploaded document, call the specified document extraction application and extract content from the file based on the application configuration and rules. The same endpoint applies to custom extraction applications, overseas invoices, receipts, purchase orders, domestic general bills, and cards. Synchronous extraction disables human collaboration by default; use the asynchronous create and query endpoints for human review.
       operationId: extractDocument
       security:
         - ApiKeyAuth: []
@@ -49,7 +51,10 @@ paths:
     post:
       tags: [Document extraction]
       summary: Create document extraction task
-      description: Create a document extraction task and return task_id immediately. Use this endpoint for large documents or long-running extraction tasks.
+      description: |
+        Create a document extraction task and return task_id immediately. Use this endpoint for large documents or long-running extraction tasks.
+
+        With human collaboration enabled, data.metadata.collaboration_task_id is the collaboration task ID, while data.task_id is the asynchronous extraction task ID. They are not interchangeable. High-speed custom extraction does not support human collaboration.
       operationId: createDocumentExtractTask
       security:
         - ApiKeyAuth: []
@@ -67,7 +72,7 @@ paths:
     get:
       tags: [Document extraction]
       summary: Query document extraction result
-      description: Query document extraction status and results by the task_id returned by the task creation endpoint.
+      description: Query document extraction status and results by the task_id returned by the task creation endpoint. After human review, extraction_result retains the original extraction and output_result contains the corrected final values. Query the collaboration task separately to confirm its review state.
       operationId: queryDocumentExtractTask
       security:
         - ApiKeyAuth: []
@@ -848,6 +853,309 @@ paths:
           $ref: '#/components/responses/FileInfoResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/collaboration/rules/create:
+    post:
+      tags:
+        - Human collaboration
+      summary: Create collaboration rule
+      description: |-
+        Create a set of conditions that route matching documents to human review; each application uses one rule set.
+
+        After saving, query the rule and verify its name, conditions, and logic. Unsupported natural-language conditions may return success without saving. rule_status is currently unreliable on reads; verify the effective enabled state.
+
+        HTTP 200 does not guarantee business success; check code.
+
+        See [Human collaboration](/en/api-reference/collaboration) for integration steps and current limitations.
+      operationId: createCollaborationRule
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollaborationRuleRequest'
+            example:
+              app_id: app_abc123
+              rule_name: Invoice human review
+              rule_status: true
+              rule:
+                - rule_dimension: Invoice number
+                  rule_setting: Equals INV-AUDIT-001
+              rule_logic: 1
+      responses:
+        '200':
+          description: Business response. Check code and read business state back after writes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollaborationEmptyResponse'
+              example:
+                code: success
+                message: ''
+                tips: null
+                data: {}
+        '401':
+          description: Missing API key.
+        '404':
+          description: Invalid API key or inaccessible request.
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/collaboration/rules/{app_id}:
+    get:
+      tags:
+        - Human collaboration
+      summary: Get collaboration rule
+      description: |-
+        Query rule content using the actual app_id. rule_status may remain true after disabling; do not use it to determine the effective state. Built-in application aliases also have query limitations; prefer actual application IDs.
+
+        HTTP 200 does not guarantee business success; check code.
+
+        See [Human collaboration](/en/api-reference/collaboration) for integration steps and current limitations.
+      operationId: getCollaborationRule
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - name: app_id
+          in: path
+          required: true
+          description: Actual application ID.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Business response. Check code and read business state back after writes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollaborationRuleResponse'
+              example:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  app_id: app_abc123
+                  rule_name: Invoice human review
+                  rule_status: true
+                  rule:
+                    - rule_dimension: Invoice number
+                      rule_setting: Equals INV-AUDIT-001
+                  rule_logic: 1
+                  created_at: '2026-10-15T10:00:00Z'
+                  updated_at: '2026-10-15T10:00:00Z'
+        '401':
+          description: Missing API key.
+        '404':
+          description: Invalid API key or inaccessible request.
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/collaboration/rules/update:
+    post:
+      tags:
+        - Human collaboration
+      summary: Update collaboration rule
+      description: |-
+        Replace the rule name, complete condition list, logic, and enabled state for an application. Send the complete content; explicitly use rule_status=false to disable.
+
+        After saving, query the rule and verify its name, conditions, and logic. Unsupported natural-language conditions may return success without saving. rule_status is currently unreliable on reads; verify the effective enabled state.
+
+        HTTP 200 does not guarantee business success; check code.
+
+        See [Human collaboration](/en/api-reference/collaboration) for integration steps and current limitations.
+      operationId: updateCollaborationRule
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollaborationRuleRequest'
+            example:
+              app_id: app_abc123
+              rule_name: Invoice human review
+              rule_status: true
+              rule:
+                - rule_dimension: Invoice number
+                  rule_setting: Equals INV-AUDIT-001
+              rule_logic: 1
+      responses:
+        '200':
+          description: Business response. Check code and read business state back after writes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollaborationEmptyResponse'
+              example:
+                code: success
+                message: ''
+                tips: null
+                data: {}
+        '401':
+          description: Missing API key.
+        '404':
+          description: Invalid API key or inaccessible request.
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/collaboration/rules/delete:
+    post:
+      tags:
+        - Human collaboration
+      summary: Delete collaboration rule
+      description: |-
+        Delete an application’s rule and its associated collaboration tasks and review history. Deletion may currently cause subsequent extraction for the application to fail. If extraction must continue, prefer disabling through the update endpoint and verify the effect. Delete only after the related tasks and history are no longer needed.
+
+        HTTP 200 does not guarantee business success; check code.
+
+        See [Human collaboration](/en/api-reference/collaboration) for integration steps and current limitations.
+      operationId: deleteCollaborationRule
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollaborationAppRequest'
+            example:
+              app_id: app_abc123
+      responses:
+        '200':
+          description: Business response. Check code and read business state back after writes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollaborationEmptyResponse'
+              example:
+                code: success
+                message: ''
+                tips: null
+                data: {}
+        '401':
+          description: Missing API key.
+        '404':
+          description: Invalid API key or inaccessible request.
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/collaboration/task/{task_id}:
+    get:
+      tags:
+        - Human collaboration
+      summary: Get collaboration task
+      description: |-
+        task_id is the collaboration task primary ID from data.metadata.collaboration_task_id in the asynchronous extraction creation response. It is not the extraction task_id, display task_number, or data ID. Read only the documented business fields and avoid logging or forwarding the complete response.
+
+        HTTP 200 does not guarantee business success; check code.
+
+        See [Human collaboration](/en/api-reference/collaboration) for integration steps and current limitations.
+      operationId: getCollaborationTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - name: task_id
+          in: path
+          required: true
+          description: Collaboration task primary ID.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Business response. Check code and read business state back after writes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollaborationTaskResponse'
+              example:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  id: collaboration_task_id
+                  task_number: COLLAB-001
+                  app_id: app_abc123
+                  task_state: 2
+                  created_at: '2026-10-15T10:00:00Z'
+                  updated_at: '2026-10-15T10:00:00Z'
+                  extraction_result: []
+                  collaboration_result: []
+                  output_result: []
+        '401':
+          description: Missing API key.
+        '404':
+          description: Invalid API key or inaccessible request.
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/collaboration/result/update:
+    post:
+      tags:
+        - Human collaboration
+      summary: Update collaboration result
+      description: |-
+        Confirm or correct existing fields only for a collaboration task in task_state=2. A successful call returns file_status=4. Query the task again to confirm its state and values, then read the final corrected values from output_result in the asynchronous extraction query response.
+
+        Validate names, types, and values before submission: unknown fields may be ignored while completing the task, omitted values may clear old data, and shortening multi-value lists may retain trailing values. Use field_values for ordinary fields and table_values for tables. Tables are replaced in full; copy field_key/references and any other information to retain. A failed response may follow a saved change; read the task back before retrying.
+
+        HTTP 200 does not guarantee business success; check code.
+
+        See [Human collaboration](/en/api-reference/collaboration) for integration steps and current limitations.
+      operationId: updateCollaborationResult
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollaborationResultRequest'
+            example:
+              file_task_id: collaboration_task_id
+              collaboration_result:
+                - field_name: Invoice number
+                  field_type: string
+                  field_values:
+                    - CORRECTED-002
+                - field_name: Line items
+                  field_type: table
+                  table_values:
+                    - - field_name: Item name
+                        field_values:
+                          - field_value: Corrected item
+                            references: []
+                        field_key: Item name
+                      - field_name: Quantity
+                        field_values:
+                          - field_value: '3'
+                            references: []
+                        field_key: Quantity
+      responses:
+        '200':
+          description: Business response. Check code and read business state back after writes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollaborationResultResponse'
+              example:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  file_status: 4
+        '401':
+          description: Missing API key.
+        '404':
+          description: Invalid API key or inaccessible request.
+        '422':
+          $ref: '#/components/responses/ValidationError'
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -1260,6 +1568,12 @@ components:
                         type: object
                         additionalProperties: true
                         description: Document processing task metadata.
+                        properties:
+                          collaboration_task_id:
+                            type:
+                            - string
+                            - 'null'
+                            description: Collaboration task primary ID when enabled, used for task queries and file_task_id. Distinct from the outer task_id.
           example:
             code: success
             message: ''
@@ -2468,6 +2782,7 @@ components:
           items:
             $ref: '#/components/schemas/RecognizePage'
         extraction_result:
+          description: Original machine extraction result, retained after human correction.
           type: array
           items:
             $ref: '#/components/schemas/ExtractionField'
@@ -2475,11 +2790,13 @@ components:
           type: string
           description: Configuration version used for this extraction.
         collaboration_result:
+          description: Collaboration review details. Query the collaboration task_state to confirm completion of human review.
           type: array
           items:
             type: object
             additionalProperties: true
         output_result:
+          description: Final result, including corrected values after human review. Confirm that the collaboration task has passed or completed.
           type: array
           items:
             type: object
@@ -2490,6 +2807,12 @@ components:
             - 'null'
           additionalProperties: true
           description: Document processing task metadata.
+          properties:
+            collaboration_task_id:
+              type:
+              - string
+              - 'null'
+              description: Collaboration task primary ID; present only when human collaboration is enabled.
         aigc:
           oneOf:
             - $ref: '#/components/schemas/AigcLabel'
@@ -3625,3 +3948,441 @@ components:
           type: string
           description: File status.
       required: [id, file_name, file_size, content_type, status]
+    CollaborationAppRequest:
+      type: object
+      properties:
+        app_id:
+          type: string
+          description: Application ID. Use the actual ID of a published standard custom extraction application owned by the current account.
+          example: app_abc123
+      required:
+        - app_id
+    CollaborationRuleItem:
+      type: object
+      properties:
+        rule_dimension:
+          type: string
+          description: 'Review dimension: 整体文档 (overall document), 文档置信度 (document confidence), or a published field name. Prefer ordinary fields whose name matches their key; verify triggering
+            for system dimensions and fields whose name differs from their key.'
+        rule_setting:
+          type: string
+          description: Natural-language condition that triggers human review, for example “equals INV-AUDIT-001”. A match routes the document to human review.
+      required:
+        - rule_dimension
+        - rule_setting
+    CollaborationRuleRequest:
+      type: object
+      properties:
+        app_id:
+          type: string
+          description: Application ID. Use the actual ID of a published standard custom extraction application owned by the current account.
+          example: app_abc123
+        rule_name:
+          type: string
+          description: Rule name. The current service allows at most 50 characters and requires unique names across applications under the same account.
+          minLength: 1
+          maxLength: 50
+        rule_status:
+          type: boolean
+          default: true
+          description: Whether the rule is enabled. Use false to disable it. The query endpoint may still return true; verify the effect with an extraction run.
+        rule:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollaborationRuleItem'
+          minItems: 1
+          maxItems: 100
+          description: Review trigger conditions, 1–100 items.
+        rule_logic:
+          type: integer
+          default: 1
+          enum:
+            - 1
+            - 2
+          description: 1=any condition matches (OR); 2=all conditions match (AND). Send only 1 or 2; other values may currently be accepted incorrectly.
+      required:
+        - app_id
+        - rule_name
+        - rule
+    CollaborationRuleData:
+      type: object
+      properties:
+        rule_name:
+          type: string
+        app_id:
+          type: string
+        rule_status:
+          type: boolean
+          description: Enabled status. This may remain true after disabling; do not use it alone to confirm the effective state.
+        rule:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollaborationRuleItem'
+        rule_logic:
+          type: integer
+          description: 1=OR, 2=AND.
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required:
+        - rule_name
+        - app_id
+        - rule_status
+        - rule_logic
+    CollaborationTableCell:
+      type: object
+      properties:
+        field_name:
+          type: string
+          description: Published table column name.
+        field_key:
+          type: string
+          description: Original cell field key. Copy it from task details when it must be preserved.
+        field_values:
+          type: array
+          items:
+            type: object
+            properties:
+              field_value:
+                type: string
+                description: Corrected cell text.
+              references:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+                description: Document locations from the original value. Copy them in full from the query result to retain them.
+            required:
+              - field_value
+            additionalProperties: true
+          description: Cell values are an array of objects, unlike the string array used for ordinary fields.
+        references:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+          description: Original cell source locations. Copy them from task details to retain highlighting.
+      required:
+        - field_name
+        - field_values
+      additionalProperties: true
+    CollaborationResultField:
+      type: object
+      properties:
+        field_name:
+          type: string
+          description: Exact name of an existing extraction field. Unknown names may be ignored while still completing the task; validate names before submission.
+        field_type:
+          type: string
+          description: 'Field type: string=text, date=date, table=table. Match the original field type.'
+        field_values:
+          type: array
+          items:
+            type: string
+          default: []
+          description: Full value list for an ordinary field. Provide it explicitly; shortening the list may leave old trailing values, so read the complete result back. Omit this parameter
+            for table fields.
+        table_values:
+          anyOf:
+            - type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CollaborationTableCell'
+            - type: 'null'
+          description: 'Replaces the entire table: outer array=rows, each row=array of cell objects. Submit the complete target table, copying field_key/references and other information
+            to retain. Do not also send field_values.'
+      required:
+        - field_name
+        - field_type
+    CollaborationResultRequest:
+      type: object
+      properties:
+        file_task_id:
+          type: string
+          description: 'Collaboration task primary ID: data.metadata.collaboration_task_id from asynchronous extraction or data.id from task details. This is not task_number, the extraction
+            task_id, or data_id.'
+        collaboration_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollaborationResultField'
+          description: Existing fields to confirm or correct. Submit valid fields with explicit values only for a task in task_state=2. Submission completes the task.
+      required:
+        - file_task_id
+        - collaboration_result
+    CollaborationResultData:
+      type: object
+      properties:
+        file_status:
+          type: integer
+          description: A successful submission returns 4=completed. See task_state in task details for the full collaboration status dictionary.
+          example: 4
+      required:
+        - file_status
+    CollaborationTaskData:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Collaboration task primary ID, used for queries and file_task_id.
+        task_number:
+          type: string
+          description: Display task number; cannot be used to query or correct a task.
+        app_id:
+          type: string
+        app_name:
+          type:
+            - string
+            - 'null'
+        rule_id:
+          type:
+            - string
+            - 'null'
+        rule_name:
+          type:
+            - string
+            - 'null'
+        rule_logic_operator:
+          type:
+            - string
+            - 'null'
+        file_id:
+          type:
+            - string
+            - 'null'
+        file_name:
+          type:
+            - string
+            - 'null'
+        data_id:
+          type:
+            - string
+            - 'null'
+          description: Extraction data ID; distinct from the collaboration task ID.
+        data_name:
+          type:
+            - string
+            - 'null'
+        message:
+          type:
+            - string
+            - 'null'
+        task_state:
+          type: integer
+          description: 1=waiting, 2=pending human review, 3=passed automatically, 4=completed by a reviewer, 5=failed, 6=canceled. Submit corrections only in state 2.
+        task_state_name:
+          type:
+            - string
+            - 'null'
+        completed_time:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        thumbnail_file_url:
+          type:
+            - string
+            - 'null'
+        converted_file_url_result:
+          type:
+            - array
+            - 'null'
+          items:
+            type: string
+        extraction_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtractionField'
+          description: Original machine extraction result, retained after human correction.
+        collaboration_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollaborationReviewField'
+          description: Collaboration review details, including field review state and values. Original machine verification conclusions do not indicate whether human review is complete.
+        output_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollaborationOutputField'
+          description: Merged final result. Confirm task_state=3 or 4 before consuming it; read corrected values here after human review.
+      required:
+        - id
+        - task_number
+        - app_id
+        - task_state
+        - created_at
+        - updated_at
+      description: Only business fields needed for integration are documented. Responses may include unlisted fields; read an allowlist and avoid logging or forwarding the entire response.
+    CollaborationEmptyResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Business result code. Success is success; failures may use server_error, http_server_error, or other strings. Always check this field, including for HTTP 200.
+        message:
+          type: string
+        tips:
+          type:
+            - string
+            - 'null'
+        data:
+          anyOf:
+            - type: object
+            - type: 'null'
+    CollaborationRuleResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Business result code. Success is success; failures may use server_error, http_server_error, or other strings. Always check this field, including for HTTP 200.
+        message:
+          type: string
+        tips:
+          type:
+            - string
+            - 'null'
+        data:
+          anyOf:
+            - $ref: '#/components/schemas/CollaborationRuleData'
+            - type: 'null'
+    CollaborationTaskResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Business result code. Success is success; failures may use server_error, http_server_error, or other strings. Always check this field, including for HTTP 200.
+        message:
+          type: string
+        tips:
+          type:
+            - string
+            - 'null'
+        data:
+          anyOf:
+            - $ref: '#/components/schemas/CollaborationTaskData'
+            - type: 'null'
+    CollaborationResultResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Business result code. Success is success; failures may use server_error, http_server_error, or other strings. Always check this field, including for HTTP 200.
+        message:
+          type: string
+        tips:
+          type:
+            - string
+            - 'null'
+        data:
+          anyOf:
+            - $ref: '#/components/schemas/CollaborationResultData'
+            - type: 'null'
+    CollaborationOutputField:
+      type: object
+      additionalProperties: true
+      properties:
+        field_key:
+          type: string
+        field_name:
+          type: string
+        field_values:
+          type: array
+          items:
+            anyOf:
+              - type: object
+                additionalProperties: true
+              - type: array
+                items:
+                  type: object
+                  additionalProperties: true
+          description: A table field may also return a two-dimensional cell array here. Prefer table_values for table rows and columns.
+        references:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        table_values:
+          type: array
+          items:
+            type: array
+            items:
+              type: object
+              additionalProperties: true
+      description: Final output field. Ordinary values are object arrays; read tables from the two-dimensional table_values array.
+    CollaborationReviewField:
+      type: object
+      additionalProperties: true
+      properties:
+        field_key:
+          type: string
+        field_name:
+          type: string
+        field_values:
+          type: array
+          items:
+            anyOf:
+              - type: object
+                additionalProperties: true
+              - type: array
+                items:
+                  type: object
+                  additionalProperties: true
+          description: Current field values during review; tables may use a two-dimensional array.
+        references:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        table_values:
+          type: array
+          items:
+            type: array
+            items:
+              type: object
+              additionalProperties: true
+        field_verify_values:
+          type: array
+          items:
+            anyOf:
+              - type: object
+                additionalProperties: true
+              - type: array
+                items:
+                  type: object
+                  additionalProperties: true
+          description: Confirmed or corrected field values.
+        table_verify_values:
+          type: array
+          items:
+            type: array
+            items:
+              type: object
+              additionalProperties: true
+          description: Complete confirmed or corrected table.
+        field_verify_state:
+          type: integer
+          description: Field human confirmation state; 1 indicates confirmed. Use task_state to determine task completion.
+        field_verify_detail:
+          type: object
+          additionalProperties: true
+          properties:
+            verification_passed:
+              type: boolean
+              description: May retain the original machine assessment; does not indicate whether human review is complete.
+            rule_matched:
+              type: boolean
+            matched_reason:
+              type: string
+      description: Field review details. Read extraction_result for the original machine extraction.

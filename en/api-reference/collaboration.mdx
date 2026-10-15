@@ -1,0 +1,188 @@
+---
+title: "Human collaboration"
+description: "Configure review triggers, retrieve pending tasks, and apply human corrections to document extraction results."
+---
+
+Human collaboration routes documents that match your rules to human review after automatic extraction. You can retrieve the original values, submit corrections, and obtain the final output through the original extraction task.
+
+## Prerequisites
+
+- Prepare a published **standard custom extraction application** and its `app_id`. Confirm the field names, types, and table columns.
+- Obtain an API Key with access to the application. Include `X-API-KEY` in every request. Rule endpoints use `app_id`; legacy application credentials are unnecessary.
+- Use asynchronous extraction. Synchronous extraction disables collaboration by default, and high-speed custom extraction does not support collaboration.
+- Start with a dedicated test application. Use documents that match and do not match the rules to verify review routing and corrections before using the integration for business documents.
+
+The examples use Bash and curl. Replace the API Key, application ID, and document URL. The default `tenant_name` is `laiye`; use the address and tenant name for your deployment.
+
+```bash
+export ADP_API_BASE="https://adp-global.laiye.com/open/agentic_doc_processor/laiye"
+export ADP_API_KEY="<your-api-key>"
+```
+
+<Note>
+  For every request, check the HTTP status and then verify that the JSON response has top-level `code=success`. HTTP 200 can still contain a business error. Retain `message` and `tips` for error handling. For task details, read only the business fields listed on the endpoint page; avoid logging or forwarding the entire response.
+</Note>
+
+## Complete a review
+
+<Steps>
+  <Step title="Create and verify review triggers">
+    Call [Create collaboration rule](/en/api-reference/adp-api/collaboration/create-collaboration-rule). Each application uses one rule set. Use [Update collaboration rule](/en/api-reference/adp-api/collaboration/update-collaboration-rule) for an existing rule set.
+
+    Rules are **conditions that trigger human review**. This example routes a document to review when its invoice number equals `INV-001`. This is a sample value: the document used to test a match must contain the same invoice number. Replace it with your business condition when integrating.
+
+    ```bash
+    curl --request POST "$ADP_API_BASE/v1/collaboration/rules/create" \
+      --header "X-API-KEY: $ADP_API_KEY" \
+      --header "Content-Type: application/json" \
+      --data '{
+        "app_id": "<app-id>",
+        "rule_name": "Invoice number review",
+        "rule_status": true,
+        "rule_logic": 1,
+        "rule": [
+          {"rule_dimension": "Invoice number", "rule_setting": "Equals INV-001"}
+        ]
+      }'
+    ```
+
+    `rule_logic=1` means OR: any matching condition triggers review. `rule_logic=2` means AND: all conditions must match to trigger review. Use only these two values.
+
+    After saving, call [Get collaboration rule](/en/api-reference/adp-api/collaboration/get-collaboration-rule) and verify that `rule_name`, `rule`, and `rule_logic` match your request. Write conditions that can be evaluated against field values. A successful response alone does not confirm that the intended conditions were saved.
+
+    ```bash
+    curl "$ADP_API_BASE/v1/collaboration/rules/<app-id>" \
+      --header "X-API-KEY: $ADP_API_KEY"
+    ```
+  </Step>
+  <Step title="Create an extraction task and save its IDs">
+    Call [Create document extraction task](/en/api-reference/adp-api/document-extraction/create-document-extract-task) with the same application used for the rules.
+
+    ```bash
+    curl --request POST "$ADP_API_BASE/v1/app/doc/extract/create/task" \
+      --header "X-API-KEY: $ADP_API_KEY" \
+      --header "Content-Type: application/json" \
+      --data '{
+        "app_id": "<app-id>",
+        "file_url": "<public-document-url>"
+      }'
+    ```
+
+    In the successful response, `data.task_id` identifies the extraction task. `data.metadata.collaboration_task_id` identifies the collaboration task for retrieval and correction. Save both values.
+
+    ```json
+    {
+      "code": "success",
+      "message": "",
+      "data": {
+        "task_id": "<extraction-task-id>",
+        "metadata": {"collaboration_task_id": "<collaboration-task-id>"}
+      }
+    }
+    ```
+
+    If `collaboration_task_id` is absent, check the application type and collaboration configuration. Do not substitute the extraction task ID.
+  </Step>
+  <Step title="Wait for the review decision and retrieve the content">
+    Call [Get collaboration task](/en/api-reference/adp-api/collaboration/get-collaboration-task) with `collaboration_task_id`. When `task_state=1`, wait and query again. Submit corrections only when `task_state=2`. A task with `task_state=3` passed automatically and needs no correction.
+
+    ```bash
+    export ADP_COLLAB_TASK_ID="<collaboration-task-id>"
+    curl "$ADP_API_BASE/v1/collaboration/task/$ADP_COLLAB_TASK_ID" \
+      --header "X-API-KEY: $ADP_API_KEY"
+    ```
+
+    Use `extraction_result` and `collaboration_result` from the task details to present the review content. Extraction `data.status` and collaboration `task_state` have separate meanings: successful extraction does not mean human review is complete.
+  </Step>
+  <Step title="Submit the fields to confirm in one request">
+    Call [Update collaboration result](/en/api-reference/adp-api/collaboration/update-collaboration-result). Save the following body as `correction.json`, replacing the task ID, fields, and values. The example application has “Invoice number” and “Items” fields, with “Name” and “Quantity” columns in “Items”.
+
+    ```json
+    {
+      "file_task_id": "<collaboration-task-id>",
+      "collaboration_result": [
+        {
+          "field_name": "Invoice number",
+          "field_type": "string",
+          "field_values": ["INV-002"]
+        },
+        {
+          "field_name": "Items",
+          "field_type": "table",
+          "table_values": [
+            [
+              {
+                "field_key": "Name",
+                "field_name": "Name",
+                "field_values": [{"field_value": "Office supplies", "references": []}]
+              },
+              {
+                "field_key": "Quantity",
+                "field_name": "Quantity",
+                "field_values": [{"field_value": "3", "references": []}]
+              }
+            ]
+          ]
+        }
+      ]
+    }
+    ```
+
+    ```bash
+    curl --request POST "$ADP_API_BASE/v1/collaboration/result/update" \
+      --header "X-API-KEY: $ADP_API_KEY" \
+      --header "Content-Type: application/json" \
+      --data-binary @correction.json
+    ```
+
+    For ordinary fields, `field_values` is an array of strings. For tables, `table_values` contains rows, each row contains cells, and each cell's `field_values` is an array of objects containing `field_value`. Keep these structures distinct.
+
+    **A table is replaced as a whole.** Copy the complete `table_values` from task details and change only the relevant `field_values[].field_value`. Preserve the required rows, columns, `field_key`, and existing properties such as `references`. Do not infer field identifiers from display names. The example has empty references; retain any actual references unchanged to preserve links to locations in the document.
+  </Step>
+  <Step title="Verify the saved task and final extraction output">
+    A successful update returns `data.file_status=4`. Retrieve the collaboration task again, confirm `task_state=4`, and check the saved values. Then call [Query document extraction task](/en/api-reference/adp-api/document-extraction/query-document-extract-task) with the original extraction `task_id`.
+
+    ```bash
+    curl "$ADP_API_BASE/v1/collaboration/task/$ADP_COLLAB_TASK_ID" \
+      --header "X-API-KEY: $ADP_API_KEY"
+
+    export ADP_EXTRACT_TASK_ID="<extraction-task-id>"
+    curl "$ADP_API_BASE/v1/app/doc/extract/query/task/$ADP_EXTRACT_TASK_ID" \
+      --header "X-API-KEY: $ADP_API_KEY"
+    ```
+
+    `extraction_result` retains the original automatic extraction. `collaboration_result` contains review content, and `output_result` contains the merged final result. Consume `output_result` after confirming automatic approval or completed human review.
+  </Step>
+</Steps>
+
+## IDs and states
+
+| Identifier | Purpose |
+| --- | --- |
+| Extraction `data.task_id` | Retrieve the original extraction task and final output |
+| `metadata.collaboration_task_id`, also the collaboration task detail `id` | Retrieve the collaboration task; pass as `file_task_id` when updating results |
+| Collaboration `task_number` | Display number; cannot replace the task ID required for retrieval or updates |
+| Extraction `data_id` | Data record identifier; cannot replace the collaboration task ID |
+
+The following states apply only to collaboration `task_state`:
+
+| Value | Meaning | Client action |
+| --- | --- | --- |
+| 1 | Waiting | Wait for rule evaluation, then query again |
+| 2 | Pending review | Present the content and allow corrections |
+| 3 | Approved | Automatically approved; retrieve final output |
+| 4 | Completed | Human review completed; verify final output |
+| 5 | Failed | Read the error details and investigate |
+| 6 | Canceled | Stop waiting and do not submit corrections |
+
+## Integration limits and verification
+
+- **Rule dimensions**: System dimensions such as overall document and document confidence, and fields whose display names differ from their identifiers, currently have matching limitations. Start with ordinary fields whose names and identifiers match, and verify documents that match and do not match the conditions.
+- **Rule activation**: The returned `rule_status` does not currently provide a reliable indication of the saved activation state. After enabling or disabling a rule, verify the behavior with a new document.
+- **Result submissions**: Match the field names and types in task details. Use only `string`, `date`, or `table`. Submit only `field_values` for ordinary fields and only `table_values` for tables. Never submit both. Unknown fields or omitted values can complete a task without producing the intended result.
+- **Multiple ordinary values**: Submitting fewer values may retain old trailing values. Before reducing or clearing such a field, verify the behavior in a test application; a shorter array is not a reliable full replacement.
+- **Verification after submission**: A submission completes the task, so collect all intended corrections first. After either a successful or failed update response, retrieve the task state and saved content before retrying. An error can occur after changes have already been saved.
+
+<Warning>
+  [Deleting a collaboration rule](/en/api-reference/adp-api/collaboration/delete-collaboration-rule) also deletes the application's associated historical collaboration tasks and can currently affect subsequent extraction. To stop using collaboration, prefer updating the rule with `rule_status=false`, then verify with a new document that collaboration is disabled.
+</Warning>

@@ -1,0 +1,188 @@
+---
+title: "人机协同"
+description: "配置人工审核触发规则，查询待处理任务，并将人工修正写回文档抽取结果。"
+---
+
+人机协同用于在文档自动抽取后，将命中规则的文档交给人工审核。你可以查询原始抽取结果、提交修正，再通过原抽取任务获取最终结果。
+
+## 接入前准备
+
+- 准备一个已发布的**标准版自定义抽取应用**及其 `app_id`，确认字段名称、类型和表格子字段。
+- 获取具有该应用访问权限的 API Key，所有请求携带 `X-API-KEY`。规则接口使用 `app_id`，无需传入旧版应用密钥。
+- 使用异步抽取接口。同步抽取默认不启用协同，高速版自定义抽取不支持协同。
+- 首次接入使用专用测试应用，分别准备会命中和不会命中规则的文档，确认规则判断和修正结果后再用于业务。
+
+以下为 Bash / curl 示例。替换 API Key、应用 ID 和文档 URL；`tenant_name` 默认为 `laiye`，其他部署请使用实际租户名称和地址。
+
+```bash
+export ADP_API_BASE="https://adp.laiye.com/open/agentic_doc_processor/laiye"
+export ADP_API_KEY="<your-api-key>"
+```
+
+<Note>
+  每次请求都要先判断 HTTP 状态，再检查 JSON 顶层 `code` 是否为 `success`。HTTP 200 也可能包含业务错误；错误处理应保留 `message` 和 `tips`。任务详情只读取接口页列出的业务字段，避免直接记录或转发完整响应。
+</Note>
+
+## 完成一次人工审核
+
+<Steps>
+  <Step title="创建并核对触发规则">
+    调用[创建协同规则](/api-reference/adp-api/collaboration/create-collaboration-rule)。一个应用使用一组规则；已有规则时使用[更新协同规则](/api-reference/adp-api/collaboration/update-collaboration-rule)。
+
+    规则是**转人工的触发条件**。以下规则表示发票号码等于 `INV-001` 时进入人工审核。`INV-001` 是示例值，用于验证命中的文档应包含同一发票号码；实际接入时替换为业务条件。
+
+    ```bash
+    curl --request POST "$ADP_API_BASE/v1/collaboration/rules/create" \
+      --header "X-API-KEY: $ADP_API_KEY" \
+      --header "Content-Type: application/json" \
+      --data '{
+        "app_id": "<app-id>",
+        "rule_name": "发票号码审核",
+        "rule_status": true,
+        "rule_logic": 1,
+        "rule": [
+          {"rule_dimension": "发票号码", "rule_setting": "等于 INV-001"}
+        ]
+      }'
+    ```
+
+    `rule_logic=1` 表示 OR，任一条件命中即转人工；`rule_logic=2` 表示 AND，全部条件命中才转人工。只使用这两个值。
+
+    保存成功后调用[查询协同规则](/api-reference/adp-api/collaboration/get-collaboration-rule)，核对 `rule_name`、`rule`、`rule_logic` 与提交内容一致。条件应写成可判断的字段条件；成功响应本身不能替代保存后的内容核对。
+
+    ```bash
+    curl "$ADP_API_BASE/v1/collaboration/rules/<app-id>" \
+      --header "X-API-KEY: $ADP_API_KEY"
+    ```
+  </Step>
+  <Step title="创建异步抽取任务并保存 ID">
+    调用[创建文档抽取异步任务](/api-reference/adp-api/document-extraction/create-document-extract-task)，使用配置规则的同一个应用。
+
+    ```bash
+    curl --request POST "$ADP_API_BASE/v1/app/doc/extract/create/task" \
+      --header "X-API-KEY: $ADP_API_KEY" \
+      --header "Content-Type: application/json" \
+      --data '{
+        "app_id": "<app-id>",
+        "file_url": "<public-document-url>"
+      }'
+    ```
+
+    成功响应中的 `data.task_id` 用于查询抽取结果；`data.metadata.collaboration_task_id` 用于查询和修正协同任务。保存两者。
+
+    ```json
+    {
+      "code": "success",
+      "message": "",
+      "data": {
+        "task_id": "<extraction-task-id>",
+        "metadata": {"collaboration_task_id": "<collaboration-task-id>"}
+      }
+    }
+    ```
+
+    若未返回 `collaboration_task_id`，先核对应用类型和协同配置；不要使用抽取任务 ID 代替。
+  </Step>
+  <Step title="等待协同判断并读取待处理内容">
+    使用 `collaboration_task_id` 调用[查询协同任务](/api-reference/adp-api/collaboration/get-collaboration-task)。`task_state=1` 时等待后再查；只有 `task_state=2` 时提交人工修正。`task_state=3` 表示自动通过，无需修正。
+
+    ```bash
+    export ADP_COLLAB_TASK_ID="<collaboration-task-id>"
+    curl "$ADP_API_BASE/v1/collaboration/task/$ADP_COLLAB_TASK_ID" \
+      --header "X-API-KEY: $ADP_API_KEY"
+    ```
+
+    根据任务详情中的 `extraction_result` 和 `collaboration_result` 展示审核内容。抽取任务的 `data.status` 与协同任务的 `task_state` 是两套状态：抽取成功不代表人工审核完成。
+  </Step>
+  <Step title="一次提交需要确认的字段">
+    使用[更新协同结果](/api-reference/adp-api/collaboration/update-collaboration-result)，将下面的请求体保存为 `correction.json` 并替换任务 ID、字段和值。示例应用包含“发票号码”和“明细”字段，“明细”包含“名称”和“数量”两列。
+
+    ```json
+    {
+      "file_task_id": "<collaboration-task-id>",
+      "collaboration_result": [
+        {
+          "field_name": "发票号码",
+          "field_type": "string",
+          "field_values": ["INV-002"]
+        },
+        {
+          "field_name": "明细",
+          "field_type": "table",
+          "table_values": [
+            [
+              {
+                "field_key": "名称",
+                "field_name": "名称",
+                "field_values": [{"field_value": "办公用品", "references": []}]
+              },
+              {
+                "field_key": "数量",
+                "field_name": "数量",
+                "field_values": [{"field_value": "3", "references": []}]
+              }
+            ]
+          ]
+        }
+      ]
+    }
+    ```
+
+    ```bash
+    curl --request POST "$ADP_API_BASE/v1/collaboration/result/update" \
+      --header "X-API-KEY: $ADP_API_KEY" \
+      --header "Content-Type: application/json" \
+      --data-binary @correction.json
+    ```
+
+    普通字段的 `field_values` 是字符串数组。表格的 `table_values` 是“行数组 → 单元格数组”，单元格内的 `field_values` 是包含 `field_value` 的对象数组，两种结构不可混用。
+
+    **表格按整块替换。** 从任务详情复制完整 `table_values`，只修改需要修正的 `field_values[].field_value`，保留所有需要的行、列、`field_key` 及已有 `references` 等属性，不要根据显示名称猜测字段标识。示例引用为空；实际结果带有引用时应原样保留，避免修正后丢失文档定位信息。
+  </Step>
+  <Step title="回查任务和最终抽取结果">
+    更新成功返回 `data.file_status=4`。再次查询协同任务，确认 `task_state=4`，并核对保存的字段值；然后使用原来的抽取 `task_id` 调用[查询文档抽取任务结果](/api-reference/adp-api/document-extraction/query-document-extract-task)。
+
+    ```bash
+    curl "$ADP_API_BASE/v1/collaboration/task/$ADP_COLLAB_TASK_ID" \
+      --header "X-API-KEY: $ADP_API_KEY"
+
+    export ADP_EXTRACT_TASK_ID="<extraction-task-id>"
+    curl "$ADP_API_BASE/v1/app/doc/extract/query/task/$ADP_EXTRACT_TASK_ID" \
+      --header "X-API-KEY: $ADP_API_KEY"
+    ```
+
+    `extraction_result` 保留原始自动抽取结果；`collaboration_result` 提供协同审核内容；`output_result` 提供合并后的最终结果。业务系统应在确认自动通过或人工完成后消费 `output_result`。
+  </Step>
+</Steps>
+
+## ID 与状态
+
+| 标识 | 用途 |
+| --- | --- |
+| 异步抽取 `data.task_id` | 查询原抽取任务及最终输出 |
+| `metadata.collaboration_task_id`，即协同任务详情的 `id` | 查询协同任务；作为更新请求的 `file_task_id` |
+| 协同任务 `task_number` | 展示编号，不可替代查询或更新所需的任务 ID |
+| 抽取数据 `data_id` | 数据记录标识，不可替代协同任务 ID |
+
+以下状态仅适用于协同任务的 `task_state`：
+
+| 值 | 含义 | 调用方处理 |
+| --- | --- | --- |
+| 1 | 等待 | 等待规则判断，稍后查询 |
+| 2 | 待处理 | 展示审核内容，允许提交修正 |
+| 3 | 已通过 | 自动通过，读取最终输出 |
+| 4 | 已完成 | 人工审核已完成，核对最终输出 |
+| 5 | 失败 | 读取错误说明，排查后处理 |
+| 6 | 已取消 | 停止等待，不提交修正 |
+
+## 接入限制与核验
+
+- **规则维度**：整体文档、文档置信度等系统维度，以及显示名称与字段标识不同的字段，目前存在匹配限制。首次接入优先使用名称与标识一致的普通字段，并用命中和不命中的文档验证实际行为。
+- **规则启停**：查询返回的 `rule_status` 当前不能可靠反映已保存的启停状态。启用或停用后，使用新文档验证实际行为。
+- **结果提交**：字段名称和类型必须与任务详情一致；只使用 `string`、`date`、`table`。普通字段只提交 `field_values`，表格只提交 `table_values`，不要同时提交两者。不要提交不存在的字段，也不要遗漏值；这些输入可能使任务完成但没有得到预期结果。
+- **普通字段多值**：提交更少的值时，旧的尾部值可能仍然保留。需要缩减或清空多值字段时，先在测试应用核对行为，不要将短数组视为完整替换。
+- **提交后核对**：一次提交会完成任务，先收齐需要确认的修改。无论更新返回成功还是错误，都先回查任务状态和保存内容；错误响应也可能发生在内容已保存之后，不要盲目重试。
+
+<Warning>
+  [删除协同规则](/api-reference/adp-api/collaboration/delete-collaboration-rule)会一并删除该应用关联的历史协同任务，且当前可能影响后续抽取。停止使用协同时，优先通过更新规则设置 `rule_status=false`，再用新文档确认已停用。
+</Warning>
