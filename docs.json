@@ -135,6 +135,8 @@
                     "group": "应用管理",
                     "root": "api-reference/application-management",
                     "pages": [
+                      "api-reference/adp-api/application-management/business-workflow-templates",
+                      "api-reference/adp-api/workflows/list-business-workflow-templates",
                       "api-reference/adp-api/application-management/create-extraction-application",
                       "api-reference/adp-api/application-management/delete-extraction-application",
                       "api-reference/adp-api/application-management/update-extraction-application",
@@ -163,7 +165,6 @@
                     "root": "api-reference/workflows",
                     "icon": "network",
                     "pages": [
-                      "api-reference/adp-api/workflows/list-business-workflow-templates",
                       "api-reference/adp-api/workflows/list-workflow-applications",
                       "api-reference/adp-api/workflows/get-workflow-application",
                       "api-reference/adp-api/workflows/run-doc-flow-app",
@@ -317,7 +318,6 @@
                     "group": "Workflow",
                     "root": "en/api-reference/workflows",
                     "pages": [
-                      "en/api-reference/adp-api/workflows/list-business-workflow-templates",
                       "en/api-reference/adp-api/workflows/list-workflow-applications",
                       "en/api-reference/adp-api/workflows/get-workflow-application",
                       "en/api-reference/adp-api/workflows/run-doc-flow-app",
@@ -333,6 +333,8 @@
                     "group": "Application Management",
                     "root": "en/api-reference/application-management",
                     "pages": [
+                      "en/api-reference/adp-api/application-management/business-workflow-templates",
+                      "en/api-reference/adp-api/workflows/list-business-workflow-templates",
                       "en/api-reference/adp-api/application-management/create-extraction-application",
                       "en/api-reference/adp-api/application-management/delete-extraction-application",
                       "en/api-reference/adp-api/application-management/update-extraction-application",

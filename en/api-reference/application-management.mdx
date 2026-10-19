@@ -1,6 +1,6 @@
 ---
 title: "Application management"
-description: "Learn about ADP application types and review the available ready-to-use applications."
+description: "Learn about ADP application types, extraction and business workflow templates, and how to discover and run templates."
 ---
 
 ADP organizes document processing capabilities as applications. You can use system-provided ready-to-use applications or create custom extraction and workflow applications for your business.
@@ -18,10 +18,10 @@ ADP organizes document processing capabilities as applications. You can use syst
 </Columns>
 
 <Note>
-  The Create extraction application API creates custom extraction applications. Ready-to-use applications are provided by the system. Create workflow applications in ADP, then use the APIs under Workflow to discover and run them.
+  The Create extraction application API creates custom extraction applications. Discover business workflow templates with List business workflow templates under Application Management, then run them with the shared APIs under Workflow.
 </Note>
 
-## Ready-to-use applications
+## Extraction templates
 
 Ready-to-use applications cover document recognition, invoices, orders, and commonly used cards and certificates. The following table lists the current preset catalog with each application's name, labels, and purpose.
 
@@ -49,11 +49,18 @@ Ready-to-use applications cover document recognition, invoices, orders, and comm
 | Household register | Household Register, Hukou Document, Population Management, Family Document, Information Extraction | Extracts household and member information, including names, places of origin, ID numbers, and relationships. |
 | Hong Kong and Macao pass | HK/Macao Pass, Travel Document, Entry/Exit Document, Personal Document, Information Extraction | Extracts the document number, name, place of issue, validity period, and issuing authority. |
 
+## Business workflow templates
+
+Accounts payable, expense reimbursement, and financial reporting are workflow templates for reviewing document packages or splitting and consolidating financial reports. Use [List business workflow templates](/en/api-reference/adp-api/workflows/list-business-workflow-templates) to obtain each template's `template_key`, stable public `application_id`, and `can_run` state for your account.
+
+All three templates share the synchronous run, asynchronous task creation, and result query APIs. Select the application with `application_id`. See [Integrate business workflow templates](/en/api-reference/adp-api/application-management/business-workflow-templates) for the template catalog, file preparation, and request example.
+
 ## Common management operations
 
 | Operation | Endpoint |
 | --- | --- |
 | Create a custom extraction application | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create` |
 | List applications | `GET /open/agentic_doc_processor/{tenant_name}/v1/app-list` |
+| List business workflow templates | `GET /open/agentic_engine/laiye/v1/app/templates` |
 | Update or delete an application | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update`, `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete` |
 | Query or delete a configuration version | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config`, `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete` |

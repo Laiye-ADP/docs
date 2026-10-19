@@ -22,12 +22,14 @@ description: "了解 ADP 工作流应用的适用场景、创建方式和 OpenAP
 
 1. **选择创建方式**：使用已有业务工作流模板，或在 ADP 官方平台中通过 AI 对话助手创建自定义工作流。
 2. **测试并发布**：在平台中确认工作流的输入、处理步骤和输出符合预期，然后发布应用。
-3. **获取应用 ID**：业务工作流模板使用“查询业务工作流模板”接口返回的稳定公开 `application_id`；自定义工作流使用“查询可运行的工作流应用”接口返回的 `id`。
+3. **获取应用 ID**：业务工作流模板使用“应用管理”下[查询业务工作流模板](/api-reference/adp-api/workflows/list-business-workflow-templates)返回的稳定公开 `application_id`；自定义工作流使用“查询可运行的工作流应用”接口返回的 `id`。
 4. **运行工作流**：根据是否需要等待结果，选择同步运行或创建异步任务；异步运行后可继续查询结果、重新运行或取消运行。
 
 <Info>
   调用业务工作流模板前，请确认模板返回的 `can_run` 为 `true`。如果为 `false`，请先在 ADP 官方平台中添加、配置并发布对应应用。
 </Info>
+
+财务应付、费用报销和金融财报共用本分组的运行接口。具体模板和接入示例见“应用管理”下的[业务工作流模板接入](/api-reference/adp-api/application-management/business-workflow-templates)。
 
 ## OpenAPI 能力
 

@@ -22,12 +22,14 @@ Workflow applications combine document processing, business decisions, human rev
 
 1. **Choose how to create it**: Use an existing business workflow template, or use the AI conversational assistant in the official ADP platform to create a custom workflow.
 2. **Test and publish it**: Verify the workflow's inputs, processing steps, and outputs in the platform, then publish the application.
-3. **Obtain the application ID**: For a business workflow template, use the stable public `application_id` returned by List business workflow templates. For a custom workflow, use the `id` returned by List runnable workflow applications.
+3. **Obtain the application ID**: For a business workflow template, use the stable public `application_id` returned by [List business workflow templates](/en/api-reference/adp-api/workflows/list-business-workflow-templates) under Application Management. For a custom workflow, use the `id` returned by List runnable workflow applications.
 4. **Run the workflow**: Choose synchronous execution when you need to wait for the result, or create an asynchronous task and then query, rerun, or cancel the run as needed.
 
 <Info>
   Before calling a business workflow template, confirm that its `can_run` value is `true`. If it is `false`, add, configure, and publish the corresponding application in the official ADP platform first.
 </Info>
+
+Accounts payable, expense reimbursement, and financial reporting share the run APIs in this section. See [Integrate business workflow templates](/en/api-reference/adp-api/application-management/business-workflow-templates) under Application Management for the templates and integration example.
 
 ## OpenAPI capabilities
 

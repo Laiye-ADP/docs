@@ -17,7 +17,7 @@ tags:
   - name: Document conversion
     description: Convert PDFs, Office documents, OFD files, and images into page images or native spreadsheet structures.
   - name: Application management
-    description: Create, update, delete, and query extraction applications and configurations.
+    description: Create, update, delete, and query extraction applications and configurations, and discover business workflow templates.
   - name: Webhook
     description: List system events and manage event callbacks.
   - name: Account
@@ -619,10 +619,12 @@ paths:
           $ref: '#/components/responses/ValidationError'
   /open/agentic_engine/laiye/v1/app/templates:
     get:
-      tags: [Workflow]
+      tags: [Application management]
       summary: List business workflow templates
       description: |
         List available business workflow templates and show whether the account associated with the current API key has added, published, and can currently run each template.
+
+        Accounts payable, expense reimbursement, and financial reporting share the workflow run APIs. Select the application with `application_id`. See [Integrate business workflow templates](/en/api-reference/adp-api/application-management/business-workflow-templates) for the templates and request example.
 
         `application_id` is a stable public ID for OpenAPI calls. It can be stored in API documentation and integration configuration:
 
@@ -728,7 +730,7 @@ paths:
     post:
       tags: [Workflow]
       summary: Run workflow application (sync)
-      description: Run the published workflow application version synchronously and wait for the result.
+      description: Run the published workflow application version synchronously and wait for the result. Accounts payable, expense reimbursement, and financial reporting templates share this endpoint. Use the application_id returned by the template query and confirm can_run=true.
       operationId: runWorkflowApp
       security:
         - EngineApiKeyAuth: []
@@ -743,7 +745,7 @@ paths:
     post:
       tags: [Workflow]
       summary: Create workflow run task
-      description: Trigger a workflow run asynchronously and return run_id immediately.
+      description: Trigger a workflow run asynchronously and return run_id immediately. Accounts payable, expense reimbursement, and financial reporting templates share this endpoint. Use the application_id returned by the template query and confirm can_run=true.
       operationId: createWorkflowRunTask
       security:
         - EngineApiKeyAuth: []
@@ -3801,6 +3803,7 @@ components:
       properties:
         application_id:
           type: string
+          description: Workflow application ID, or a stable public application_id returned by the business workflow template query with can_run=true.
         release_version_id:
           type: string
         session_id:
