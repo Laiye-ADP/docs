@@ -7,7 +7,7 @@ description: "了解 ADP 工作流应用的适用场景、创建方式和 OpenAP
 
 <Columns cols={2}>
   <Card title="业务工作流模板" icon="layout-template">
-    ADP 提供财务应付、费用报销和金融财报等预置业务流程。你可以查询模板目录，获取稳定公开的 `application_id` 和当前账号的可运行状态。
+    ADP 提供财务应付、费用报销和金融财报等预置业务流程。查询模板目录并选择 `template_key`，创建并发布工作流应用后再运行。
   </Card>
   <Card title="自定义工作流" icon="messages-square">
     根据你的文档、业务规则和处理目标，在 ADP 官方平台中通过 AI 对话助手创建、调整和发布工作流。
@@ -21,21 +21,22 @@ description: "了解 ADP 工作流应用的适用场景、创建方式和 OpenAP
 ## 创建并调用工作流
 
 1. **选择创建方式**：使用已有业务工作流模板，或在 ADP 官方平台中通过 AI 对话助手创建自定义工作流。
-2. **测试并发布**：在平台中确认工作流的输入、处理步骤和输出符合预期，然后发布应用。
-3. **获取应用 ID**：业务工作流模板使用“应用管理”下[查询业务工作流模板](/api-reference/adp-api/workflows/list-business-workflow-templates)返回的稳定公开 `application_id`；自定义工作流使用“查询可运行的工作流应用”接口返回的 `id`。
+2. **创建并发布应用**：官方模板可调用[从工作流模板创建应用](/api-reference/adp-api/application-management/create-workflow-application-from-template)，成功后即可运行；自定义工作流需在平台中测试并发布。
+3. **获取应用 ID**：从模板创建的工作流应用使用创建接口返回的 `data.application_id`；在网站中创建并发布的应用使用“查询可运行的工作流应用”接口返回的 `id`。
 4. **运行工作流**：根据是否需要等待结果，选择同步运行或创建异步任务；异步运行后可继续查询结果、重新运行或取消运行。
 
 <Info>
-  调用业务工作流模板前，请确认模板返回的 `can_run` 为 `true`。如果为 `false`，请先在 ADP 官方平台中添加、配置并发布对应应用。
+  模板接入按“查询模板 → 创建并发布工作流应用 → 上传文件并运行应用”的顺序进行，后续操作统一使用创建接口返回的应用 ID。需要修改工作流时，目前只能在 ADP 网站界面操作，测试并重新发布后再通过 OpenAPI 运行。
 </Info>
 
-财务应付、费用报销和金融财报共用本分组的运行接口。具体模板和接入示例见“应用管理”下的[业务工作流模板接入](/api-reference/adp-api/application-management/business-workflow-templates)。
+从财务应付、费用报销和金融财报模板创建的应用共用本分组的运行接口。具体模板和接入示例见“应用管理”下的[业务工作流模板接入](/api-reference/adp-api/application-management/business-workflow-templates)。
 
 ## OpenAPI 能力
 
 | 目标 | 接口 |
 | --- | --- |
-| 查询业务工作流模板及稳定公开应用 ID | `GET /open/agentic_engine/laiye/v1/app/templates` |
+| 查询业务工作流模板 | `GET /open/agentic_engine/laiye/v1/app/templates` |
+| 从工作流模板创建并发布应用 | `POST /open/agentic_engine/laiye/v1/app/applications/create-from-template` |
 | 查询当前账号可运行的工作流应用 | `GET /open/agentic_engine/laiye/v1/app/applications` |
 | 查询工作流应用详情（受限预览） | `GET /open/agentic_engine/laiye/v1/app/applications/{application_id}` |
 | 同步运行工作流 | `POST /open/agentic_engine/laiye/v1/app/run` |

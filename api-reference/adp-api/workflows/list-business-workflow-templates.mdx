@@ -1,8 +1,8 @@
 ---
 title: "查询业务工作流模板"
 sidebarTitle: "查询业务工作流模板"
-description: "查询业务工作流模板、稳定公开应用 ID 以及当前账号的运行就绪状态。"
+description: "查询财务应付、费用报销和金融财报模板，选择 template_key 后创建工作流应用。"
 openapi: "/api-reference/adp-api.yaml GET /open/agentic_engine/laiye/v1/app/templates"
 ---
 
-财务应付、费用报销和金融财报的模板标识、文件准备和共用运行接口示例，见[业务工作流模板接入](/api-reference/adp-api/application-management/business-workflow-templates)。
+先选择模板的 `template_key`，通过[从工作流模板创建应用](/api-reference/adp-api/application-management/create-workflow-application-from-template)创建并发布应用，再使用创建响应中的 `application_id` 上传和运行。完整步骤见[业务工作流模板接入](/api-reference/adp-api/application-management/business-workflow-templates)。

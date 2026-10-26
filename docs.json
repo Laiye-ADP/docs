@@ -137,6 +137,7 @@
                     "pages": [
                       "api-reference/adp-api/application-management/business-workflow-templates",
                       "api-reference/adp-api/workflows/list-business-workflow-templates",
+                      "api-reference/adp-api/application-management/create-workflow-application-from-template",
                       "api-reference/adp-api/application-management/create-extraction-application",
                       "api-reference/adp-api/application-management/delete-extraction-application",
                       "api-reference/adp-api/application-management/update-extraction-application",
@@ -335,6 +336,7 @@
                     "pages": [
                       "en/api-reference/adp-api/application-management/business-workflow-templates",
                       "en/api-reference/adp-api/workflows/list-business-workflow-templates",
+                      "en/api-reference/adp-api/application-management/create-workflow-application-from-template",
                       "en/api-reference/adp-api/application-management/create-extraction-application",
                       "en/api-reference/adp-api/application-management/delete-extraction-application",
                       "en/api-reference/adp-api/application-management/update-extraction-application",

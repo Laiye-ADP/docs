@@ -1,10 +1,10 @@
 ---
 title: "Integrate business workflow templates"
 sidebarTitle: "Business workflow templates"
-description: "Discover accounts payable, expense reimbursement, and financial reporting templates, then upload files, run workflows, and query results with shared APIs."
+description: "Discover accounts payable, expense reimbursement, and financial reporting templates, create and publish an application through OpenAPI, then upload files, run workflows, and query results."
 ---
 
-ADP provides three business workflow templates: accounts payable, expense reimbursement, and financial reporting. Query each template's run-readiness state, then process your documents with the same set of workflow APIs.
+ADP provides three business workflow templates: accounts payable, expense reimbursement, and financial reporting. Create and publish a workflow application from a template first, then use the application ID returned by creation to upload files and run it.
 
 ## Template catalog
 
@@ -14,7 +14,7 @@ ADP provides three business workflow templates: accounts payable, expense reimbu
 | Expense reimbursement | Workflow | `expense_reimbursement` | Recognize reimbursement requests, bills, travel approvals, ride-hailing itineraries, and restaurant receipts, then review them by expense type. |
 | Financial reporting | Workflow | `financial_report_extraction` | Split financial reports, extract basic information and the income statement, balance sheet, and cash flow statement, and consolidate the results. |
 
-## Query templates and run readiness
+## Query workflow templates
 
 Use [List business workflow templates](/en/api-reference/adp-api/workflows/list-business-workflow-templates):
 
@@ -28,24 +28,44 @@ Select a template by `template_key` from `data.list`. The endpoint supports name
 | Response field | Usage |
 | --- | --- |
 | `template_key` | Identifies the business template so you can select the exact solution in the catalog. |
-| `application_id` | Stable public application ID used in file upload and run requests. |
+| `application_id` | Application identifier in the template catalog. Use the application ID returned by creation in the next step for uploads and runs. |
 | `is_added` | Whether the account associated with the current API key has added the template. |
 | `application_status` | State of the corresponding account application: `draft`, `published`, or `null`. |
-| `can_run` | Whether the current account can run the template. Submit a run request only when this is `true`. |
+| `can_run` | Whether the current account already has a corresponding runnable application, for checking existing application readiness. |
 
 <Info>
-  Use the live query response to determine availability. If `can_run=false`, add, configure, and publish the corresponding application in the [ADP Console](https://adp-global.laiye.com/?utm_source=apidoc), then query again. An `application_id` or `is_added=true` alone does not mean the template can run.
+  Select a `template_key` from the catalog, then call Create an application from a workflow template to obtain the `application_id` for subsequent operations. The creation endpoint reuses a corresponding runnable application if one already exists.
 </Info>
+
+## Create and publish an application from a template
+
+Use [Create an application from a workflow template](/en/api-reference/adp-api/application-management/create-workflow-application-from-template). All three templates use the same endpoint; select one with `template_key`:
+
+```http
+POST /open/agentic_engine/laiye/v1/app/applications/create-from-template
+X-API-Key: <your API key>
+Content-Type: application/json
+```
+
+```json
+{
+  "template_key": "financial_report_extraction"
+}
+```
+
+The endpoint creates and publishes an application for the current account, or reuses the corresponding runnable application if one already exists. In a successful response, `data.application_id` is the account application's ID, `data.release_version_id` identifies its published version, and `data.can_run` is `true`. Use that `application_id` for subsequent uploads and runs.
+
+Use `data.application_id` from the creation response for all subsequent steps. Reusing an existing application preserves its template version; `data.template_version` reports the version actually used. No workspace or user ID is required in the request.
 
 ## Prepare documents
 
-Upload local files with the [Upload file](/en/api-reference/adp-api/workflow-files/upload-doc-flow-file) endpoint first. Use `multipart/form-data`, place the file in `chunk`, set `application_id` to the value returned by the template query, and use `application` for `sharing_scope`.
+Upload local files with the [Upload file](/en/api-reference/adp-api/workflow-files/upload-doc-flow-file) endpoint first. Use `multipart/form-data`, place the file in `chunk`, set `application_id` to the value returned by creation, and use `application` for `sharing_scope`.
 
 Map `data.download_url` from the upload response to `files[].url`, `data.file_name` to `name`, and `data.content_type` to `mime_type` in the run request. Use one file entry per document. If you already have an accessible public HTTP(S) file URL, you can provide `url`, `name`, and `mime_type` directly.
 
 ## Run with the shared APIs
 
-All three templates use the same endpoint paths and request structure. Select the target template application with `application_id`:
+Workflow applications created from these three templates use the same endpoint paths and request structure. Select the application with `application_id`:
 
 | Operation | Endpoint |
 | --- | --- |
@@ -53,11 +73,11 @@ All three templates use the same endpoint paths and request structure. Select th
 | [Create an asynchronous run task](/en/api-reference/adp-api/workflows/create-doc-flow-run-task) | `POST /open/agentic_engine/laiye/v1/app/run/create/task` |
 | [Query run results](/en/api-reference/adp-api/workflows/query-doc-flow-run-task) | `GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}` |
 
-The following example uses the financial reporting template. Confirm that its `can_run` value is `true`, replace the file details with your actual document, and submit the same JSON body to either the synchronous or asynchronous run endpoint:
+The following example uses a financial reporting application that has already been created. Replace `application_id` with the value returned by creation and the file details with your actual document, then submit the same JSON body to either run endpoint:
 
 ```json
 {
-  "application_id": "wftp_app_y6p2m8q4v1c9t3x7n5r0h2k6",
+  "application_id": "app_financial_report_001",
   "files": [
     {
       "url": "https://example.com/annual-report.pdf",
@@ -68,8 +88,12 @@ The following example uses the financial reporting template. Confirm that its `c
 }
 ```
 
-The example `application_id` is the stable public ID for the financial reporting template. For accounts payable or expense reimbursement, use the corresponding template's returned `application_id` and your document files.
+The example `application_id` represents `data.application_id` from the previous creation response. For accounts payable and expense reimbursement, also create an application first, then run it with the returned application ID and your document files.
 
 Each `files` entry requires `url`, `name`, and `mime_type`, and optionally accepts `size` and `metadata`. Set `inputs` according to the published workflow's actual input configuration; omit it when no extra parameters are required. You can omit `release_version_id` to let the service select the published version.
 
 The synchronous endpoint waits for execution to finish. After the asynchronous endpoint returns `data.run_id`, use the query endpoint to retrieve the status and result. Read `data.output` after confirming HTTP success, a successful top-level `code`, and `data.status=succeeded`. For a failed run, inspect `data.error`.
+
+## Modify a workflow
+
+Workflow changes are currently available only through the [ADP website interface](https://adp-global.laiye.com/?utm_source=apidoc). Open the created application, adjust its workflow or configuration, test it, and publish it again before running it through OpenAPI. OpenAPI does not currently provide workflow editing.

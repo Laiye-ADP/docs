@@ -7,7 +7,7 @@ Workflow applications combine document processing, business decisions, human rev
 
 <Columns cols={2}>
   <Card title="Business workflow templates" icon="layout-template">
-    ADP provides preset business processes for accounts payable, expense reimbursement, and financial reporting. Query the template catalog to obtain each template's stable public `application_id` and run-readiness state for your account.
+    ADP provides preset business processes for accounts payable, expense reimbursement, and financial reporting. Query the template catalog, select a `template_key`, and create and publish a workflow application before running it.
   </Card>
   <Card title="Custom workflows" icon="messages-square">
     Use the AI conversational assistant in the official ADP platform to create, refine, and publish a workflow for your documents, business rules, and desired outcomes.
@@ -21,21 +21,22 @@ Workflow applications combine document processing, business decisions, human rev
 ## Create and call a workflow
 
 1. **Choose how to create it**: Use an existing business workflow template, or use the AI conversational assistant in the official ADP platform to create a custom workflow.
-2. **Test and publish it**: Verify the workflow's inputs, processing steps, and outputs in the platform, then publish the application.
-3. **Obtain the application ID**: For a business workflow template, use the stable public `application_id` returned by [List business workflow templates](/en/api-reference/adp-api/workflows/list-business-workflow-templates) under Application Management. For a custom workflow, use the `id` returned by List runnable workflow applications.
+2. **Create and publish the application**: For an official template, call [Create an application from a workflow template](/en/api-reference/adp-api/application-management/create-workflow-application-from-template) to obtain a runnable application. Test and publish custom workflows in the platform.
+3. **Obtain the application ID**: For an application created from a template, use `data.application_id` from the creation response. For an application created and published on the website, use the `id` returned by List runnable workflow applications.
 4. **Run the workflow**: Choose synchronous execution when you need to wait for the result, or create an asynchronous task and then query, rerun, or cancel the run as needed.
 
 <Info>
-  Before calling a business workflow template, confirm that its `can_run` value is `true`. If it is `false`, add, configure, and publish the corresponding application in the official ADP platform first.
+  Follow this sequence for templates: query templates, create and publish a workflow application, then upload files and run the application. Use the application ID returned by creation for subsequent operations. Workflow changes are currently available only through the ADP website interface; test and publish the modified application before running it through OpenAPI.
 </Info>
 
-Accounts payable, expense reimbursement, and financial reporting share the run APIs in this section. See [Integrate business workflow templates](/en/api-reference/adp-api/application-management/business-workflow-templates) under Application Management for the templates and integration example.
+Applications created from the accounts payable, expense reimbursement, and financial reporting templates share the run APIs in this section. See [Integrate business workflow templates](/en/api-reference/adp-api/application-management/business-workflow-templates) under Application Management for the templates and integration example.
 
 ## OpenAPI capabilities
 
 | Goal | Endpoint |
 | --- | --- |
-| List business workflow templates and stable public application IDs | `GET /open/agentic_engine/laiye/v1/app/templates` |
+| List business workflow templates | `GET /open/agentic_engine/laiye/v1/app/templates` |
+| Create and publish an application from a workflow template | `POST /open/agentic_engine/laiye/v1/app/applications/create-from-template` |
 | List workflow applications that the current account can run | `GET /open/agentic_engine/laiye/v1/app/applications` |
 | Get workflow application details (limited preview) | `GET /open/agentic_engine/laiye/v1/app/applications/{application_id}` |
 | Run a workflow synchronously | `POST /open/agentic_engine/laiye/v1/app/run` |

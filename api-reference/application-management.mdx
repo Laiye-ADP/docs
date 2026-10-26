@@ -15,7 +15,7 @@ ADP 以应用为单位组织文档处理能力。你可以直接使用系统提�
 </Columns>
 
 <Note>
-  本分组中的“创建抽取应用”接口用于创建自定义抽取应用。业务工作流模板通过本分组中的“查询业务工作流模板”接口发现，并使用“工作流”分组中的共用接口运行。
+  本分组中的“创建抽取应用”接口用于创建自定义抽取应用。业务工作流模板可通过本分组中的接口查询、创建并发布，再使用“工作流”分组中的共用接口运行。
 </Note>
 
 ## 抽取类模板应用
@@ -48,9 +48,13 @@ ADP 以应用为单位组织文档处理能力。你可以直接使用系统提�
 
 ## 业务工作流模板
 
-财务应付、费用报销和金融财报属于工作流类型的模板应用，适用于多份材料的审核或财报拆分与汇总。通过[查询业务工作流模板](/api-reference/adp-api/workflows/list-business-workflow-templates)获取 `template_key`、稳定公开的 `application_id` 和当前账号的 `can_run` 状态。
+财务应付、费用报销和金融财报属于工作流类型的模板应用，适用于多份材料的审核或财报拆分与汇总。通过[查询业务工作流模板](/api-reference/adp-api/workflows/list-business-workflow-templates)获取 `template_key`，再创建并发布工作流应用。
 
-三个模板共用同步运行、异步创建和结果查询接口，通过 `application_id` 选择应用。模板目录、文件准备和请求示例见[业务工作流模板接入](/api-reference/adp-api/application-management/business-workflow-templates)。
+从模板创建的应用共用同步运行、异步创建和结果查询接口，`application_id` 使用创建接口返回的值。模板目录、文件准备和请求示例见[业务工作流模板接入](/api-reference/adp-api/application-management/business-workflow-templates)。
+
+需要为当前账号添加模板应用时，调用[从工作流模板创建应用](/api-reference/adp-api/application-management/create-workflow-application-from-template)。接口会创建并发布应用；已有对应的可运行应用时复用。
+
+目前只能在 [ADP 网站界面](https://adp.laiye.com/?utm_source=apidoc)中修改工作流，修改后需测试并重新发布，再通过 OpenAPI 运行。
 
 ## 常用管理操作
 
@@ -59,5 +63,6 @@ ADP 以应用为单位组织文档处理能力。你可以直接使用系统提�
 | 创建自定义抽取应用 | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create` |
 | 查询应用列表 | `GET /open/agentic_doc_processor/{tenant_name}/v1/app-list` |
 | 查询业务工作流模板 | `GET /open/agentic_engine/laiye/v1/app/templates` |
+| 从工作流模板创建并发布应用 | `POST /open/agentic_engine/laiye/v1/app/applications/create-from-template` |
 | 修改或删除应用 | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update`、`POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete` |
 | 查询或删除配置版本 | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config`、`POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete` |

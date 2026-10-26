@@ -1,0 +1,12 @@
+---
+title: "从工作流模板创建应用"
+sidebarTitle: "从工作流模板创建应用"
+description: "从财务应付、费用报销或金融财报模板创建并发布当前账号的工作流应用，返回可直接运行的应用 ID。"
+openapi: "/api-reference/adp-api.yaml POST /open/agentic_engine/laiye/v1/app/applications/create-from-template"
+---
+
+三个模板共用此接口。选择 `template_key` 后，服务为当前 API Key 所属账号创建并发布应用；该账号已有对应的可运行应用时复用，重复调用不会为同一模板再创建一个可运行副本。
+
+返回的 `data.application_id` 是当前账号的应用 ID，可直接用于文件上传、同步运行或创建异步运行任务。`data.template_version` 表示实际应用使用的模板版本；复用已有应用时保留其版本。
+
+完整流程见[业务工作流模板接入](/api-reference/adp-api/application-management/business-workflow-templates)。需要修改工作流时，目前只能在 [ADP 网站界面](https://adp.laiye.com/?utm_source=apidoc)操作，测试并重新发布后再通过 OpenAPI 运行。

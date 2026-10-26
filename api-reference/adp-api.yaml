@@ -29,6 +29,47 @@ tags:
   - name: 人机协同
     description: 配置审核触发规则，查询协同任务并提交人工修正。
 paths:
+  /open/agentic_engine/laiye/v1/app/applications/create-from-template:
+    post:
+      tags:
+      - 应用管理
+      summary: 从工作流模板创建应用
+      description: 从财务应付、费用报销或金融财报模板，为当前 API Key 所属账号创建并发布工作流应用。已有对应的可运行应用时复用，重复调用不会为同一模板再创建一个可运行副本。复用应用时保留其模板版本。返回的 application_id 是当前账号的应用 ID，可直接用于文件上传和运行；不要求预先 can_run=true。仅支持当前环境中已启用且对当前账号可见的模板。 工作流修改目前只能在 ADP 网站界面完成，测试并重新发布后再通过 OpenAPI 运行。
+      operationId: createWorkflowApplicationFromTemplate
+      security:
+      - EngineApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkflowTemplateApplicationRequest'
+            example:
+              template_key: financial_report_extraction
+      responses:
+        '200':
+          description: 已创建并发布或复用可运行的工作流应用。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateWorkflowTemplateApplicationResponse'
+              example:
+                code: success
+                message: ''
+                data:
+                  template_key: financial_report_extraction
+                  template_version: 1.0.0
+                  application_id: app_financial_report_001
+                  application_name: 金融财报 A1b2
+                  release_version_id: release_financial_report_001
+                  application_status: published
+                  can_run: true
+        '404':
+          description: 模板未启用或不可见，当前租户无可用工作区，或应用没有可用的已发布版本。
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          description: 创建或发布失败；请检查错误并查询应用状态。
   /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract:
     post:
       tags: [文档抽取]
@@ -622,17 +663,9 @@ paths:
       tags: [应用管理]
       summary: 查询业务工作流模板
       description: |
-        查询可用的业务工作流模板，以及当前 API Key 所属账号是否已添加、是否已发布和当前能否运行。
+        查询可用的业务工作流模板及当前账号对应应用的状态。选择返回的 `template_key`，再调用“从工作流模板创建应用”接口创建并发布工作流应用。
 
-        财务应付、费用报销和金融财报共用工作流运行接口，通过 `application_id` 选择应用。模板和请求示例见[业务工作流模板接入](/api-reference/adp-api/application-management/business-workflow-templates)。
-
-        `application_id` 是面向 OpenAPI 的稳定公开 ID，可固定写入接口文档和集成配置：
-
-        - `finance_payable`: `wftp_app_n8q4v2m7x5p1r9t6c3a0b8d2`
-        - `expense_reimbursement`: `wftp_app_h3k9s1v6p4x8q2m7c5t0a9r1`
-        - `financial_report_extraction`: `wftp_app_y6p2m8q4v1c9t3x7n5r0h2k6`
-
-        这些固定 ID 不是添加模板后生成的账号应用 ID；本接口不返回后者。运行接口会按当前 API Key 关联已添加的对应应用。仅当 `can_run` 为 `true` 时，该固定 ID 才可用于运行接口；模板未添加、对应应用尚未发布，或没有当前可用的已发布版本时，`can_run` 为 `false`。
+        上传文件和运行应用统一使用创建接口响应中的 `data.application_id`。接入步骤见[业务工作流模板接入](/api-reference/adp-api/application-management/business-workflow-templates)。需要修改工作流时，目前只能在 ADP 网站界面操作。
       operationId: listBusinessWorkflowTemplates
       security:
         - EngineApiKeyAuth: []
@@ -730,7 +763,7 @@ paths:
     post:
       tags: [工作流]
       summary: 运行应用（同步接口）
-      description: 同步运行工作流应用的发布版本，阻塞等待执行完成后返回结果。财务应付、费用报销和金融财报模板共用此接口；使用模板查询返回的 application_id，并确认 can_run=true。
+      description: 同步运行工作流应用的发布版本，阻塞等待执行完成后返回结果。从业务工作流模板创建的应用使用创建接口返回的 data.application_id 运行。
       operationId: runDocFlowApp
       security:
         - EngineApiKeyAuth: []
@@ -745,7 +778,7 @@ paths:
     post:
       tags: [工作流]
       summary: 创建运行应用异步任务
-      description: 异步触发工作流应用运行，立即返回 run_id，不等待执行完成。财务应付、费用报销和金融财报模板共用此接口；使用模板查询返回的 application_id，并确认 can_run=true。
+      description: 异步触发工作流应用运行，立即返回 run_id，不等待执行完成。从业务工作流模板创建的应用使用创建接口返回的 data.application_id 运行。
       operationId: createDocFlowRunTask
       security:
         - EngineApiKeyAuth: []
@@ -1959,7 +1992,7 @@ components:
                   name: 财务应付
                   description: 识别付款申请、合同、发票、入库、结算和验收材料，完成财务应付审核与业务结果交付。
                   template_version: 1.0.2
-                  application_id: wftp_app_n8q4v2m7x5p1r9t6c3a0b8d2
+                  application_id: "<catalog identifier: finance_payable>"
                   is_added: true
                   application_status: published
                   can_run: true
@@ -1967,7 +2000,7 @@ components:
                   name: 费用报销
                   description: 识别报销申请、票据、出差审批、网约车行程和餐饮小票，按差旅或业务招待类型分别审核。
                   template_version: 1.0.1
-                  application_id: wftp_app_h3k9s1v6p4x8q2m7c5t0a9r1
+                  application_id: "<catalog identifier: expense_reimbursement>"
                   is_added: true
                   application_status: draft
                   can_run: false
@@ -1975,7 +2008,7 @@ components:
                   name: 金融财报
                   description: 拆分财务报告后，分别抽取基础信息、利润表、资产负债表和现金流量表，并在任务中集中查看结果。
                   template_version: 1.0.26
-                  application_id: wftp_app_y6p2m8q4v1c9t3x7n5r0h2k6
+                  application_id: "<catalog identifier: financial_report_extraction>"
                   is_added: false
                   application_status: null
                   can_run: false
@@ -1992,6 +2025,64 @@ components:
           schema:
             $ref: '#/components/schemas/WorkflowRunExportResponse'
   schemas:
+    CreateWorkflowTemplateApplicationRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        template_key:
+          type: string
+          enum:
+          - finance_payable
+          - expense_reimbursement
+          - financial_report_extraction
+          description: 业务工作流模板标识。
+      required:
+      - template_key
+    CreatedWorkflowTemplateApplication:
+      type: object
+      additionalProperties: false
+      properties:
+        template_key:
+          type: string
+          description: 业务工作流模板标识。
+        template_version:
+          type: string
+          description: 实际应用使用的模板版本；复用已有应用时保留其版本。
+        application_id:
+          type: string
+          description: 当前账号创建或复用的应用 ID，可用于文件上传和工作流运行。
+        application_name:
+          type: string
+          description: 应用名称。
+        release_version_id:
+          type: string
+          description: 当前已发布版本 ID。
+        application_status:
+          type: string
+          description: 应用状态；成功时为 published。
+          enum:
+          - published
+        can_run:
+          type: boolean
+          const: true
+          description: 当前应用是否可运行；成功时为 true。
+      required:
+      - template_key
+      - template_version
+      - application_id
+      - application_name
+      - release_version_id
+      - application_status
+      - can_run
+    CreateWorkflowTemplateApplicationResponse:
+      allOf:
+      - $ref: '#/components/schemas/SimpleResponse'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/CreatedWorkflowTemplateApplication'
+        required:
+        - data
     # Schemas for the public and limited-preview operations above.
     DocumentConvertRequest:
       type: object
@@ -2398,7 +2489,7 @@ components:
           description: 当前模板版本。版本可能随模板更新而变化。
         application_id:
           type: string
-          description: 可用于工作流运行接口的稳定公开 ID，不是添加模板后生成的账号应用 ID。
+          description: 模板目录中的应用标识。上传和运行时，使用“从工作流模板创建应用”接口返回的 data.application_id。
         is_added:
           type: boolean
           description: 当前 API Key 所属账号是否已添加该模板。
@@ -2410,7 +2501,7 @@ components:
           description: 当前账号中对应应用的状态；未添加时为 null。
         can_run:
           type: boolean
-          description: 固定 application_id 当前是否可用于运行接口。只有当前账号已添加对应应用，且该应用存在当前可用的已发布版本时为 true。
+          description: 当前账号是否已有对应的可运行应用，仅用于展示已有应用状态。模板接入先调用创建接口，再使用其返回的应用 ID 运行。
       required: [template_key, name, template_version, application_id, is_added, can_run]
     BusinessWorkflowTemplateListResponse:
       allOf:
@@ -3798,7 +3889,7 @@ components:
       properties:
         application_id:
           type: string
-          description: 工作流应用 ID，或业务工作流模板查询返回且 can_run=true 的稳定公开 application_id。
+          description: 已创建且已发布的工作流应用 ID。从模板创建时，使用创建接口返回的 data.application_id；已有账号工作流使用应用列表返回的 id。
         release_version_id:
           type: string
         session_id:
