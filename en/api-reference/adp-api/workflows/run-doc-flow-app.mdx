@@ -3,3 +3,7 @@ title: "Run workflow application (sync)"
 sidebarTitle: "Run workflow application (sync)"
 openapi: "/en/api-reference/adp-api.yaml POST /open/agentic_engine/laiye/v1/app/run"
 ---
+
+We recommend setting `application_id` to a published account application ID. Alternatively, pass a fixed workflow template ID: the service creates and publishes an account application if no corresponding runnable application exists, or reuses an existing one.
+
+Omit `release_version_id` when running a template directly. See [Integrate business workflow templates](/en/api-reference/adp-api/application-management/business-workflow-templates) for all three fixed IDs and a request example.

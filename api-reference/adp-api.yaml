@@ -663,9 +663,11 @@ paths:
       tags: [应用管理]
       summary: 查询业务工作流模板
       description: |
-        查询可用的业务工作流模板及当前账号对应应用的状态。选择返回的 `template_key`，再调用“从工作流模板创建应用”接口创建并发布工作流应用。
+        查询可用的业务工作流模板及当前账号对应应用的状态。推荐选择返回的 `template_key`，再调用“从工作流模板创建应用”接口创建并发布工作流应用。
 
-        上传文件和运行应用统一使用创建接口响应中的 `data.application_id`。接入步骤见[业务工作流模板接入](/api-reference/adp-api/application-management/business-workflow-templates)。需要修改工作流时，目前只能在 ADP 网站界面操作。
+        推荐流程中，上传文件和运行应用使用创建接口响应中的 `data.application_id`。也可将本列表返回的模板固定 `application_id` 直接传给同步或异步运行接口：已有对应的可运行应用时复用，否则自动创建并发布应用后运行。`can_run=false` 不阻止使用此备选方式。
+
+        接入步骤见[业务工作流模板接入](/api-reference/adp-api/application-management/business-workflow-templates)。需要修改工作流时，目前只能在 ADP 网站界面操作。
       operationId: listBusinessWorkflowTemplates
       security:
         - EngineApiKeyAuth: []
@@ -763,7 +765,10 @@ paths:
     post:
       tags: [工作流]
       summary: 运行应用（同步接口）
-      description: 同步运行工作流应用的发布版本，阻塞等待执行完成后返回结果。从业务工作流模板创建的应用使用创建接口返回的 data.application_id 运行。
+      description: |
+        同步运行工作流应用的发布版本，阻塞等待执行完成后返回结果。推荐先从业务工作流模板创建并发布应用，再使用创建接口返回的 `data.application_id` 运行。
+
+        备选方式：`application_id` 也可传入模板列表返回的固定模板 ID。系统复用当前账号已有的对应可运行应用；没有时自动创建并发布应用，然后运行。此方式可在 `can_run=false` 时使用，请省略 `release_version_id`，由系统选择对应应用的发布版本。详见[直接运行工作流模板](/api-reference/adp-api/application-management/business-workflow-templates#备选直接运行工作流模板)。
       operationId: runDocFlowApp
       security:
         - EngineApiKeyAuth: []
@@ -778,7 +783,10 @@ paths:
     post:
       tags: [工作流]
       summary: 创建运行应用异步任务
-      description: 异步触发工作流应用运行，立即返回 run_id，不等待执行完成。从业务工作流模板创建的应用使用创建接口返回的 data.application_id 运行。
+      description: |
+        异步触发工作流应用运行，返回 `run_id`，不等待执行完成。推荐先从业务工作流模板创建并发布应用，再使用创建接口返回的 `data.application_id` 运行。
+
+        备选方式：`application_id` 也可传入模板列表返回的固定模板 ID。系统复用当前账号已有的对应可运行应用；没有时自动创建并发布应用，然后创建运行任务。此方式可在 `can_run=false` 时使用，请省略 `release_version_id`，由系统选择对应应用的发布版本。详见[直接运行工作流模板](/api-reference/adp-api/application-management/business-workflow-templates#备选直接运行工作流模板)。
       operationId: createDocFlowRunTask
       security:
         - EngineApiKeyAuth: []
@@ -1473,14 +1481,25 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/DocFlowRunRequest'
-          example:
-            application_id: app_abc123
-            inputs:
-              query: 请帮我分析这份采购单
-            files:
-              - url: https://adp.laiye.com/web/agentic_doc_processor/laiye/file/2003c711818811f1a36200163e358400
-                name: 采购单.pdf
-                mime_type: application/pdf
+          examples:
+            publishedApplication:
+              summary: 运行已发布的工作流应用（推荐）
+              value:
+                application_id: app_abc123
+                inputs:
+                  query: 请帮我分析这份采购单
+                files:
+                  - url: https://adp.laiye.com/web/agentic_doc_processor/laiye/file/2003c711818811f1a36200163e358400
+                    name: 采购单.pdf
+                    mime_type: application/pdf
+            workflowTemplate:
+              summary: 直接运行财务应付模板（备选，自动创建或复用应用）
+              value:
+                application_id: wftp_app_n8q4v2m7x5p1r9t6c3a0b8d2
+                files:
+                  - url: https://example.com/payment-application.pdf
+                    name: payment-application.pdf
+                    mime_type: application/pdf
     DocFlowCancelRunRequest:
       required: false
       content:
@@ -1992,7 +2011,7 @@ components:
                   name: 财务应付
                   description: 识别付款申请、合同、发票、入库、结算和验收材料，完成财务应付审核与业务结果交付。
                   template_version: 1.0.2
-                  application_id: "<catalog identifier: finance_payable>"
+                  application_id: wftp_app_n8q4v2m7x5p1r9t6c3a0b8d2
                   is_added: true
                   application_status: published
                   can_run: true
@@ -2000,7 +2019,7 @@ components:
                   name: 费用报销
                   description: 识别报销申请、票据、出差审批、网约车行程和餐饮小票，按差旅或业务招待类型分别审核。
                   template_version: 1.0.1
-                  application_id: "<catalog identifier: expense_reimbursement>"
+                  application_id: wftp_app_h3k9s1v6p4x8q2m7c5t0a9r1
                   is_added: true
                   application_status: draft
                   can_run: false
@@ -2008,7 +2027,7 @@ components:
                   name: 金融财报
                   description: 拆分财务报告后，分别抽取基础信息、利润表、资产负债表和现金流量表，并在任务中集中查看结果。
                   template_version: 1.0.26
-                  application_id: "<catalog identifier: financial_report_extraction>"
+                  application_id: wftp_app_y6p2m8q4v1c9t3x7n5r0h2k6
                   is_added: false
                   application_status: null
                   can_run: false
@@ -2489,7 +2508,7 @@ components:
           description: 当前模板版本。版本可能随模板更新而变化。
         application_id:
           type: string
-          description: 模板目录中的应用标识。上传和运行时，使用“从工作流模板创建应用”接口返回的 data.application_id。
+          description: 模板固定 ID，可作为同步或异步运行接口的 application_id。已有对应的可运行应用时复用，否则自动创建并发布应用后运行。推荐先调用“从工作流模板创建应用”，再使用其返回的 data.application_id 上传文件和运行。
         is_added:
           type: boolean
           description: 当前 API Key 所属账号是否已添加该模板。
@@ -2501,7 +2520,7 @@ components:
           description: 当前账号中对应应用的状态；未添加时为 null。
         can_run:
           type: boolean
-          description: 当前账号是否已有对应的可运行应用，仅用于展示已有应用状态。模板接入先调用创建接口，再使用其返回的应用 ID 运行。
+          description: 当前账号是否已有对应的可运行应用。false 不阻止调用创建接口或直接传模板固定 ID 运行；这两种方式均可自动创建并发布应用。
       required: [template_key, name, template_version, application_id, is_added, can_run]
     BusinessWorkflowTemplateListResponse:
       allOf:
@@ -3889,9 +3908,10 @@ components:
       properties:
         application_id:
           type: string
-          description: 已创建且已发布的工作流应用 ID。从模板创建时，使用创建接口返回的 data.application_id；已有账号工作流使用应用列表返回的 id。
+          description: 已发布的工作流应用 ID，或模板列表返回的固定模板 ID。推荐使用创建接口返回的 data.application_id，或已有应用列表返回的 id。传入固定模板 ID 时，复用当前账号已有的对应可运行应用；没有时自动创建并发布应用后运行。
         release_version_id:
           type: string
+          description: 指定应用的发布版本 ID。使用固定模板 ID 运行时请省略，由系统选择对应账号应用的发布版本。
         session_id:
           type: string
         files:

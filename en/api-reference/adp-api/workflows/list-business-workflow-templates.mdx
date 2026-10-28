@@ -1,8 +1,10 @@
 ---
 title: "List business workflow templates"
 sidebarTitle: "List business workflow templates"
-description: "List accounts payable, expense reimbursement, and financial reporting templates, then select a template_key to create a workflow application."
+description: "List accounts payable, expense reimbursement, and financial reporting templates. Create an application before running, or run directly with a fixed template ID."
 openapi: "/en/api-reference/adp-api.yaml GET /open/agentic_engine/laiye/v1/app/templates"
 ---
 
-Select a template's `template_key`, call [Create an application from a workflow template](/en/api-reference/adp-api/application-management/create-workflow-application-from-template) to create and publish an application, then use `application_id` from the creation response for uploads and runs. See [Integrate business workflow templates](/en/api-reference/adp-api/application-management/business-workflow-templates) for the complete flow.
+We recommend selecting a template's `template_key`, calling [Create an application from a workflow template](/en/api-reference/adp-api/application-management/create-workflow-application-from-template) to create and publish an application, then using `application_id` from the creation response for uploads and runs.
+
+Alternatively, pass the fixed template `application_id` returned by this catalog directly to a synchronous or asynchronous run endpoint. The service creates and publishes an account application if no corresponding runnable application exists, or reuses an existing one. A value of `can_run=false` does not prevent this alternative. See [Integrate business workflow templates](/en/api-reference/adp-api/application-management/business-workflow-templates) for the fixed IDs, example, and complete flow.

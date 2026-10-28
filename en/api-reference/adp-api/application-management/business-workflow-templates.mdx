@@ -1,10 +1,10 @@
 ---
 title: "Integrate business workflow templates"
 sidebarTitle: "Business workflow templates"
-description: "Discover accounts payable, expense reimbursement, and financial reporting templates, create and publish an application through OpenAPI, then upload files, run workflows, and query results."
+description: "Discover accounts payable, expense reimbursement, and financial reporting templates. Create and publish an application before running, or use a fixed template ID as an alternative."
 ---
 
-ADP provides three business workflow templates: accounts payable, expense reimbursement, and financial reporting. Create and publish a workflow application from a template first, then use the application ID returned by creation to upload files and run it.
+ADP provides three business workflow templates: accounts payable, expense reimbursement, and financial reporting. The recommended flow is to create and publish an application, save its returned application ID, then upload files and run it. Alternatively, pass a fixed template ID directly to a run endpoint so the service creates or reuses a runnable account application for you.
 
 ## Template catalog
 
@@ -28,13 +28,13 @@ Select a template by `template_key` from `data.list`. The endpoint supports name
 | Response field | Usage |
 | --- | --- |
 | `template_key` | Identifies the business template so you can select the exact solution in the catalog. |
-| `application_id` | Application identifier in the template catalog. Use the application ID returned by creation in the next step for uploads and runs. |
+| `application_id` | Fixed template ID accepted by the alternative direct-run flow. The recommended flow uses the account application ID returned by creation in the next step. |
 | `is_added` | Whether the account associated with the current API key has added the template. |
 | `application_status` | State of the corresponding account application: `draft`, `published`, or `null`. |
-| `can_run` | Whether the current account already has a corresponding runnable application, for checking existing application readiness. |
+| `can_run` | Whether the current account already has a corresponding runnable application. A value of `false` does not prevent automatic creation and publication in the alternative flow. |
 
 <Info>
-  Select a `template_key` from the catalog, then call Create an application from a workflow template to obtain the `application_id` for subsequent operations. The creation endpoint reuses a corresponding runnable application if one already exists.
+  We recommend selecting a `template_key` from the catalog, then calling Create an application from a workflow template to obtain the `application_id` for subsequent operations. The creation endpoint reuses a corresponding runnable application if one already exists. To run a template directly, use the alternative below.
 </Info>
 
 ## Create and publish an application from a template
@@ -55,7 +55,7 @@ Content-Type: application/json
 
 The endpoint creates and publishes an application for the current account, or reuses the corresponding runnable application if one already exists. In a successful response, `data.application_id` is the account application's ID, `data.release_version_id` identifies its published version, and `data.can_run` is `true`. Use that `application_id` for subsequent uploads and runs.
 
-Use `data.application_id` from the creation response for all subsequent steps. Reusing an existing application preserves its template version; `data.template_version` reports the version actually used. No workspace or user ID is required in the request.
+When following the recommended flow, use `data.application_id` from the creation response for all subsequent steps. Reusing an existing application preserves its template version; `data.template_version` reports the version actually used. No workspace or user ID is required in the request.
 
 ## Prepare documents
 
@@ -88,11 +88,40 @@ The following example uses a financial reporting application that has already be
 }
 ```
 
-The example `application_id` represents `data.application_id` from the previous creation response. For accounts payable and expense reimbursement, also create an application first, then run it with the returned application ID and your document files.
+The example `application_id` represents `data.application_id` from the previous creation response. When following the recommended flow for accounts payable and expense reimbursement, also create an application first, then run it with the returned application ID and your document files.
 
 Each `files` entry requires `url`, `name`, and `mime_type`, and optionally accepts `size` and `metadata`. Set `inputs` according to the published workflow's actual input configuration; omit it when no extra parameters are required. You can omit `release_version_id` to let the service select the published version.
 
 The synchronous endpoint waits for execution to finish. After the asynchronous endpoint returns `data.run_id`, use the query endpoint to retrieve the status and result. Read `data.output` after confirming HTTP success, a successful top-level `code`, and `data.status=succeeded`. For a failed run, inspect `data.error`.
+
+## Alternative: run a workflow template directly
+
+You can skip the explicit creation step and pass a fixed template ID as `application_id` to the same synchronous or asynchronous run endpoint. The service reuses the current account's runnable application for that template. If none exists, it automatically creates and publishes an account application before running it. You do not need to add the application in the interface or call the creation endpoint first.
+
+| Template | `application_id` for direct execution |
+| --- | --- |
+| Accounts payable | `wftp_app_n8q4v2m7x5p1r9t6c3a0b8d2` |
+| Expense reimbursement | `wftp_app_h3k9s1v6p4x8q2m7c5t0a9r1` |
+| Financial reporting | `wftp_app_y6p2m8q4v1c9t3x7n5r0h2k6` |
+
+This financial reporting example uses an accessible HTTP(S) file URL. Submit it to `POST /open/agentic_engine/laiye/v1/app/run` or `POST /open/agentic_engine/laiye/v1/app/run/create/task`:
+
+```json
+{
+  "application_id": "wftp_app_y6p2m8q4v1c9t3x7n5r0h2k6",
+  "files": [
+    {
+      "url": "https://example.com/annual-report.pdf",
+      "name": "annual-report.pdf",
+      "mime_type": "application/pdf"
+    }
+  ]
+}
+```
+
+Omit `release_version_id` in this flow so the service selects the account application's available published version. Supply `inputs` according to the selected template's actual requirements. A catalog value of `can_run=false` only means that the account does not yet have a corresponding runnable application; it is not a prerequisite for this flow. The template must be available in the current environment and visible to the account. Creation or publication failures return an error.
+
+The automatically created application remains in the current account and can be reused by later calls. For asynchronous execution, query the returned `data.run_id` as usual. We recommend the explicit creation flow above when you need to save the account application ID, manage files, or adjust the application.
 
 ## Modify a workflow
 

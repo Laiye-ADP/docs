@@ -663,9 +663,11 @@ paths:
       tags: [Application management]
       summary: List business workflow templates
       description: |
-        List available business workflow templates and the state of corresponding applications for the current account. Select a returned `template_key`, then call Create an application from a workflow template to create and publish a workflow application.
+        List available business workflow templates and the state of corresponding applications for the current account. The recommended flow is to select a returned `template_key`, then call Create an application from a workflow template to create and publish a workflow application.
 
-        Use `data.application_id` from the creation response for file uploads and application runs. See [Integrate business workflow templates](/en/api-reference/adp-api/application-management/business-workflow-templates). Workflow changes are currently available only through the ADP website interface.
+        In the recommended flow, use `data.application_id` from the creation response for file uploads and application runs. Alternatively, pass a fixed template `application_id` from this list directly to a synchronous or asynchronous run endpoint. ADP reuses the corresponding runnable application in the current account, or creates and publishes one before running it. You can use this alternative when `can_run=false`.
+
+        See [Integrate business workflow templates](/en/api-reference/adp-api/application-management/business-workflow-templates). Workflow changes are currently available only through the ADP website interface.
       operationId: listBusinessWorkflowTemplates
       security:
         - EngineApiKeyAuth: []
@@ -763,7 +765,10 @@ paths:
     post:
       tags: [Workflow]
       summary: Run workflow application (sync)
-      description: Run the published workflow application version synchronously and wait for the result. For applications created from business workflow templates, use data.application_id from the creation response.
+      description: |
+        Run the published workflow application version synchronously and wait for the result. The recommended flow is to create and publish an application from a business workflow template, then use `data.application_id` from the creation response.
+
+        Alternative: pass a fixed template ID from the template list as `application_id`. ADP reuses the corresponding runnable application in the current account, or creates and publishes one before running it. This alternative works when `can_run=false`. Omit `release_version_id` so ADP selects the published version of the corresponding account application. See [Run a workflow template directly](/en/api-reference/adp-api/application-management/business-workflow-templates#alternative-run-a-workflow-template-directly).
       operationId: runWorkflowApp
       security:
         - EngineApiKeyAuth: []
@@ -778,7 +783,10 @@ paths:
     post:
       tags: [Workflow]
       summary: Create workflow run task
-      description: Trigger a workflow run asynchronously and return run_id immediately. For applications created from business workflow templates, use data.application_id from the creation response.
+      description: |
+        Trigger a workflow run asynchronously and return `run_id` without waiting for execution to complete. The recommended flow is to create and publish an application from a business workflow template, then use `data.application_id` from the creation response.
+
+        Alternative: pass a fixed template ID from the template list as `application_id`. ADP reuses the corresponding runnable application in the current account, or creates and publishes one before creating the run task. This alternative works when `can_run=false`. Omit `release_version_id` so ADP selects the published version of the corresponding account application. See [Run a workflow template directly](/en/api-reference/adp-api/application-management/business-workflow-templates#alternative-run-a-workflow-template-directly).
       operationId: createWorkflowRunTask
       security:
         - EngineApiKeyAuth: []
@@ -1540,6 +1548,25 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/WorkflowRunRequest'
+          examples:
+            publishedApplication:
+              summary: Run a published workflow application (recommended)
+              value:
+                application_id: app_abc123
+                inputs:
+                  query: Analyze this purchase order
+                files:
+                  - url: https://adp.laiye.com/web/agentic_doc_processor/laiye/file/2003c711818811f1a36200163e358400
+                    name: purchase-order.pdf
+                    mime_type: application/pdf
+            workflowTemplate:
+              summary: Run the accounts payable template directly (alternative, creates or reuses an application)
+              value:
+                application_id: wftp_app_n8q4v2m7x5p1r9t6c3a0b8d2
+                files:
+                  - url: https://example.com/payment-application.pdf
+                    name: payment-application.pdf
+                    mime_type: application/pdf
     WorkflowCancelRunRequest:
       required: false
       content:
@@ -1984,7 +2011,7 @@ components:
                   name: 财务应付
                   description: 识别付款申请、合同、发票、入库、结算和验收材料，完成财务应付审核与业务结果交付。
                   template_version: 1.0.2
-                  application_id: "<catalog identifier: finance_payable>"
+                  application_id: wftp_app_n8q4v2m7x5p1r9t6c3a0b8d2
                   is_added: true
                   application_status: published
                   can_run: true
@@ -1992,7 +2019,7 @@ components:
                   name: 费用报销
                   description: 识别报销申请、票据、出差审批、网约车行程和餐饮小票，按差旅或业务招待类型分别审核。
                   template_version: 1.0.1
-                  application_id: "<catalog identifier: expense_reimbursement>"
+                  application_id: wftp_app_h3k9s1v6p4x8q2m7c5t0a9r1
                   is_added: true
                   application_status: draft
                   can_run: false
@@ -2000,7 +2027,7 @@ components:
                   name: 金融财报
                   description: 拆分财务报告后，分别抽取基础信息、利润表、资产负债表和现金流量表，并在任务中集中查看结果。
                   template_version: 1.0.26
-                  application_id: "<catalog identifier: financial_report_extraction>"
+                  application_id: wftp_app_y6p2m8q4v1c9t3x7n5r0h2k6
                   is_added: false
                   application_status: null
                   can_run: false
@@ -2480,7 +2507,7 @@ components:
           description: Current template version. This value can change when the template is updated.
         application_id:
           type: string
-          description: Application identifier in the template catalog. For uploads and runs, use data.application_id returned by Create an application from a workflow template.
+          description: Fixed template ID accepted as application_id by the synchronous and asynchronous run endpoints. ADP reuses the corresponding runnable application, or creates and publishes one before running it. The recommended flow is to create an application first, then use the returned data.application_id for file uploads and runs.
         is_added:
           type: boolean
           description: Whether the account associated with the current API key has added this template.
@@ -2492,7 +2519,7 @@ components:
           description: Status of the corresponding application in the current account. It is null when the template has not been added.
         can_run:
           type: boolean
-          description: Whether the current account already has a corresponding runnable application, for displaying existing application readiness. For template integration, call creation first and run with the returned application ID.
+          description: Whether the current account already has a corresponding runnable application. A false value does not block creation or running with the fixed template ID; either flow can create and publish an application automatically.
       required: [template_key, name, template_version, application_id, is_added, can_run]
     BusinessWorkflowTemplateListResponse:
       allOf:
@@ -3894,9 +3921,10 @@ components:
       properties:
         application_id:
           type: string
-          description: ID of a created and published workflow application. For templates, use data.application_id from creation. For existing account workflows, use the id returned by the application list.
+          description: Published workflow application ID, or a fixed template ID returned by the template list. The recommended values are data.application_id from creation or id from the existing application list. With a fixed template ID, ADP reuses the corresponding runnable application in the current account, or creates and publishes one before running it.
         release_version_id:
           type: string
+          description: Published version ID of the application. Omit this field when running with a fixed template ID so ADP selects the published version of the corresponding account application.
         session_id:
           type: string
         files:

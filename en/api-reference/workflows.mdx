@@ -7,7 +7,7 @@ Workflow applications combine document processing, business decisions, human rev
 
 <Columns cols={2}>
   <Card title="Business workflow templates" icon="layout-template">
-    ADP provides preset business processes for accounts payable, expense reimbursement, and financial reporting. Query the template catalog, select a `template_key`, and create and publish a workflow application before running it.
+    ADP provides preset business processes for accounts payable, expense reimbursement, and financial reporting. We recommend creating and publishing an application with a `template_key` before running it. Alternatively, run with a fixed template ID.
   </Card>
   <Card title="Custom workflows" icon="messages-square">
     Use the AI conversational assistant in the official ADP platform to create, refine, and publish a workflow for your documents, business rules, and desired outcomes.
@@ -26,7 +26,7 @@ Workflow applications combine document processing, business decisions, human rev
 4. **Run the workflow**: Choose synchronous execution when you need to wait for the result, or create an asynchronous task and then query, rerun, or cancel the run as needed.
 
 <Info>
-  Follow this sequence for templates: query templates, create and publish a workflow application, then upload files and run the application. Use the application ID returned by creation for subsequent operations. Workflow changes are currently available only through the ADP website interface; test and publish the modified application before running it through OpenAPI.
+  For templates, we recommend querying templates, creating and publishing an application, then uploading files and running it. Alternatively, pass a fixed template ID as `application_id` directly to a run endpoint: the service creates and publishes an account application if no corresponding runnable application exists, or reuses an existing one. See [Integrate business workflow templates](/en/api-reference/adp-api/application-management/business-workflow-templates) for examples. Workflow changes are currently available only through the ADP website interface; test and publish the modified application before running it through OpenAPI.
 </Info>
 
 Applications created from the accounts payable, expense reimbursement, and financial reporting templates share the run APIs in this section. See [Integrate business workflow templates](/en/api-reference/adp-api/application-management/business-workflow-templates) under Application Management for the templates and integration example.
@@ -44,4 +44,4 @@ Applications created from the accounts payable, expense reimbursement, and finan
 | Query an asynchronous run result | `GET /open/agentic_engine/laiye/v1/app/run/query/task/{run_id}` |
 | Rerun or cancel a run | `POST /open/agentic_engine/laiye/v1/app/run/{run_id}/rerun`, `POST /open/agentic_engine/laiye/v1/app/run/{run_id}/cancel` |
 
-OpenAPI currently supports discovering business workflow templates. For workflows that have already been created and published, it also provides application discovery, execution, and run-management capabilities. Create, refine, and publish custom workflows in the official ADP platform.
+OpenAPI supports business workflow template discovery, explicit application creation and publication, and direct execution with a fixed template ID that creates or reuses an account application. Published applications also support application queries and run management. Create, refine, and publish custom workflows in the official ADP platform.

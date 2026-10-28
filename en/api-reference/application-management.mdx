@@ -51,11 +51,13 @@ Ready-to-use applications cover document recognition, invoices, orders, and comm
 
 ## Business workflow templates
 
-Accounts payable, expense reimbursement, and financial reporting are workflow templates for reviewing document packages or splitting and consolidating financial reports. Use [List business workflow templates](/en/api-reference/adp-api/workflows/list-business-workflow-templates) to obtain a `template_key`, then create and publish a workflow application.
+Accounts payable, expense reimbursement, and financial reporting are workflow templates for reviewing document packages or splitting and consolidating financial reports. We recommend using [List business workflow templates](/en/api-reference/adp-api/workflows/list-business-workflow-templates) to obtain a `template_key`, then creating and publishing a workflow application.
 
 Applications created from these templates share the synchronous run, asynchronous task creation, and result query APIs. Use the `application_id` returned by creation. See [Integrate business workflow templates](/en/api-reference/adp-api/application-management/business-workflow-templates) for the template catalog, file preparation, and request example.
 
 To add a template application for the current account, use [Create an application from a workflow template](/en/api-reference/adp-api/application-management/create-workflow-application-from-template). The endpoint creates and publishes an application, or reuses the corresponding runnable application if one already exists.
+
+Alternatively, pass a fixed template ID as `application_id` to the synchronous or asynchronous run endpoint. The service creates and publishes an account application if no corresponding runnable application exists, or reuses an existing one. See [Integrate business workflow templates](/en/api-reference/adp-api/application-management/business-workflow-templates) for the fixed IDs and request example.
 
 Workflow changes are currently available only through the [ADP website interface](https://adp-global.laiye.com/?utm_source=apidoc). Test and publish the modified application again before running it through OpenAPI.
 

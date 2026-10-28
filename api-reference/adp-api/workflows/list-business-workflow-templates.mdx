@@ -1,8 +1,10 @@
 ---
 title: "查询业务工作流模板"
 sidebarTitle: "查询业务工作流模板"
-description: "查询财务应付、费用报销和金融财报模板，选择 template_key 后创建工作流应用。"
+description: "查询财务应付、费用报销和金融财报模板，支持先创建应用再运行，或使用模板固定 ID 直接运行。"
 openapi: "/api-reference/adp-api.yaml GET /open/agentic_engine/laiye/v1/app/templates"
 ---
 
-先选择模板的 `template_key`，通过[从工作流模板创建应用](/api-reference/adp-api/application-management/create-workflow-application-from-template)创建并发布应用，再使用创建响应中的 `application_id` 上传和运行。完整步骤见[业务工作流模板接入](/api-reference/adp-api/application-management/business-workflow-templates)。
+推荐先选择模板的 `template_key`，通过[从工作流模板创建应用](/api-reference/adp-api/application-management/create-workflow-application-from-template)创建并发布应用，再使用创建响应中的 `application_id` 上传和运行。
+
+也可将目录返回的模板固定 `application_id` 直接用于同步或异步运行。当前账号没有对应的可运行应用时，服务会自动创建并发布后运行；已有可运行应用时复用。`can_run=false` 不阻止此备选方式。固定 ID、示例和完整步骤见[业务工作流模板接入](/api-reference/adp-api/application-management/business-workflow-templates)。

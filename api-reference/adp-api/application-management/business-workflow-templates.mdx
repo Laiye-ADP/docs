@@ -1,10 +1,10 @@
 ---
 title: "业务工作流模板接入"
 sidebarTitle: "业务工作流模板接入"
-description: "查询财务应付、费用报销和金融财报模板，通过 OpenAPI 创建并发布应用，再上传材料、运行和查询结果。"
+description: "查询财务应付、费用报销和金融财报模板，推荐先创建并发布应用再运行，也可直接使用模板固定 ID 运行。"
 ---
 
-ADP 提供财务应付、费用报销和金融财报三个业务工作流模板。先从模板创建并发布工作流应用，再使用创建结果中的应用 ID 上传材料和运行。
+ADP 提供财务应付、费用报销和金融财报三个业务工作流模板。推荐先从模板创建并发布工作流应用，保存创建结果中的应用 ID，再上传材料和运行。也可以使用下方的备选方式，直接传入模板固定 ID 运行，由服务自动创建或复用可运行的账号应用。
 
 ## 模板目录
 
@@ -28,13 +28,13 @@ X-API-Key: <你的 API Key>
 | 返回字段 | 使用方式 |
 | --- | --- |
 | `template_key` | 标识业务模板，用于在目录中精确选择目标方案。 |
-| `application_id` | 模板目录中的应用标识。上传和运行使用下一步创建接口返回的应用 ID。 |
+| `application_id` | 可用于备选直接运行方式的模板固定 ID。推荐流程使用下一步创建接口返回的账号应用 ID。 |
 | `is_added` | 当前 API Key 所属账号是否已添加该模板。 |
 | `application_status` | 当前账号对应应用的状态，可能为 `draft`、`published` 或 `null`。 |
-| `can_run` | 当前账号是否已有对应的可运行应用，可用于了解已有应用状态。 |
+| `can_run` | 当前账号是否已有对应的可运行应用。`false` 不阻止备选方式自动创建并发布应用。 |
 
 <Info>
-  选择目录中的 `template_key` 后，调用“从工作流模板创建应用”接口，取得用于后续操作的 `application_id`。已有对应的可运行应用时，创建接口会复用该应用。
+  推荐选择目录中的 `template_key` 后，调用“从工作流模板创建应用”接口，取得用于后续操作的 `application_id`。已有对应的可运行应用时，创建接口会复用该应用。需要直接运行模板时，可使用下方的备选方式。
 </Info>
 
 ## 从模板创建并发布应用
@@ -55,7 +55,7 @@ Content-Type: application/json
 
 接口为当前账号创建并发布应用；已有对应的可运行应用时复用。成功响应中的 `data.application_id` 是当前账号的实际应用 ID，`data.release_version_id` 是已发布版本 ID，`data.can_run` 为 `true`。后续上传和运行可直接使用该 `application_id`。
 
-后续步骤统一使用创建接口返回的 `data.application_id`。复用已有应用时保留其模板版本，`data.template_version` 表示实际使用的版本。无需在请求中指定工作区或用户 ID。
+按推荐流程接入时，后续步骤统一使用创建接口返回的 `data.application_id`。复用已有应用时保留其模板版本，`data.template_version` 表示实际使用的版本。无需在请求中指定工作区或用户 ID。
 
 ## 准备材料
 
@@ -88,11 +88,40 @@ Content-Type: application/json
 }
 ```
 
-示例中的 `application_id` 表示上一步创建响应中的 `data.application_id`。财务应付和费用报销同样需要先创建应用，再使用创建结果中的应用 ID 和材料文件运行。
+示例中的 `application_id` 表示上一步创建响应中的 `data.application_id`。按推荐流程接入财务应付和费用报销时，同样先创建应用，再使用创建结果中的应用 ID 和材料文件运行。
 
 `files` 每项必填 `url`、`name`、`mime_type`，可选 `size`、`metadata`。`inputs` 按目标工作流已发布版本的实际入参配置填写；不需要额外参数时可省略。`release_version_id` 可省略，由服务选择已发布版本。
 
 同步接口等待执行结束后返回。异步接口返回 `data.run_id` 后，使用结果查询接口获取状态和结果。确认 HTTP 请求成功、顶层 `code` 成功，且 `data.status=succeeded` 后，读取 `data.output`；运行失败时查看 `data.error`。
+
+## 备选：直接运行工作流模板
+
+也可以跳过显式创建步骤，将模板固定 ID 填入运行请求的 `application_id`，调用同一个同步或异步运行接口。当前账号已有该模板的可运行应用时复用；没有时，服务会自动为当前账号创建并发布一个应用，再运行它。因此，无需先在界面添加应用，也无需先调用创建接口。
+
+| 模板 | 直接运行时的 `application_id` |
+| --- | --- |
+| 财务应付 | `wftp_app_n8q4v2m7x5p1r9t6c3a0b8d2` |
+| 费用报销 | `wftp_app_h3k9s1v6p4x8q2m7c5t0a9r1` |
+| 金融财报 | `wftp_app_y6p2m8q4v1c9t3x7n5r0h2k6` |
+
+以下金融财报示例使用可访问的 HTTP(S) 文件地址，可提交到 `POST /open/agentic_engine/laiye/v1/app/run` 或 `POST /open/agentic_engine/laiye/v1/app/run/create/task`：
+
+```json
+{
+  "application_id": "wftp_app_y6p2m8q4v1c9t3x7n5r0h2k6",
+  "files": [
+    {
+      "url": "https://example.com/annual-report.pdf",
+      "name": "annual-report.pdf",
+      "mime_type": "application/pdf"
+    }
+  ]
+}
+```
+
+直接运行时省略 `release_version_id`，由服务选择该账号应用的可用已发布版本；`inputs` 仍按所选模板的实际入参要求填写。`can_run=false` 仅表示当前账号尚无对应的可运行应用，不是此方式的前置限制。模板须在当前环境可用且对当前账号可见，创建或发布失败时会返回错误。
+
+自动创建的应用会保留在当前账号中，后续调用可复用。异步调用仍通过返回的 `data.run_id` 查询结果。需要保存账号应用 ID、管理材料或调整应用时，推荐使用上方的显式创建流程。
 
 ## 修改工作流
 
