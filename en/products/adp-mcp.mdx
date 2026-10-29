@@ -134,7 +134,24 @@ MCP also provides two tools for custom extraction applications created in the AD
   First call `list_custom_extract_apps` to find the target `app_id`, then call `execute_custom_extract_app` with the file and `app_id`.
 </Tip>
 
+### Async task queries
+
+| Tool | Title | Description |
+| --- | --- | --- |
+| `query_parse_task` | Query Async Document Parsing Task | Query the `task_id` returned by `parse_document` with `wait=false`, using `GET .../app/doc/recognize/query/task/{task_id}`. |
+| `query_extract_task` | Query Async Document Extraction Task | Query the `task_id` returned by `extract_*` or `execute_custom_extract_app` with `wait=false`, using `GET .../app/doc/extract/query/task/{task_id}`. |
+
+Both tools return the current task status and any available results. If processing is unfinished, query again with the same tool. Choose the query tool based on the tool that created the task; parsing and extraction IDs are not interchangeable, and a failed query does not switch task types. Use the same account region for creation and query. For a workflow `run_id`, use `query_workflow_run`.
+
+These tools replace `query_task` and `get_result`. Refresh your client's tool list after upgrading.
+
 ## Tool input parameters
+
+### `query_parse_task` / `query_extract_task`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `task_id` | string | Yes | Task ID returned when creating an async task of the corresponding type. |
 
 ### Document parsing and OOTB extraction tools
 
@@ -159,7 +176,7 @@ This tool also requires:
 <Note>
   **File input:** Values starting with `http://`, `https://`, or `file://` are treated as URLs. Other values are treated as Base64 content.
 
-  **Sync vs async:** `wait=true` blocks until processing completes. `wait=false` returns `task_id` immediately for later querying.
+  **Sync vs async:** `wait=true` blocks until processing completes. `wait=false` returns a `task_id` immediately. Use `query_parse_task` for parsing or `query_extract_task` for extraction to query status and results.
 </Note>
 
 ## Tool output
