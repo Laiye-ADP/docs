@@ -1,5 +1,13 @@
 ---
-title: "Create document extraction task"
-sidebarTitle: "Create document extraction task"
-openapi: "/en/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task"
+title: Create document extraction task
+sidebarTitle: Create document extraction task
+openapi: /en/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task
+description: Single-app asynchronous extraction uses the same identity, file and option
+  rules as sync extraction. 1425 async also disables human collaboration.
 ---
+
+Single-app asynchronous extraction uses the same identity, file and option rules as sync extraction. 1425 async also disables human collaboration.
+
+[Parameter applicability and native-file examples](/en/api-reference/adp-api/document-extraction/extract-document)
+
+Task status 0/1/2/4/5/6 means unknown/ready/running/success/failed/cancelled-or-rejected. Invoice multi-ticket results can include both tickets and type-grouped extraction_result, representing the same results; do not record them twice.

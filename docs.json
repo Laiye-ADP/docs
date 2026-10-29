@@ -15,7 +15,10 @@
     {
       "name": "hidden",
       "hidden": true,
-      "pages": ["scripts", "styles"]
+      "pages": [
+        "scripts",
+        "styles"
+      ]
     }
   ],
   "navigation": {
@@ -102,6 +105,24 @@
                     "icon": "asterisk"
                   },
                   {
+                    "group": "文档分类",
+                    "pages": [
+                      "api-reference/adp-api/document-classification/overview",
+                      "api-reference/adp-api/document-classification/classify-document",
+                      "api-reference/adp-api/document-classification/create-classification-task",
+                      "api-reference/adp-api/document-classification/query-classification-task"
+                    ]
+                  },
+                  {
+                    "group": "自动路由抽取",
+                    "pages": [
+                      "api-reference/adp-api/routed-extraction/overview",
+                      "api-reference/adp-api/routed-extraction/extract-routed-document",
+                      "api-reference/adp-api/routed-extraction/create-routed-task",
+                      "api-reference/adp-api/routed-extraction/query-routed-task"
+                    ]
+                  },
+                  {
                     "group": "文档解析",
                     "pages": [
                       "api-reference/adp-api/document-parsing/recognize-document",
@@ -144,7 +165,9 @@
                       "api-reference/adp-api/application-management/list-applications",
                       "api-reference/adp-api/application-management/get-application-configuration",
                       "api-reference/adp-api/application-management/delete-application-configuration",
-                      "api-reference/adp-api/application-management/generate-extraction-field-prompts"
+                      "api-reference/adp-api/application-management/generate-extraction-field-prompts",
+                      "api-reference/adp-api/application-management/high-speed-configuration",
+                      "api-reference/adp-api/application-management/publish-application-version"
                     ],
                     "icon": "asterisk"
                   },
@@ -200,7 +223,11 @@
           {
             "group": "其他文档",
             "icon": "book-open",
-            "pages": ["products/adp-skills", "products/n8n-nodes-adp", "products/feishu-plugin-documentation"]
+            "pages": [
+              "products/adp-skills",
+              "products/n8n-nodes-adp",
+              "products/feishu-plugin-documentation"
+            ]
           }
         ]
       },
@@ -286,6 +313,24 @@
                     "icon": "asterisk"
                   },
                   {
+                    "group": "Document classification",
+                    "pages": [
+                      "en/api-reference/adp-api/document-classification/overview",
+                      "en/api-reference/adp-api/document-classification/classify-document",
+                      "en/api-reference/adp-api/document-classification/create-classification-task",
+                      "en/api-reference/adp-api/document-classification/query-classification-task"
+                    ]
+                  },
+                  {
+                    "group": "Routed extraction",
+                    "pages": [
+                      "en/api-reference/adp-api/routed-extraction/overview",
+                      "en/api-reference/adp-api/routed-extraction/extract-routed-document",
+                      "en/api-reference/adp-api/routed-extraction/create-routed-task",
+                      "en/api-reference/adp-api/routed-extraction/query-routed-task"
+                    ]
+                  },
+                  {
                     "group": "Document recognition",
                     "pages": [
                       "en/api-reference/adp-api/document-parsing/recognize-document",
@@ -343,7 +388,9 @@
                       "en/api-reference/adp-api/application-management/list-applications",
                       "en/api-reference/adp-api/application-management/get-application-configuration",
                       "en/api-reference/adp-api/application-management/delete-application-configuration",
-                      "en/api-reference/adp-api/application-management/generate-extraction-field-prompts"
+                      "en/api-reference/adp-api/application-management/generate-extraction-field-prompts",
+                      "en/api-reference/adp-api/application-management/high-speed-configuration",
+                      "en/api-reference/adp-api/application-management/publish-application-version"
                     ],
                     "icon": "asterisk"
                   },
@@ -384,7 +431,10 @@
           {
             "group": "Other docs",
             "icon": "book-open",
-            "pages": ["en/products/adp-skills", "en/products/n8n-nodes-adp"]
+            "pages": [
+              "en/products/adp-skills",
+              "en/products/n8n-nodes-adp"
+            ]
           }
         ]
       }
@@ -409,7 +459,16 @@
   "description": "基于大语言模型与视觉语言模型，结合智能体技术，提供端到端的自动化文档处理能力",
   "api": {
     "examples": {
-      "languages": ["curl","JavaScript", "Python", "Java", "Nodejs", "Go", "C#", "PHP"],
+      "languages": [
+        "curl",
+        "JavaScript",
+        "Python",
+        "Java",
+        "Nodejs",
+        "Go",
+        "C#",
+        "PHP"
+      ],
       "autogenerate": true,
       "prefill": true
     }

@@ -72,15 +72,17 @@ paths:
           description: 创建或发布失败；请检查错误并查询应用状态。
   /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract:
     post:
-      tags: [文档抽取]
+      tags:
+      - 文档抽取
       summary: 文档抽取（同步接口）
       description: 针对用户上传的文档，调用指定的文档抽取应用，根据应用配置和规则从文件中提取指定内容。同一接口适用于自定义抽取应用、海外发票、收据、采购订单、国内通用票据和卡证等场景。 同步抽取默认禁用人机协同；需要人工审核时请使用异步创建与查询接口。
+        高速版的三个临时开关enable_highlight、enable_field_value_translation、enable_confidence均位于顶层；省略/null沿用应用配置，不生成版本。 1425同步和异步均不进入人机协同；文件与历史应用凭证的兼容规则见调用说明。
       operationId: extractDocument
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       parameters:
-        - $ref: '#/components/parameters/TenantName'
-        - $ref: '#/components/parameters/AcceptLanguage'
+      - $ref: '#/components/parameters/TenantName'
+      - $ref: '#/components/parameters/AcceptLanguage'
       requestBody:
         $ref: '#/components/requestBodies/DocumentExtractRequest'
       responses:
@@ -90,18 +92,18 @@ paths:
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task:
     post:
-      tags: [文档抽取]
+      tags:
+      - 文档抽取
       summary: 创建文档抽取异步任务
-      description: |
-        创建文档抽取任务并立即返回 task_id。适用于大文档或长时间抽取任务。
-
-        启用人机协同时，data.metadata.collaboration_task_id 是协同任务 ID，data.task_id 是异步抽取任务 ID，二者不能互换。高速自定义抽取不支持人机协同。
+      description: "创建文档抽取任务并立即返回 task_id。适用于大文档或长时间抽取任务。\n\n启用人机协同时，data.metadata.collaboration_task_id 是协同任务 ID，data.task_id\
+        \ 是异步抽取任务 ID，二者不能互换。高速自定义抽取不支持人机协同。\n 高速版的三个临时开关enable_highlight、enable_field_value_translation、enable_confidence均位于顶层；省略/null沿用应用配置，不生成版本。\
+        \ 1425同步和异步均不进入人机协同；文件与历史应用凭证的兼容规则见调用说明。"
       operationId: createDocumentExtractTask
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       parameters:
-        - $ref: '#/components/parameters/TenantName'
-        - $ref: '#/components/parameters/AcceptLanguage'
+      - $ref: '#/components/parameters/TenantName'
+      - $ref: '#/components/parameters/AcceptLanguage'
       requestBody:
         $ref: '#/components/requestBodies/DocumentExtractRequest'
       responses:
@@ -363,14 +365,15 @@ paths:
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create:
     post:
-      tags: [应用管理]
-      summary: 创建抽取应用
-      description: 创建标准版或高速版自定义抽取应用，并设置标签、字段配置和抽取配置。标准版支持 parse_mode、显示来源位置、PDF 文本优先、印章识别等解析配置；创建高速版自定义抽取应用时，设置 ai_function 为 1425，且字段和表格子字段需要提供 field_key，不支持标准版解析配置。注意：HTTP 200 也可能表示业务失败，调用方必须同时检查响应中的业务 code。
+      tags:
+      - 应用管理
+      summary: 创建应用
+      description: 支持1406经典自定义抽取、1425高速自定义抽取、1423/1424海外发票与1426独立分类应用。
       operationId: createExtractionApp
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       parameters:
-        - $ref: '#/components/parameters/TenantName'
+      - $ref: '#/components/parameters/TenantName'
       requestBody:
         $ref: '#/components/requestBodies/ExtractionAppCreateRequest'
       responses:
@@ -378,29 +381,6 @@ paths:
           $ref: '#/components/responses/ExtractionAppResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
-      x-codeSamples:
-        - lang: python
-          label: Python（同时检查 HTTP 状态和业务码）
-          source: |
-            import requests
-
-            response = requests.post(
-                "https://adp.laiye.com/open/agentic_doc_processor/laiye/v1/app-manage/create",
-                headers={"X-API-KEY": "YOUR_API_KEY"},
-                json={
-                    "ai_function": 1406,
-                    "app_name": "采购单抽取应用",
-                    "extract_fields": [
-                        {"field_name": "订单号", "field_type": "string"}
-                    ],
-                    "parse_mode": "standard",
-                },
-                timeout=60,
-            )
-            response.raise_for_status()
-            result = response.json()
-            if result.get("code") not in ("success", 200, "200"):
-                raise RuntimeError(result.get("message") or result.get("code"))
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete:
     post:
       tags: [应用管理]
@@ -420,14 +400,15 @@ paths:
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update:
     post:
-      tags: [应用管理]
-      summary: 修改抽取应用
-      description: 更新抽取应用的名称、标签、字段配置和抽取配置，并创建新的配置版本。修改高速版自定义抽取应用时，复用该接口并传入高速版应用的 app_id；请求体不需要传 ai_function。高速版自定义抽取应用不支持设置 parse_mode、enable_highlight、enable_pdf_parse、pdf_pic_second_parsing、enable_stamp_recognition 和 enable_long_doc。注意：HTTP 200 也可能表示业务失败，调用方必须同时检查响应中的业务 code。
+      tags:
+      - 应用管理
+      summary: 修改应用
+      description: 支持1406经典自定义抽取、1425高速自定义抽取、1423/1424海外发票与1426独立分类应用。 基础信息更新不新建版本；1425字段或开关修改生成新版本并继承未传开关。成功时始终返回config_version，不代表已发布。
       operationId: updateExtractionApp
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       parameters:
-        - $ref: '#/components/parameters/TenantName'
+      - $ref: '#/components/parameters/TenantName'
       requestBody:
         $ref: '#/components/requestBodies/ExtractionAppUpdateRequest'
       responses:
@@ -435,28 +416,6 @@ paths:
           $ref: '#/components/responses/ExtractionAppUpdateResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
-      x-codeSamples:
-        - lang: python
-          label: Python（同时检查 HTTP 状态和业务码）
-          source: |
-            import requests
-
-            response = requests.post(
-                "https://adp.laiye.com/open/agentic_doc_processor/laiye/v1/app-manage/update",
-                headers={"X-API-KEY": "YOUR_API_KEY"},
-                json={
-                    "app_id": "app_1406",
-                    "extract_fields": [
-                        {"field_name": "订单号", "field_type": "string"}
-                    ],
-                    "parse_mode": "standard",
-                },
-                timeout=60,
-            )
-            response.raise_for_status()
-            result = response.json()
-            if result.get("code") not in ("success", 200, "200"):
-                raise RuntimeError(result.get("message") or result.get("code"))
   /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config:
     post:
       tags: [应用管理]
@@ -519,72 +478,107 @@ paths:
           $ref: '#/components/responses/ValidationError'
   /open/agentic_doc_processor/{tenant_name}/v1/app-list:
     get:
-      tags: [应用管理]
+      tags:
+      - 应用管理
       summary: 查询应用列表
-      description: 查询应用列表。查询高速版自定义抽取应用列表时，设置 ai_function=1425。
+      description: 查询当前账号权限范围内的应用。ai_function不传不默认1425；要列出1426分类应用须显式传1426。公有站点通常按当前用户限定，私有部署还受数据权限策略影响；owner_only=true进一步限定创建人。
       operationId: listExtractionApps
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       parameters:
-        - $ref: '#/components/parameters/TenantName'
-        - name: app_name
-          in: query
-          required: false
-          description: 按应用名称过滤，支持模糊匹配。
-          schema:
+      - $ref: '#/components/parameters/TenantName'
+      - name: app_name
+        in: query
+        required: false
+        description: 按应用名称过滤，支持模糊匹配。
+        schema:
+          type: string
+      - name: ai_function
+        in: query
+        required: false
+        description: 可选能力筛选，无1425默认值。不传时不指定某种能力，但1426分类应用必须显式传1426才会列出。
+        schema:
+          type: integer
+          examples:
+          - 1406
+          - 1423
+          - 1424
+          - 1425
+          - 1426
+      - name: app_type
+        in: query
+        required: false
+        description: 应用类型。1=自定义应用，0=开箱即用。
+        schema:
+          type: integer
+          enum:
+          - 0
+          - 1
+      - name: with_extra
+        in: query
+        required: false
+        description: 是否查询扩展信息。
+        schema:
+          type: integer
+          enum:
+          - 0
+          - 1
+          default: 1
+      - name: sort[]
+        in: query
+        required: false
+        description: 排序字段列表。字段名前加 - 表示降序，不加表示升序；默认按 updated_at 降序。
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
             type: string
-        - name: ai_function
-          in: query
-          required: false
-          description: 按 AI 能力过滤。高速版自定义抽取应用传 1425；标准自定义抽取应用传 1406。
-          schema:
-            type: integer
-            enum: [1406, 1425]
-            default: 1425
-        - name: app_type
-          in: query
-          required: false
-          description: 应用类型。1=自定义应用，0=开箱即用。
-          schema:
-            type: integer
-            enum: [0, 1]
-        - name: with_extra
-          in: query
-          required: false
-          description: 是否查询扩展信息。
-          schema:
-            type: integer
-            enum: [0, 1]
-            default: 1
-        - name: sort[]
-          in: query
-          required: false
-          description: 排序字段列表。字段名前加 - 表示降序，不加表示升序；默认按 updated_at 降序。
-          style: form
-          explode: true
-          schema:
-            type: array
-            default: [-updated_at]
-            items:
-              type: string
-        - name: offset
-          in: query
-          required: false
-          description: 分页偏移量。
-          schema:
-            type: integer
-            default: 0
-            minimum: 0
-            maximum: 1000
-        - name: limit
-          in: query
-          required: false
-          description: 每页数量。
-          schema:
-            type: integer
-            default: 20
-            minimum: 1
-            maximum: 1000
+      - name: offset
+        in: query
+        required: false
+        description: 分页偏移量。
+        schema:
+          type: integer
+          default: 0
+          minimum: 0
+      - name: limit
+        in: query
+        required: false
+        description: 每页数量。
+        schema:
+          type: integer
+          default: 20
+          minimum: 1
+          maximum: 1000
+      - name: owner_only
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+        description: 仅当前认证用户创建的应用；false不代表可查看所有租户应用。
+      - name: published_only
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+        description: 仅返回存在已发布抽取配置的应用；并非应用是否可调用的总开关。分类应用不使用抽取发布版本。
+      - name: with_output_schema
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+        description: 返回最新已发布抽取版本的published_version_id和output_schema；不包含提示词，没有相应发布版本时为null。
+      - name: active_template_only
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+        description: 仅返回关联当前有效系统模板的预置应用，与其他条件共同筛选。
       responses:
         '200':
           $ref: '#/components/responses/AppListResponse'
@@ -846,15 +840,13 @@ paths:
           $ref: '#/components/responses/ValidationError'
   /open/agentic_engine/laiye/v1/app/runs/export:
     post:
-      tags: [工作流]
+      tags:
+      - 工作流
       summary: 导出工作流运行记录（受限预览）
-      description: |
-        将指定工作流运行记录导出为 Excel、Word、Markdown 或 JSON，并返回临时下载地址及运行摘要。公开合同要求显式提供至少一个 run_id，不开放后端“空列表导出应用全部运行”的兼容行为。
-
-        当前实现单次最多处理 200 个运行、最多生成 500,000 行，临时文件通常约 1 小时有效。受限预览：路由只校验 API Key 和租户，没有独立的管理员角色或应用可见性校验。仅可在受控租户中，由管理员导出自己确认有权访问的 application_id 和 run_ids。导出内容可能包含工作流输入、节点输出和业务数据；下载后应按原始数据等级保护。
+      description: 导出当前API Key所属用户在当前租户内触发、且属于指定应用的运行结果，不要求管理员角色，也不授权导出其他用户的运行。merged/per_run支持run_ids省略、null或空数组以选择当前用户符合条件的运行；建议显式指定ID控制范围。task_data/task_package要求恰好一个任务，另校验应用可访问性、运行归属及已留存的可导出结果。通用导出最多200个运行、500000行，临时链接有效期取决于部署配置。仍为受限预览。
       operationId: exportWorkflowRuns
       security:
-        - EngineApiKeyAuth: []
+      - EngineApiKeyAuth: []
       requestBody:
         $ref: '#/components/requestBodies/WorkflowRunExportRequest'
       responses:
@@ -1199,6 +1191,507 @@ paths:
           description: API Key 无效或请求不可访问。
         '422':
           $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/routed/query/task/{task_id}:
+    get:
+      tags:
+      - 文档抽取
+      summary: 查询自动路由抽取任务
+      operationId: queryRoutedExtractionTask
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantName'
+      - name: task_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: 操作结果；同时检查code与任务status。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoutedExtractionResult'
+              examples:
+                example:
+                  summary: 返回结构示例，抽取字段已简写
+                  value:
+                    code: success
+                    message: ''
+                    data:
+                      task_id: b2140f5fc6434e428caf35df0abf7862
+                      status: success
+                      granularity: page
+                      extraction_result:
+                      - app_id: 8f4b2c506df811f1a3d90242ac120002
+                        app_name: 采购合同
+                        app_code: purchase_contract
+                        config_version: v1
+                        object_values:
+                        - doc_type: 采购合同
+                          pages:
+                          - 1
+                          - 2
+                          status: success
+                          extraction_result:
+                          - field_key: contract_no
+                            field_name: 合同编号
+                            field_values:
+                            - field_value: HT-001
+                          - field_key: contract_amount
+                            field_name: 合同金额
+                            field_values:
+                            - field_value: 12,345.68
+                              field_confidence: 0.96
+                        - doc_type: 采购合同
+                          pages:
+                          - 3
+                          status: success
+                          extraction_result: []
+                      unclassified_pages:
+                      - 5
+                partialSuccess:
+                  summary: 保留成功结果并返回失败实例
+                  value:
+                    code: success
+                    message: ''
+                    data:
+                      task_id: b2140f5fc6434e428caf35df0abf7862
+                      status: partial_success
+                      granularity: page
+                      extraction_result:
+                      - app_id: 8f4b2c506df811f1a3d90242ac120002
+                        app_name: 采购合同
+                        app_code: purchase_contract
+                        config_version: v1
+                        object_values:
+                        - doc_type: 采购合同
+                          pages:
+                          - 1
+                          - 2
+                          status: success
+                          extraction_result:
+                          - field_key: contract_no
+                            field_name: 合同编号
+                            field_values:
+                            - field_value: HT-001
+                          - field_key: contract_amount
+                            field_name: 合同金额
+                            field_values:
+                            - field_value: 12,345.68
+                              field_confidence: 0.96
+                        - doc_type: 采购合同
+                          pages:
+                          - 3
+                          status: success
+                          extraction_result: []
+                      - app_id: a169e8d06df811f19b5e0242ac120002
+                        app_name: 海外发票
+                        app_code: overseas_invoice
+                        config_version: v1
+                        object_values:
+                        - doc_type: invoice
+                          pages:
+                          - 4
+                          status: failed
+                          error:
+                            code: extract_failed
+                            message: Document extraction failed.
+                      unclassified_pages:
+                      - 5
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      description: 候选应用1～10个，限1425/1423/1424；名称去除首尾空格后不区分大小写判重。按应用名称与描述分类并逐文档实例抽取。单文件PDF/PNG/JPEG，最大100 MB，原文件最多260页。model_params中三个临时开关作用于所有子应用，省略/null沿用各自配置。结果只返回extraction_result，不重复返回tickets。异步状态pending/running/success/partial_success/failed；全部未分类仍为success。
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/routed/create/task:
+    post:
+      tags:
+      - 文档抽取
+      summary: 创建自动路由抽取任务
+      operationId: createRoutedExtractionTask
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantName'
+      - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: 操作结果；同时检查code与任务status。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoutedExtractionResult'
+              examples:
+                example:
+                  summary: 返回结构示例，抽取字段已简写
+                  value:
+                    code: success
+                    message: ''
+                    tips: null
+                    data:
+                      task_id: b2140f5fc6434e428caf35df0abf7862
+                      granularity: page
+                      status: pending
+                      extraction_result: []
+                      unclassified_pages: []
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppDocRoutedRequest'
+            example:
+              app_ids:
+              - 8f4b2c506df811f1a3d90242ac120002
+              - a169e8d06df811f19b5e0242ac120002
+              file_url: https://files.example.com/materials.pdf
+              model_params:
+                pages:
+                - 1
+                - 2
+                - 3
+                - 4
+                - 5
+                enable_highlight: true
+                enable_field_value_translation: false
+                enable_confidence: true
+      description: 候选应用1～10个，限1425/1423/1424；名称去除首尾空格后不区分大小写判重。按应用名称与描述分类并逐文档实例抽取。单文件PDF/PNG/JPEG，最大100 MB，原文件最多260页。model_params中三个临时开关作用于所有子应用，省略/null沿用各自配置。结果只返回extraction_result，不重复返回tickets。异步状态pending/running/success/partial_success/failed；全部未分类仍为success。
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/routed:
+    post:
+      tags:
+      - 文档抽取
+      summary: 自动分类路由抽取（同步）
+      operationId: extractRoutedDocument
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantName'
+      - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: 操作结果；同时检查code与任务status。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoutedExtractionResult'
+              examples:
+                example:
+                  summary: 返回结构示例，抽取字段已简写
+                  value:
+                    code: success
+                    message: ''
+                    data:
+                      task_id: b2140f5fc6434e428caf35df0abf7862
+                      status: success
+                      granularity: page
+                      extraction_result:
+                      - app_id: 8f4b2c506df811f1a3d90242ac120002
+                        app_name: 采购合同
+                        app_code: purchase_contract
+                        config_version: v1
+                        object_values:
+                        - doc_type: 采购合同
+                          pages:
+                          - 1
+                          - 2
+                          status: success
+                          extraction_result:
+                          - field_key: contract_no
+                            field_name: 合同编号
+                            field_values:
+                            - field_value: HT-001
+                          - field_key: contract_amount
+                            field_name: 合同金额
+                            field_values:
+                            - field_value: 12,345.68
+                              field_confidence: 0.96
+                        - doc_type: 采购合同
+                          pages:
+                          - 3
+                          status: success
+                          extraction_result: []
+                      unclassified_pages:
+                      - 5
+                partialSuccess:
+                  summary: 保留成功结果并返回失败实例
+                  value:
+                    code: success
+                    message: ''
+                    data:
+                      task_id: b2140f5fc6434e428caf35df0abf7862
+                      status: partial_success
+                      granularity: page
+                      extraction_result:
+                      - app_id: 8f4b2c506df811f1a3d90242ac120002
+                        app_name: 采购合同
+                        app_code: purchase_contract
+                        config_version: v1
+                        object_values:
+                        - doc_type: 采购合同
+                          pages:
+                          - 1
+                          - 2
+                          status: success
+                          extraction_result:
+                          - field_key: contract_no
+                            field_name: 合同编号
+                            field_values:
+                            - field_value: HT-001
+                          - field_key: contract_amount
+                            field_name: 合同金额
+                            field_values:
+                            - field_value: 12,345.68
+                              field_confidence: 0.96
+                        - doc_type: 采购合同
+                          pages:
+                          - 3
+                          status: success
+                          extraction_result: []
+                      - app_id: a169e8d06df811f19b5e0242ac120002
+                        app_name: 海外发票
+                        app_code: overseas_invoice
+                        config_version: v1
+                        object_values:
+                        - doc_type: invoice
+                          pages:
+                          - 4
+                          status: failed
+                          error:
+                            code: extract_failed
+                            message: Document extraction failed.
+                      unclassified_pages:
+                      - 5
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppDocRoutedRequest'
+            example:
+              app_ids:
+              - 8f4b2c506df811f1a3d90242ac120002
+              - a169e8d06df811f19b5e0242ac120002
+              file_url: https://files.example.com/materials.pdf
+              model_params:
+                pages:
+                - 1
+                - 2
+                - 3
+                - 4
+                - 5
+                enable_highlight: true
+                enable_field_value_translation: false
+                enable_confidence: true
+      description: 候选应用1～10个，限1425/1423/1424；名称去除首尾空格后不区分大小写判重。按应用名称与描述分类并逐文档实例抽取。单文件PDF/PNG/JPEG，最大100 MB，原文件最多260页。model_params中三个临时开关作用于所有子应用，省略/null沿用各自配置。结果只返回extraction_result，不重复返回tickets。异步状态pending/running/success/partial_success/failed；全部未分类仍为success。
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/classify/query/task/{task_id}:
+    get:
+      tags:
+      - 文档抽取
+      summary: 查询文档分类任务
+      operationId: queryClassificationTask
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantName'
+      - name: task_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: 操作结果；同时检查code与任务status。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassificationTaskResult'
+              examples:
+                example:
+                  summary: 返回结构示例，抽取字段已简写
+                  value:
+                    code: success
+                    message: ''
+                    data:
+                      task_id: b2140f5fc6434e428caf35df0abf7862
+                      status: success
+                      app_id: c59abf0e24d84789930a41e4de6e1c7b
+                      config_version: v1
+                      granularity: page
+                      segments:
+                      - category_key: contract
+                        category_name: 采购合同
+                        pages:
+                        - 1
+                        - 2
+                      - category_key: contract
+                        category_name: 采购合同
+                        pages:
+                        - 3
+                      - category_key: invoice
+                        category_name: 发票
+                        pages:
+                        - 4
+                      unclassified_pages:
+                      - 5
+                      message: ''
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      description: 使用1426应用；单文件PDF/PNG/JPEG，最大100 MB，原文件最多260页。按文档实例返回类别和原始页码，同页可以匹配多个类别；未分类页单列，不生成拆分下载文件。异步状态pending/running/success/failed；同步task_id不会自动形成可查询的异步任务。
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/classify/create/task:
+    post:
+      tags:
+      - 文档抽取
+      summary: 创建文档分类任务
+      operationId: createClassificationTask
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantName'
+      responses:
+        '200':
+          description: 操作结果；同时检查code与任务status。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassificationTaskResult'
+              examples:
+                example:
+                  summary: 返回结构示例，抽取字段已简写
+                  value:
+                    code: success
+                    message: ''
+                    tips: null
+                    data:
+                      task_id: b2140f5fc6434e428caf35df0abf7862
+                      app_id: c59abf0e24d84789930a41e4de6e1c7b
+                      config_version: v1
+                      granularity: page
+                      status: pending
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppDocClassifyRequest'
+            example:
+              app_id: c59abf0e24d84789930a41e4de6e1c7b
+              file_url: https://files.example.com/materials.pdf
+              model_params:
+                pages:
+                - 1
+                - 2
+                - 3
+                - 4
+                - 5
+      description: 使用1426应用；单文件PDF/PNG/JPEG，最大100 MB，原文件最多260页。按文档实例返回类别和原始页码，同页可以匹配多个类别；未分类页单列，不生成拆分下载文件。异步状态pending/running/success/failed；同步task_id不会自动形成可查询的异步任务。
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/classify:
+    post:
+      tags:
+      - 文档抽取
+      summary: 文档分类（同步）
+      operationId: classifyDocument
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantName'
+      responses:
+        '200':
+          description: 操作结果；同时检查code与任务status。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassificationTaskResult'
+              examples:
+                example:
+                  summary: 返回结构示例，抽取字段已简写
+                  value:
+                    code: success
+                    message: ''
+                    data:
+                      task_id: b2140f5fc6434e428caf35df0abf7862
+                      status: success
+                      app_id: c59abf0e24d84789930a41e4de6e1c7b
+                      config_version: v1
+                      granularity: page
+                      segments:
+                      - category_key: contract
+                        category_name: 采购合同
+                        pages:
+                        - 1
+                        - 2
+                      - category_key: contract
+                        category_name: 采购合同
+                        pages:
+                        - 3
+                      - category_key: invoice
+                        category_name: 发票
+                        pages:
+                        - 4
+                      unclassified_pages:
+                      - 5
+                      message: ''
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppDocClassifyRequest'
+            example:
+              app_id: c59abf0e24d84789930a41e4de6e1c7b
+              file_url: https://files.example.com/materials.pdf
+              model_params:
+                pages:
+                - 1
+                - 2
+                - 3
+                - 4
+                - 5
+      description: 使用1426应用；单文件PDF/PNG/JPEG，最大100 MB，原文件最多260页。按文档实例返回类别和原始页码，同页可以匹配多个类别；未分类页单列，不生成拆分下载文件。异步状态pending/running/success/failed；同步task_id不会自动形成可查询的异步任务。
+  /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/publish:
+    post:
+      tags:
+      - 应用管理
+      summary: 发布抽取配置版本
+      operationId: publishApplicationVersion
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantName'
+      responses:
+        '200':
+          description: 操作结果；同时检查code与任务status。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublishApplicationResult'
+              example:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  app_id: 8f4b2c506df811f1a3d90242ac120002
+                  config_version: v1
+                  published: true
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppManagePublishRequest'
+            example:
+              app_id: 8f4b2c506df811f1a3d90242ac120002
+              config_version: v1
+      description: 可选操作。传config_version发布指定版本；省略发布最新未发布版本。重复指定已发布版本仍返回原版本和published=true；无可发布目标时返回错误。抽取优先已发布配置，从未发布时使用最新有效草稿。1426不调用此接口。
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -1339,50 +1832,121 @@ components:
             $ref: '#/components/schemas/ExtractionAppCreateRequest'
           examples:
             highSpeedCustomExtractionApp:
-              summary: 创建高速版自定义抽取应用
+              summary: 三个普通字段和两个表格
               value:
+                app_name: 采购合同
+                app_code: purchase_contract
                 ai_function: 1425
-                app_name: 高速版发票抽取应用
-                app_label: [invoice, high-speed]
+                description: 采购合同正文及签署页，不包含发票或付款凭证
                 extract_fields:
-                  - field_key: invoice_no
-                    field_name: 发票号码
+                - field_key: contract_no
+                  field_name: 合同编号
+                  field_type: string
+                  field_prompt: 提取合同编号
+                - field_key: contract_amount
+                  field_name: 合同金额
+                  field_type: number
+                  field_prompt: 提取合同总金额
+                  format:
+                    mode: preset
+                    preset: grouped_decimal
+                    decimal_places: 2
+                    rounding: half_up
+                - field_key: signed_at
+                  field_name: 签署日期
+                  field_type: date
+                  field_prompt: 提取合同签署日期
+                  format:
+                    mode: preset
+                    preset: date_iso
+                - field_key: purchase_items
+                  field_name: 采购明细
+                  field_type: table
+                  sub_fields:
+                  - field_key: item_name
+                    field_name: 商品名称
                     field_type: string
-                    field_prompt: 抽取发票上的唯一发票号码。
-                  - field_key: invoice_date
-                    field_name: 开票日期
+                    field_prompt: 提取每一行的商品名称
+                  - field_key: item_amount
+                    field_name: 明细金额
+                    field_type: number
+                    field_prompt: 提取每一行的金额
+                    format:
+                      mode: preset
+                      preset: grouped_decimal
+                      decimal_places: 2
+                      rounding: half_up
+                  - field_key: delivery_date
+                    field_name: 交付日期
                     field_type: date
-                    field_prompt: 抽取发票开具日期。
-                  - field_key: line_items
-                    field_name: 明细
-                    field_type: table
-                    sub_fields:
-                      - field_key: item_name
-                        field_name: 商品名称
-                        field_type: string
-                      - field_key: item_date
-                        field_name: 日期
-                        field_type: date
+                    field_prompt: 提取每一行约定的交付日期
+                    format:
+                      mode: preset
+                      preset: date_iso
+                - field_key: payment_schedule
+                  field_name: 付款计划
+                  field_type: table
+                  sub_fields:
+                  - field_key: payment_stage
+                    field_name: 付款阶段
+                    field_type: string
+                    field_prompt: 提取每一行的付款阶段
+                  - field_key: payment_amount
+                    field_name: 应付金额
+                    field_type: number
+                    field_prompt: 提取每一行应付的金额
+                    format:
+                      mode: preset
+                      preset: grouped_decimal
+                      decimal_places: 2
+                      rounding: half_up
+                  - field_key: payment_date
+                    field_name: 付款日期
+                    field_type: date
+                    field_prompt: 提取每一行约定的付款日期
+                    format:
+                      mode: preset
+                      preset: date_iso
+                enable_highlight: true
                 enable_field_value_translation: false
+                enable_confidence: true
             standardCustomExtractionApp:
               summary: 创建标准版自定义抽取应用
               value:
                 ai_function: 1406
                 app_name: 采购单抽取应用
-                app_label: [purchase-order]
+                app_label:
+                - purchase-order
                 extract_fields:
-                  - field_name: 订单号
-                    field_type: string
-                    field_prompt: 抽取采购订单编号。
-                  - field_name: 订单日期
-                    field_type: date
-                    field_prompt: 抽取订单日期。
+                - field_name: 订单号
+                  field_type: string
+                  field_prompt: 抽取采购订单编号。
+                - field_name: 订单日期
+                  field_type: date
+                  field_prompt: 抽取订单日期。
                 parse_mode: standard
                 enable_highlight: 1
                 enable_pdf_parse: false
                 pdf_pic_second_parsing: false
                 enable_stamp_recognition: false
                 enable_long_doc: false
+            classificationApp:
+              summary: 独立分类应用
+              value:
+                ai_function: 1426
+                app_name: 业务材料分类
+                classify_types:
+                - category_key: contract
+                  type_name: 采购合同
+                  description: 采购合同正文及签署页
+                - category_key: invoice
+                  type_name: 发票
+            invoiceApp:
+              summary: 海外发票高速应用
+              value:
+                ai_function: 1423
+                app_name: 海外发票及收据
+                description: 海外交易发票及收据
     ExtractionAppUpdateRequest:
       required: true
       content:
@@ -1396,14 +1960,15 @@ components:
                 app_id: app_1406
                 app_name: 采购单抽取应用（新版）
                 config_version: v1
-                app_label: [purchase-order]
+                app_label:
+                - purchase-order
                 extract_fields:
-                  - field_name: 订单号
-                    field_type: string
-                    field_prompt: 抽取采购订单编号。
-                  - field_name: 供应商名称
-                    field_type: string
-                    field_prompt: 抽取供应商名称。
+                - field_name: 订单号
+                  field_type: string
+                  field_prompt: 抽取采购订单编号。
+                - field_name: 供应商名称
+                  field_type: string
+                  field_prompt: 抽取供应商名称。
                 parse_mode: fast_vlm
                 enable_highlight: 1
                 enable_pdf_parse: true
@@ -1411,36 +1976,103 @@ components:
                 enable_stamp_recognition: true
                 enable_long_doc: false
             highSpeedCustomExtractionApp:
-              summary: 修改高速版自定义抽取应用
+              summary: 完整字段更新，未传开关继承参考版本
               value:
-                app_id: app_1425
-                app_name: 高速版发票抽取应用（新版）
+                app_id: 8f4b2c506df811f1a3d90242ac120002
                 config_version: v1
-                app_label: [invoice, high-speed]
                 extract_fields:
-                  - field_key: invoice_no
-                    field_name: 发票号码
+                - field_key: contract_no
+                  field_name: 合同编号
+                  field_type: string
+                  field_prompt: 提取合同编号
+                - field_key: contract_amount
+                  field_name: 合同金额
+                  field_type: number
+                  field_prompt: 提取合同总金额
+                  format:
+                    mode: preset
+                    preset: grouped_decimal
+                    decimal_places: 2
+                    rounding: half_up
+                - field_key: signed_at
+                  field_name: 签署日期
+                  field_type: date
+                  field_prompt: 提取合同签署日期
+                  format:
+                    mode: preset
+                    preset: date_iso
+                - field_key: purchase_items
+                  field_name: 采购明细
+                  field_type: table
+                  sub_fields:
+                  - field_key: item_name
+                    field_name: 商品名称
                     field_type: string
-                    field_prompt: 抽取发票上的唯一发票号码。
-                  - field_key: invoice_date
-                    field_name: 开票日期
+                    field_prompt: 提取每一行的商品名称
+                  - field_key: item_amount
+                    field_name: 明细金额
+                    field_type: number
+                    field_prompt: 提取每一行的金额
+                    format:
+                      mode: preset
+                      preset: grouped_decimal
+                      decimal_places: 2
+                      rounding: half_up
+                  - field_key: delivery_date
+                    field_name: 交付日期
                     field_type: date
-                    field_prompt: 抽取发票开具日期。
-                  - field_key: total_amount
-                    field_name: 价税合计
+                    field_prompt: 提取每一行约定的交付日期
+                    format:
+                      mode: preset
+                      preset: date_iso
+                - field_key: payment_schedule
+                  field_name: 付款计划
+                  field_type: table
+                  sub_fields:
+                  - field_key: payment_stage
+                    field_name: 付款阶段
                     field_type: string
-                    field_prompt: 抽取发票价税合计金额。
-                  - field_key: line_items
-                    field_name: 明细
-                    field_type: table
-                    sub_fields:
-                      - field_key: item_name
-                        field_name: 商品名称
-                        field_type: string
-                      - field_key: item_amount
-                        field_name: 金额
-                        field_type: string
-                enable_field_value_translation: false
+                    field_prompt: 提取每一行的付款阶段
+                  - field_key: payment_amount
+                    field_name: 应付金额
+                    field_type: number
+                    field_prompt: 提取每一行应付的金额
+                    format:
+                      mode: preset
+                      preset: grouped_decimal
+                      decimal_places: 2
+                      rounding: half_up
+                  - field_key: payment_date
+                    field_name: 付款日期
+                    field_type: date
+                    field_prompt: 提取每一行约定的付款日期
+                    format:
+                      mode: preset
+                      preset: date_iso
+            metadataOnly:
+              summary: 仅修改基础信息，不生成版本
+              value:
+                app_id: 8f4b2c506df811f1a3d90242ac120002
+                app_name: 采购合同
+                description: 采购合同正文及签署页，不包含发票或付款凭证
+                app_code: purchase_contract
+            switchesOnly:
+              summary: 仅修改开关，生成配置版本
+              value:
+                app_id: 8f4b2c506df811f1a3d90242ac120002
+                enable_highlight: true
+                enable_confidence: true
+            classification:
+              summary: 更新分类类别
+              value:
+                app_id: c59abf0e24d84789930a41e4de6e1c7b
+                ai_function: 1426
+                classify_types:
+                - category_key: contract
+                  type_name: 采购合同
+                  description: 采购合同正文及签署页
+                - category_key: invoice
+                  type_name: 发票
     AppConfigQueryRequest:
       required: true
       content:
@@ -1581,13 +2213,29 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/WorkflowRunExportRequest'
-          example:
-            application_id: app_abc123
-            run_ids: [run_xyz789]
-            format: excel
-            report_mode: merged
-            include_failed_runs: false
-            max_text_length: 10000
+          examples:
+            merged:
+              value:
+                application_id: app_workflow
+                run_ids:
+                - run_example
+                report_mode: merged
+                format: excel
+            taskData:
+              value:
+                application_id: app_workflow
+                run_ids:
+                - run_example
+                report_mode: task_data
+                format: json
+                locale: zh-CN
+            taskPackage:
+              value:
+                application_id: app_workflow
+                run_ids:
+                - run_example
+                report_mode: task_package
+                format: html
   responses:
     SimpleResponse:
       description: 通用响应。
@@ -1685,23 +2333,18 @@ components:
           schema:
             $ref: '#/components/schemas/ExtractionAppResponse'
           examples:
-            success:
-              summary: 创建成功
+            created:
               value:
                 code: success
                 message: ''
                 tips: null
                 data:
-                  app_id: app_abc123
-                  app_name: 高速版发票抽取应用
-                  app_label: [invoice, high-speed]
+                  app_id: 8f4b2c506df811f1a3d90242ac120002
+                  app_name: 采购合同
+                  description: 采购合同正文及签署页，不包含发票或付款凭证
+                  app_code: purchase_contract
                   config_version: v1
-            missingParseMode:
-              summary: 标准版缺少 parse_mode（HTTP 200 业务失败）
-              value:
-                code: server_error
-                message: 标准版自定义抽取应用必须提供 parse_mode
-                tips: null
+                  app_label: null
     ExtractionAppDeleteResponse:
       description: 抽取应用删除结果。
       content:
@@ -1722,20 +2365,28 @@ components:
           schema:
             $ref: '#/components/schemas/ExtractionAppUpdateResponse'
           examples:
-            success:
-              summary: 修改成功
+            metadataOnly:
               value:
                 code: success
                 message: ''
                 tips: null
                 data:
-                  config_version: v2
-            missingParseMode:
-              summary: 标准版缺少 parse_mode（HTTP 200 业务失败）
+                  app_id: 8f4b2c506df811f1a3d90242ac120002
+                  app_name: 采购合同
+                  description: 采购合同正文及签署页，不包含发票或付款凭证
+                  app_code: purchase_contract
+                  config_version: v1
+            newConfig:
               value:
-                code: server_error
-                message: 标准版自定义抽取应用必须提供 parse_mode
+                code: success
+                message: ''
                 tips: null
+                data:
+                  app_id: 8f4b2c506df811f1a3d90242ac120002
+                  app_name: 采购合同
+                  description: 采购合同正文及签署页，不包含发票或付款凭证
+                  app_code: purchase_contract
+                  config_version: v2
     ExtractionAppVersionDeleteResponse:
       description: 抽取应用配置版本删除结果。
       content:
@@ -1755,6 +2406,92 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/AppConfigResponse'
+          examples:
+            highSpeed:
+              value:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  app_id: 8f4b2c506df811f1a3d90242ac120002
+                  app_name: 采购合同
+                  description: 采购合同正文及签署页，不包含发票或付款凭证
+                  app_code: purchase_contract
+                  config_version: v1
+                  extract_fields:
+                  - field_key: contract_no
+                    field_name: 合同编号
+                    field_type: string
+                    field_prompt: 提取合同编号
+                  - field_key: contract_amount
+                    field_name: 合同金额
+                    field_type: number
+                    field_prompt: 提取合同总金额
+                    format:
+                      mode: preset
+                      preset: grouped_decimal
+                      decimal_places: 2
+                      rounding: half_up
+                  - field_key: signed_at
+                    field_name: 签署日期
+                    field_type: date
+                    field_prompt: 提取合同签署日期
+                    format:
+                      mode: preset
+                      preset: date_iso
+                  - field_key: purchase_items
+                    field_name: 采购明细
+                    field_type: table
+                    sub_fields:
+                    - field_key: item_name
+                      field_name: 商品名称
+                      field_type: string
+                      field_prompt: 提取每一行的商品名称
+                    - field_key: item_amount
+                      field_name: 明细金额
+                      field_type: number
+                      field_prompt: 提取每一行的金额
+                      format:
+                        mode: preset
+                        preset: grouped_decimal
+                        decimal_places: 2
+                        rounding: half_up
+                    - field_key: delivery_date
+                      field_name: 交付日期
+                      field_type: date
+                      field_prompt: 提取每一行约定的交付日期
+                      format:
+                        mode: preset
+                        preset: date_iso
+                  - field_key: payment_schedule
+                    field_name: 付款计划
+                    field_type: table
+                    sub_fields:
+                    - field_key: payment_stage
+                      field_name: 付款阶段
+                      field_type: string
+                      field_prompt: 提取每一行的付款阶段
+                    - field_key: payment_amount
+                      field_name: 应付金额
+                      field_type: number
+                      field_prompt: 提取每一行应付的金额
+                      format:
+                        mode: preset
+                        preset: grouped_decimal
+                        decimal_places: 2
+                        rounding: half_up
+                    - field_key: payment_date
+                      field_name: 付款日期
+                      field_type: date
+                      field_prompt: 提取每一行约定的付款日期
+                      format:
+                        mode: preset
+                        preset: date_iso
+                  parse_mode: null
+                  enable_highlight: true
+                  enable_field_value_translation: false
+                  enable_confidence: true
+                  enable_long_doc: false
     AiRecommendResponse:
       description: 智能体生成字段配置结果。高速版返回配置预览，不会保存配置版本。
       content:
@@ -2599,43 +3336,141 @@ components:
           minLength: 1
           description: 工作流应用 ID。
         run_ids:
-          type: array
-          minItems: 1
-          maxItems: 200
-          uniqueItems: true
-          description: 明确授权导出的运行 ID。公共合同不允许 null 或空数组导出全部运行。
+          type:
+          - array
+          - 'null'
           items:
             type: string
-            minLength: 1
+          description: merged/per_run省略/null/空数组选择当前用户的符合条件运行；task_data/task_package恰好一个非空ID。
         node_ids:
-          type: array
-          uniqueItems: true
+          type:
+          - array
+          - 'null'
           description: 可选的节点 ID 列表；省略时包含运行中的全部可导出节点。
           items:
             type: string
             minLength: 1
         format:
           type: string
-          enum: [excel, word, markdown, json]
+          enum:
+          - excel
+          - word
+          - markdown
+          - html
+          - json
           default: excel
         report_mode:
           type: string
-          enum: [merged, per_run]
+          enum:
+          - merged
+          - per_run
+          - task_data
+          - task_package
           default: merged
-          description: merged 合并为一份报告；per_run 按运行拆分。
+          description: merged合并，per_run分运行ZIP，task_data任务数据，task_package任务报告和附件ZIP。
         include_failed_runs:
           type: boolean
           default: false
+          description: 通用模式默认只选成功运行；开启后可选非成功运行，无可导出内容时可能跳过。任务模式独立校验终态及已保留的结果。
         primary_key_variable:
-          type: string
+          type:
+          - string
+          - 'null'
           description: 可选的工作流输入变量名，用作导出主键。
         max_text_length:
-          type: integer
+          type:
+          - integer
+          - 'null'
           minimum: 1
           maximum: 30000
           default: 10000
           description: 单个文本值导出的最大字符数；当前路由实际默认 10000。
-      required: [application_id, run_ids]
+        locale:
+          type:
+          - string
+          - 'null'
+          enum:
+          - zh-CN
+          - en-US
+          - null
+          description: 仅任务模式使用，默认任务受理时保留的展示语言；不重新执行任务或改变字段值。
+        node_types:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: 仅merged/per_run可选节点类型筛选。
+        variable_filters:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+          description: 仅merged/per_run；按输入变量或点路径的值匹配。
+      required:
+      - application_id
+      allOf:
+      - if:
+          properties:
+            report_mode:
+              enum:
+              - task_data
+              - task_package
+          required:
+          - report_mode
+        then:
+          required:
+          - run_ids
+          properties:
+            run_ids:
+              type: array
+              minItems: 1
+              maxItems: 1
+              items:
+                type: string
+                pattern: \S
+            node_ids:
+              type:
+              - array
+              - 'null'
+              maxItems: 0
+            node_types:
+              type:
+              - array
+              - 'null'
+              maxItems: 0
+            variable_filters:
+              type:
+              - object
+              - 'null'
+              maxProperties: 0
+      - if:
+          properties:
+            report_mode:
+              const: task_data
+          required:
+          - report_mode
+        then:
+          properties:
+            format:
+              enum:
+              - excel
+              - json
+      - if:
+          properties:
+            report_mode:
+              const: task_package
+          required:
+          - report_mode
+        then:
+          required:
+          - format
+          properties:
+            format:
+              enum:
+              - word
+              - markdown
+              - html
     WorkflowRunExportResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -2648,22 +3483,44 @@ components:
     WorkflowRunExportData:
       type: object
       properties:
-        file_id: {type: string}
+        file_id:
+          type: string
         download_url:
           type: string
           format: uri
           description: 临时下载地址；当前实现通常约 1 小时，未作为稳定 SLA。
-        filename: {type: string}
-        file_size: {type: integer, minimum: 0}
+        filename:
+          type: string
+        file_size:
+          type: integer
+          minimum: 0
         format:
           type: string
-          enum: [excel, word, markdown, json]
+          enum:
+          - excel
+          - word
+          - markdown
+          - html
+          - json
         report_mode:
           type: string
-          enum: [merged, per_run]
-        total_runs: {type: integer, minimum: 0, maximum: 200}
-        included_runs: {type: integer, minimum: 0, maximum: 200}
-        skipped_runs: {type: integer, minimum: 0, maximum: 200}
+          enum:
+          - merged
+          - per_run
+          - task_data
+          - task_package
+        total_runs:
+          type: integer
+          minimum: 0
+          maximum: 200
+        included_runs:
+          type: integer
+          minimum: 0
+          maximum: 200
+        skipped_runs:
+          type: integer
+          minimum: 0
+          maximum: 200
         run_summaries:
           type: array
           items:
@@ -2671,7 +3528,18 @@ components:
         export_time:
           type: string
           format: date-time
-      required: [file_id, download_url, filename, file_size, format, report_mode, total_runs, included_runs, skipped_runs, run_summaries, export_time]
+      required:
+      - file_id
+      - download_url
+      - filename
+      - file_size
+      - format
+      - report_mode
+      - total_runs
+      - included_runs
+      - skipped_runs
+      - run_summaries
+      - export_time
     WorkflowRunExportSummary:
       type: object
       properties:
@@ -2821,48 +3689,154 @@ components:
           default: false
           description: 是否启用印章识别。开启后会识别文档中的印章信息，并尝试提取印章文字。
     DocumentExtractRequest:
-      oneOf:
-        - title: 使用文件 URL
-          type: object
-          additionalProperties: false
+      type: object
+      additionalProperties: true
+      properties:
+        app_id:
+          type:
+          - string
+          - 'null'
+          description: 推荐使用应用ID；历史调用可改用app_key与app_secret。
+          examples:
+          - 8f4b2c506df811f1a3d90242ac120002
+        file_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: 推荐只传一个文件来源；历史单应用接口同时传有效URL与Base64时优先使用Base64。
+          examples:
+          - https://files.example.com/materials.pdf
+        file_name:
+          type: string
+          description: 文件名称。使用 Base64 或无法从 URL 判断文件名时可传入。
+        with_rec_result:
+          type: boolean
+          description: 是否返回文档解析结果。高速版抽取不返回解析结果。
+          default: false
+        model_params:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+          properties:
+            pages:
+              type: array
+              uniqueItems: true
+              items:
+                type: integer
+                minimum: 1
+              description: 原始页码，从1开始；原生Markdown只有逻辑页1。
+            scale:
+              type: number
+              exclusiveMinimum: 0
+              default: 1.0
+              description: 文件转为页面图片时的缩放比例；不承诺影响原生XLSX/Markdown。
+            disable_collaboration:
+              anyOf:
+              - type: boolean
+              - type: integer
+                enum:
+                - 0
+                - 1
+              description: 同步默认1；1425同步/异步均强制1，不能开启人机协同。
+            keep_content:
+              type: boolean
+              default: false
+              description: 经典抽取的大文档解析结果返回链接时，是否同时保留内联内容；不使1425返回解析结果。
+            page_task_timeout_seconds:
+              type: number
+              exclusiveMinimum: 0
+              description: 大文档解析结果逐页整理/上传的等待时限；不是整次抽取或每页推理超时。
+            card_type:
+              type: string
+              description: 仅支持卡证选择的应用；显式顶层card_type优先。
+            enable_multi_ticket:
+              type: boolean
+              default: true
+              description: 仅支持多票的应用；显式顶层同名值优先。
+          description: 已知参数按应用能力生效。额外键被接收不代表生效；当前1425/1423/1424不会用temperature、top_p、max_tokens覆盖保存的调用配置。三个临时结果开关必须放顶层。
+        enable_highlight:
+          type:
+          - boolean
+          - 'null'
+          description: 原文定位；高速版仅本次调用覆盖，省略/null沿用应用，不保存配置。
+        enable_field_value_translation:
+          type:
+          - boolean
+          - 'null'
+          description: 字段值翻译；高速版仅本次调用覆盖，省略/null沿用应用，不保存配置。
+        enable_confidence:
+          type:
+          - boolean
+          - 'null'
+          description: 字段置信度评估；高速版仅本次调用覆盖，省略/null沿用应用，不保存配置。
+        file_base64:
+          type:
+          - string
+          - 'null'
+          description: 推荐只传一个文件来源；历史单应用接口同时传有效URL与Base64时优先使用Base64。
+          examples:
+          - JVBERi0xLjQK...
+        app_key:
+          type:
+          - string
+          - 'null'
+          description: 历史应用凭证，须与app_secret成对传入；仍需X-API-Key。
+        app_secret:
+          type:
+          - string
+          - 'null'
+          writeOnly: true
+          description: 历史应用签名；不要与app_id混用，成对凭证优先。
+        enable_multi_ticket:
+          type:
+          - boolean
+          - 'null'
+          default: true
+          description: 多票能力本次开关；显式顶层值优先于model_params同名值。不支持该能力的应用不因此获得多票处理。
+        card_type:
+          type:
+          - string
+          - 'null'
+          description: 仅卡证能力使用的类型提示；显式顶层值优先。
+      allOf:
+      - anyOf:
+        - required:
+          - app_id
           properties:
             app_id:
-              default: app_abc123
               type: string
-              description: 应用的唯一标识。
+              minLength: 1
+              pattern: \S
+        - required:
+          - app_key
+          - app_secret
+          properties:
+            app_key:
+              type: string
+              minLength: 1
+              pattern: \S
+            app_secret:
+              type: string
+              minLength: 1
+              pattern: \S
+      - anyOf:
+        - required:
+          - file_url
+          properties:
             file_url:
-              default: *documentRecognitionFileUrl
               type: string
-              format: uri
-              description: 待处理文件 URL，与 file_base64 二选一。
-            file_name:
-              type: string
-              description: 文件名称。使用 Base64 或无法从 URL 判断文件名时可传入。
-            with_rec_result:
-              type: boolean
-              description: 是否返回文档解析结果。高速版抽取不返回解析结果。
-              default: false
-          required: [app_id, file_url]
-        - title: 使用文件 Base64
-          type: object
-          additionalProperties: false
+              minLength: 1
+              pattern: \S
+        - required:
+          - file_base64
           properties:
-            app_id:
-              default: app_abc123
-              type: string
-              description: 应用的唯一标识。
             file_base64:
-              default: JVBERi0xLjQKJcfs...
               type: string
-              description: 待处理文件 Base64，与 file_url 二选一。
-            file_name:
-              type: string
-              description: 文件名称。使用 Base64 或无法从 URL 判断文件名时可传入。
-            with_rec_result:
-              type: boolean
-              description: 是否返回文档解析结果。高速版抽取不返回解析结果。
-              default: false
-          required: [app_id, file_base64]
+              minLength: 1
+              pattern: \S
+      description: 单应用兼容协议：至少一种应用身份及至少一种文件来源。未知顶层字段可能被忽略，不代表启用了新能力。分类/路由仍严格二选一。
     DocumentExtractResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -2882,17 +3856,25 @@ components:
           description: 任务状态或处理结果说明。
         status:
           type: integer
-          enum: [0, 1, 2, 4, 5, 6]
+          enum:
+          - 0
+          - 1
+          - 2
+          - 4
+          - 5
+          - 6
           description: 0=未知，1=就绪，2=运行中，4=成功，5=失败，6=取消或拒绝。
         doc_recognize_result:
           type: array
           items:
             $ref: '#/components/schemas/RecognizePage'
         extraction_result:
-          description: 原始机器抽取结果，人工修正后仍保留。
+          description: 1425普通字段/表格结果；海外高速多票时按invoice/receipt分组。旧tickets与分组结果是同批数据的兼容投影，消费其中一份即可。
           type: array
           items:
-            $ref: '#/components/schemas/ExtractionField'
+            anyOf:
+            - $ref: '#/components/schemas/ExtractionField'
+            - $ref: '#/components/schemas/InvoiceTicketGroup'
         extract_config_version:
           type: string
           description: 本次抽取使用的配置版本。
@@ -2910,8 +3892,8 @@ components:
             additionalProperties: true
         metadata:
           type:
-            - object
-            - 'null'
+          - object
+          - 'null'
           additionalProperties: true
           description: 文档处理任务元数据。
           properties:
@@ -2922,8 +3904,8 @@ components:
               description: 协同任务主键 ID；仅在启用人机协同时存在。
         aigc:
           oneOf:
-            - $ref: '#/components/schemas/AigcLabel'
-            - type: 'null'
+          - $ref: '#/components/schemas/AigcLabel'
+          - type: 'null'
           description: AI 生成内容合规标识。
         spreadsheet_manifest_file_id:
           type: string
@@ -2933,10 +3915,49 @@ components:
           description: Excel 原生预览 Manifest 下载地址；非 Excel 文档通常返回空字符串。
         spreadsheet_billing:
           type:
-            - object
-            - 'null'
+          - object
+          - 'null'
           additionalProperties: true
           description: Excel 工作表与内嵌图片计费信息。
+        ticket_count:
+          type:
+          - integer
+          - 'null'
+        tickets:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/InvoiceTicketResult'
+        page_labels:
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              page:
+                type: integer
+              type:
+                type: string
+                enum:
+                - invoice
+                - receipt
+                - other
+              ticket_index:
+                type:
+                - integer
+                - 'null'
+        classify_result:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+        document_classification_detail:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
     DocumentRecognizeResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -3068,6 +4089,22 @@ components:
           items:
             type: object
             additionalProperties: true
+            properties:
+              field_value:
+                description: 1425/1423/1424返回字符串，缺失值为空字符串。
+              field_value_translation:
+                type: string
+                description: 译文，不覆盖field_value。
+              field_confidence:
+                type: number
+                minimum: 0
+                maximum: 1
+                description: 开启评估时辅助复核；关闭时默认值不是评估分数。
+              references:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
         references:
           type: array
           items:
@@ -3080,14 +4117,15 @@ components:
             items:
               type: object
               additionalProperties: true
+      description: 1425缺失普通字段/已有行的空单元格返回field_value=""；空表table_values=[]，不制造空行；保留数值0和有效多值。
     ExtractionFieldConfig:
       type: object
       additionalProperties: false
       properties:
         field_key:
           type: string
-          pattern: '^[A-Za-z][A-Za-z0-9_]{0,63}$'
-          description: 字段唯一标识。创建高速版自定义抽取应用时必填；标准版不要求传入。
+          pattern: ^[A-Za-z0-9][A-Za-z0-9_]{0,63}$
+          description: 1～64字符，字母或数字开头，后续仅字母、数字、下划线；1425在应用内所有普通字段、表格和列中不区分大小写判重。
         field_name:
           type: string
           minLength: 1
@@ -3095,11 +4133,15 @@ components:
           description: 字段名称。
         field_type:
           type: string
-          enum: [string, date, table]
+          enum:
+          - string
+          - date
+          - table
           description: 字段类型。表格字段使用 table。
         field_prompt:
           type: string
           description: 字段抽取提示词。
+          maxLength: 3000
         sub_fields:
           type: array
           minItems: 1
@@ -3107,15 +4149,17 @@ components:
           description: 表格子字段。field_type 为 table 时必须至少提供 1 个有效子字段。
           items:
             $ref: '#/components/schemas/ExtractionSubFieldConfig'
-      required: [field_name, field_type]
+      required:
+      - field_name
+      - field_type
     ExtractionSubFieldConfig:
       type: object
       additionalProperties: false
       properties:
         field_key:
           type: string
-          pattern: '^[A-Za-z][A-Za-z0-9_]{0,63}$'
-          description: 子字段唯一标识。创建高速版自定义抽取应用时必填；标准版不要求传入。
+          pattern: ^[A-Za-z0-9][A-Za-z0-9_]{0,63}$
+          description: 1～64字符，字母或数字开头，后续仅字母、数字、下划线；1425在应用内所有普通字段、表格和列中不区分大小写判重。
         field_name:
           type: string
           minLength: 1
@@ -3123,12 +4167,17 @@ components:
           description: 子字段名称。
         field_type:
           type: string
-          enum: [string, date]
+          enum:
+          - string
+          - date
           description: 子字段类型。表格内不允许再嵌套表格。
+          default: string
         field_prompt:
           type: string
           description: 子字段抽取提示词。
-      required: [field_name, field_type]
+          maxLength: 3000
+      required:
+      - field_name
     LongDocConfig:
       type: object
       additionalProperties: false
@@ -3141,15 +4190,11 @@ components:
           description: 文档类型描述。
       required: [doc_type]
     ExtractionAppCreateRequest:
-      description: 先设置 ai_function。ai_function 为 1406 时使用标准版自定义抽取应用参数；为 1425 时使用高速版自定义抽取应用参数。
-      discriminator:
-        propertyName: ai_function
-        mapping:
-          '1406': '#/components/schemas/StandardExtractionAppCreateRequest'
-          '1425': '#/components/schemas/HighSpeedExtractionAppCreateRequest'
       oneOf:
-        - $ref: '#/components/schemas/HighSpeedExtractionAppCreateRequest'
-        - $ref: '#/components/schemas/StandardExtractionAppCreateRequest'
+      - $ref: '#/components/schemas/HighSpeedExtractionAppCreateRequest'
+      - $ref: '#/components/schemas/StandardExtractionAppCreateRequest'
+      - $ref: '#/components/schemas/InvoiceApplicationCreateRequest'
+      - $ref: '#/components/schemas/ClassificationAppCreateRequest'
     StandardExtractionAppCreateRequest:
       type: object
       additionalProperties: false
@@ -3157,14 +4202,15 @@ components:
       properties:
         ai_function:
           type: integer
-          enum: [1406]
+          enum:
+          - 1406
           default: 1406
           description: 应用类型。创建标准自定义抽取应用传 1406；不传时默认按 1406 处理。
         app_name:
           type: string
           minLength: 1
-          maxLength: 100
-          description: 应用名称。
+          maxLength: 50
+          description: 去除首尾空白后1～50字符；不接受空名称、纯空白或null。修改时省略保留。
         app_label:
           type: array
           maxItems: 5
@@ -3180,20 +4226,34 @@ components:
             $ref: '#/components/schemas/ExtractionFieldConfig'
         parse_mode:
           type: string
-          enum: [standard, advance, agentic, fast_vlm, agentic_v2]
-          description: |
-            解析模式。标准版自定义抽取应用必填。可选解析模式如下：
+          enum:
+          - standard
+          - advance
+          - agentic
+          - fast_vlm
+          - agentic_v2
+          description: '解析模式。标准版自定义抽取应用必填。可选解析模式如下：
+
 
             - standard：标准解析，适用于清晰的电子版文档，速度和准确率均衡。
+
             - advance：增强解析 1.0，适用于印章、签名、多表格等版式较复杂的文档。
+
             - agentic：智能解析，组合标准解析与增强解析，并按条件进行二次解析。
+
             - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，提升解析稳定性。
+
             - agentic_v2：智能解析 2.0，采用两阶段版面分析与内容识别，适用于复杂版式、表格和公式文档。
+
+            '
         enable_highlight:
-          type: integer
-          enum: [0, 1]
-          default: 1
-          description: 是否显示来源位置。传 1 开启，传 0 关闭；standard、agentic、fast_vlm、agentic_v2 支持，advance 不支持。
+          anyOf:
+          - type: boolean
+          - type: integer
+            enum:
+            - 0
+            - 1
+          description: 经典版创建默认开启；兼容旧0/1入参。高速版使用布尔值。
         enable_pdf_parse:
           type: boolean
           default: false
@@ -3220,7 +4280,22 @@ components:
           description: 长文档配置，仅 enable_long_doc 为 true 时使用。
           items:
             $ref: '#/components/schemas/LongDocConfig'
-      required: [ai_function, app_name, extract_fields, parse_mode]
+        description:
+          type:
+          - string
+          - 'null'
+          maxLength: 1500
+          description: 应用分类描述；修改时省略保留，空字符串清空。
+        app_code:
+          type:
+          - string
+          - 'null'
+          maxLength: 64
+          description: 可选业务编码，不限制字符组成；同租户同用户内区分大小写唯一。修改时省略保留，空字符串清空；未设置返回null。不是鉴权凭证。
+      required:
+      - app_name
+      - extract_fields
+      - parse_mode
     HighSpeedExtractionAppCreateRequest:
       type: object
       additionalProperties: false
@@ -3228,14 +4303,15 @@ components:
       properties:
         ai_function:
           type: integer
-          enum: [1425]
+          enum:
+          - 1425
           default: 1425
           description: 应用类型。创建高速版自定义抽取应用固定传 1425。
         app_name:
           type: string
           minLength: 1
-          maxLength: 100
-          description: 应用名称。
+          maxLength: 50
+          description: 去除首尾空白后1～50字符；不接受空名称、纯空白或null。修改时省略保留。
         app_label:
           type: array
           maxItems: 5
@@ -3252,18 +4328,41 @@ components:
         enable_field_value_translation:
           type: boolean
           default: false
-          description: 是否开启抽取结果翻译，默认关闭。
-      required: [ai_function, app_name, extract_fields]
+          description: 字段值翻译；创建默认关闭，修改时省略/null继承参考版本；false关闭。
+        description:
+          type:
+          - string
+          - 'null'
+          maxLength: 1500
+          description: 应用分类描述；修改时省略保留，空字符串清空。
+        app_code:
+          type:
+          - string
+          - 'null'
+          maxLength: 64
+          description: 可选业务编码，不限制字符组成；同租户同用户内区分大小写唯一。修改时省略保留，空字符串清空；未设置返回null。不是鉴权凭证。
+        enable_highlight:
+          type: boolean
+          default: false
+          description: 原文定位；创建默认关闭，修改时省略/null继承参考版本；false关闭。
+        enable_confidence:
+          type: boolean
+          default: false
+          description: 字段置信度评估；创建默认关闭，修改时省略/null继承参考版本；false关闭。
+      required:
+      - ai_function
+      - app_name
+      - extract_fields
     HighSpeedExtractionFieldConfig:
       type: object
       additionalProperties: false
       title: 高速版字段
-      description: 高速版字段配置。普通字段的 field_type 为 string 或 date，不要传 sub_fields；表格字段的 field_type 为 table，必须传 sub_fields。
+      description: 所有普通字段、表格及列的field_key在应用内不区分大小写判重。不同表格可以有同名列，列名也可与普通字段名相同。
       properties:
         field_key:
           type: string
-          pattern: '^[A-Za-z][A-Za-z0-9_]{0,63}$'
-          description: 字段唯一标识。必须以英文字母开头，只能包含英文字母、数字和下划线，最多 64 个字符。
+          pattern: ^[A-Za-z0-9][A-Za-z0-9_]{0,63}$
+          description: 1～64字符，字母或数字开头，后续仅字母、数字、下划线；1425在应用内所有普通字段、表格和列中不区分大小写判重。
         field_name:
           type: string
           minLength: 1
@@ -3271,11 +4370,15 @@ components:
           description: 字段名称。
         field_type:
           type: string
-          enum: [string, date, table]
-          description: 字段类型。普通字段使用 string 或 date；表格字段使用 table。
+          enum:
+          - string
+          - number
+          - date
+          - table
+          description: 普通字段和列：文本/数值/日期；表格本身使用table。
         field_prompt:
           type: string
-          maxLength: 200
+          maxLength: 3000
           description: 字段抽取提示词。
         sub_fields:
           type: array
@@ -3284,29 +4387,39 @@ components:
           items:
             $ref: '#/components/schemas/HighSpeedExtractionSubFieldConfig'
           examples:
-            - - field_key: item_name
-                field_name: 商品名称
-                field_type: string
-      required: [field_key, field_name, field_type]
+          - - field_key: item_name
+              field_name: 商品名称
+              field_type: string
+        format:
+          anyOf:
+          - $ref: '#/components/schemas/FieldFormat'
+          - type: 'null'
+          description: 仅数值/日期字段和列可用，不用于表格本身。更新省略时继承同key同类型格式；null清除。
+      required:
+      - field_key
+      - field_name
+      - field_type
       allOf:
-        - if:
-            properties:
-              field_type:
-                const: table
-            required: [field_type]
-          then:
-            required: [sub_fields]
-            properties:
-              sub_fields:
-                minItems: 1
+      - if:
+          properties:
+            field_type:
+              const: table
+          required:
+          - field_type
+        then:
+          required:
+          - sub_fields
+          properties:
+            sub_fields:
+              minItems: 1
     HighSpeedExtractionSubFieldConfig:
       type: object
       additionalProperties: false
       properties:
         field_key:
           type: string
-          pattern: '^[A-Za-z][A-Za-z0-9_]{0,63}$'
-          description: 子字段唯一标识。必须以英文字母开头，只能包含英文字母、数字和下划线，最多 64 个字符。
+          pattern: ^[A-Za-z0-9][A-Za-z0-9_]{0,63}$
+          description: 1～64字符，字母或数字开头，后续仅字母、数字、下划线；1425在应用内所有普通字段、表格和列中不区分大小写判重。
         field_name:
           type: string
           minLength: 1
@@ -3314,17 +4427,32 @@ components:
           description: 子字段名称。
         field_type:
           type: string
-          enum: [string, date]
-          description: 子字段类型。表格内不允许再嵌套表格。
+          enum:
+          - string
+          - number
+          - date
+          description: 普通字段和列：文本/数值/日期；表格本身使用table。
+          default: string
         field_prompt:
           type: string
-          maxLength: 200
+          maxLength: 3000
           description: 子字段抽取提示词。
-      required: [field_key, field_name, field_type]
+        format:
+          anyOf:
+          - $ref: '#/components/schemas/FieldFormat'
+          - type: 'null'
+          description: 仅数值/日期字段和列可用，不用于表格本身。更新省略时继承同key同类型格式；null清除。
+      required:
+      - field_key
+      - field_name
+      description: 所有普通字段、表格及列的field_key在应用内不区分大小写判重。不同表格可以有同名列，列名也可与普通字段名相同。
     ExtractionAppUpdateRequest:
-      oneOf:
-        - $ref: '#/components/schemas/StandardExtractionAppUpdateRequest'
-        - $ref: '#/components/schemas/HighSpeedExtractionAppUpdateRequest'
+      anyOf:
+      - $ref: '#/components/schemas/HighSpeedExtractionAppUpdateRequest'
+      - $ref: '#/components/schemas/StandardExtractionAppUpdateRequest'
+      - $ref: '#/components/schemas/InvoiceApplicationUpdateRequest'
+      - $ref: '#/components/schemas/ClassificationAppUpdateRequest'
+      description: 行为取决于app_id对应的类型。分类应用建议显式传ai_function=1426。
     StandardExtractionAppUpdateRequest:
       type: object
       additionalProperties: false
@@ -3335,7 +4463,9 @@ components:
           description: 应用 ID。
         app_name:
           type: string
-          description: 应用名称。不传或传空字符串时不更新应用名称。
+          minLength: 1
+          maxLength: 50
+          description: 去除首尾空白后1～50字符；不接受空名称、纯空白或null。修改时省略保留。
         config_version:
           type: string
           description: 当前配置版本。修改后会另存为新版本。
@@ -3353,20 +4483,34 @@ components:
             $ref: '#/components/schemas/ExtractionFieldConfig'
         parse_mode:
           type: string
-          enum: [standard, advance, agentic, fast_vlm, agentic_v2]
-          description: |
-            解析模式。标准版自定义抽取应用必填；高速版自定义抽取应用不支持设置该参数。可选解析模式如下：
+          enum:
+          - standard
+          - advance
+          - agentic
+          - fast_vlm
+          - agentic_v2
+          description: '解析模式。标准版自定义抽取应用必填；高速版自定义抽取应用不支持设置该参数。可选解析模式如下：
+
 
             - standard：标准解析，适用于清晰的电子版文档，速度和准确率均衡。
+
             - advance：增强解析 1.0，适用于印章、签名、多表格等版式较复杂的文档。
+
             - agentic：智能解析，组合标准解析与增强解析，并按条件进行二次解析。
+
             - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，提升解析稳定性。
+
             - agentic_v2：智能解析 2.0，采用两阶段版面分析与内容识别，适用于复杂版式、表格和公式文档。
+
+            '
         enable_highlight:
-          type: integer
-          enum: [0, 1]
-          default: 1
-          description: 是否显示来源位置。传 1 开启，传 0 关闭；standard、agentic、fast_vlm、agentic_v2 支持，advance 不支持。
+          anyOf:
+          - type: boolean
+          - type: integer
+            enum:
+            - 0
+            - 1
+          description: 经典版创建默认开启；兼容旧0/1入参。高速版使用布尔值。
         enable_pdf_parse:
           type: boolean
           default: false
@@ -3393,7 +4537,22 @@ components:
           description: 长文档配置，仅 enable_long_doc 为 true 时使用。
           items:
             $ref: '#/components/schemas/LongDocConfig'
-      required: [app_id, extract_fields, parse_mode]
+        description:
+          type:
+          - string
+          - 'null'
+          maxLength: 1500
+          description: 应用分类描述；修改时省略保留，空字符串清空。
+        app_code:
+          type:
+          - string
+          - 'null'
+          maxLength: 64
+          description: 可选业务编码，不限制字符组成；同租户同用户内区分大小写唯一。修改时省略保留，空字符串清空；未设置返回null。不是鉴权凭证。
+      required:
+      - app_id
+      - extract_fields
+      - parse_mode
     HighSpeedExtractionAppUpdateRequest:
       type: object
       additionalProperties: false
@@ -3404,10 +4563,13 @@ components:
           description: 高速版自定义抽取应用 ID。
         app_name:
           type: string
-          description: 应用名称。不传或传空字符串时不更新应用名称。
+          minLength: 1
+          maxLength: 50
+          description: 去除首尾空白后1～50字符；不接受空名称、纯空白或null。修改时省略保留。
         config_version:
           type: string
-          description: 当前配置版本。修改后会另存为新版本。
+          description: 字段或开关更新的参考版本；省略取最新保存版本。仅修改基础信息时忽略。
+          default: ''
         app_label:
           type: array
           maxItems: 5
@@ -3422,10 +4584,38 @@ components:
           items:
             $ref: '#/components/schemas/HighSpeedExtractionFieldConfig'
         enable_field_value_translation:
-          type: boolean
-          default: false
-          description: 是否开启抽取结果翻译，默认关闭。
-      required: [app_id, extract_fields]
+          type:
+          - boolean
+          - 'null'
+          default: null
+          description: 字段值翻译；创建默认关闭，修改时省略/null继承参考版本；false关闭。
+        description:
+          type:
+          - string
+          - 'null'
+          maxLength: 1500
+          description: 应用分类描述；修改时省略保留，空字符串清空。
+        app_code:
+          type:
+          - string
+          - 'null'
+          maxLength: 64
+          description: 可选业务编码，不限制字符组成；同租户同用户内区分大小写唯一。修改时省略保留，空字符串清空；未设置返回null。不是鉴权凭证。
+        enable_highlight:
+          type:
+          - boolean
+          - 'null'
+          default: null
+          description: 原文定位；创建默认关闭，修改时省略/null继承参考版本；false关闭。
+        enable_confidence:
+          type:
+          - boolean
+          - 'null'
+          default: null
+          description: 字段置信度评估；创建默认关闭，修改时省略/null继承参考版本；false关闭。
+      required:
+      - app_id
+      description: 支持仅基础信息、仅开关或完整字段更新。基础信息不生成版本，字段或开关修改生成新版本并继承未传开关；成功时始终返回config_version。
     AppIdRequest:
       type: object
       additionalProperties: false
@@ -3487,31 +4677,47 @@ components:
         - required: [file_url]
     ExtractionAppResponse:
       allOf:
-        - $ref: '#/components/schemas/SimpleResponse'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/ExtractionAppCreateData'
+      - $ref: '#/components/schemas/SimpleResponse'
+      - type: object
+        properties:
+          data:
+            anyOf:
+            - $ref: '#/components/schemas/ExtractionAppCreateData'
+            - $ref: '#/components/schemas/ClassificationAppResponse'
     ExtractionAppCreateData:
       type: object
       properties:
         app_id:
           type: string
-          description: 应用 ID。
         app_name:
           type: string
-          description: 应用名称。
         app_label:
           type:
-            - array
-            - 'null'
+          - array
+          - 'null'
           description: 应用标签列表。
           items:
             type: string
         config_version:
           type: string
           description: 初始配置版本号。
-      required: [app_id, app_name, app_label, config_version]
+        description:
+          type:
+          - string
+          - 'null'
+          maxLength: 1500
+          description: 应用分类描述；修改时省略保留，空字符串清空。
+        app_code:
+          type:
+          - string
+          - 'null'
+          maxLength: 64
+          description: 可选业务编码，不限制字符组成；同租户同用户内区分大小写唯一。修改时省略保留，空字符串清空；未设置返回null。不是鉴权凭证。
+      required:
+      - app_id
+      - app_name
+      - app_label
+      - config_version
     ExtractionAppDeleteResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -3528,18 +4734,41 @@ components:
                   description: 操作消息。
     ExtractionAppUpdateResponse:
       allOf:
-        - $ref: '#/components/schemas/SimpleResponse'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/ExtractionAppUpdateData'
+      - $ref: '#/components/schemas/SimpleResponse'
+      - type: object
+        properties:
+          data:
+            anyOf:
+            - $ref: '#/components/schemas/ExtractionAppUpdateData'
+            - $ref: '#/components/schemas/ClassificationAppResponse'
     ExtractionAppUpdateData:
       type: object
       properties:
         config_version:
+          type:
+          - string
+          - 'null'
+          description: 始终返回：基础信息更新返回最新保存版本；字段/开关修改返回本次新版本；无配置为null。不是已发布版本，更新不会发布。
+        description:
+          type:
+          - string
+          - 'null'
+          maxLength: 1500
+          description: 应用分类描述；修改时省略保留，空字符串清空。
+        app_code:
+          type:
+          - string
+          - 'null'
+          maxLength: 64
+          description: 可选业务编码，不限制字符组成；同租户同用户内区分大小写唯一。修改时省略保留，空字符串清空；未设置返回null。不是鉴权凭证。
+        app_id:
           type: string
-          description: 新配置版本号。
-      required: [config_version]
+        app_name:
+          type: string
+      required:
+      - app_id
+      - app_name
+      - config_version
     ExtractionAppVersionDeleteResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
@@ -3602,8 +4831,8 @@ components:
           description: 应用名称。
         app_label:
           type:
-            - array
-            - 'null'
+          - array
+          - 'null'
           description: 应用标签列表。
           items:
             type: string
@@ -3618,14 +4847,41 @@ components:
         engine_type:
           type: string
           description: 应用引擎类型。
-      required: [id, app_type, ai_function, app_name, app_label, created_at, updated_at, engine_type]
+        description:
+          type: string
+        app_code:
+          type:
+          - string
+          - 'null'
+        published_version_id:
+          type:
+          - string
+          - 'null'
+          description: 最新已发布抽取配置的内部版本ID，不是v1/v2名称；未获得发布元数据时为null。
+        output_schema:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+          description: 按已发布字段定义生成的业务结构，仅含字段key、类型和展示名，不包含提示词；不是field_values等API返回外壳，也不决定format后的字符串类型。
+      required:
+      - id
+      - app_type
+      - ai_function
+      - app_name
+      - app_label
+      - created_at
+      - updated_at
+      - engine_type
     AppConfigResponse:
       allOf:
-        - $ref: '#/components/schemas/SimpleResponse'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/AppConfigData'
+      - $ref: '#/components/schemas/SimpleResponse'
+      - type: object
+        properties:
+          data:
+            anyOf:
+            - $ref: '#/components/schemas/AppConfigData'
+            - $ref: '#/components/schemas/ClassificationAppResponse'
     AppConfigData:
       type: object
       additionalProperties: true
@@ -3636,8 +4892,8 @@ components:
           type: string
         app_label:
           type:
-            - array
-            - 'null'
+          - array
+          - 'null'
           items:
             type: string
         config_version:
@@ -3646,51 +4902,79 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ExtractionFieldConfigResponse'
+          description: 1425顶层仅普通字段和表格；列放在所属表格sub_fields，不重复返回。
         parse_mode:
           type:
-            - string
-            - 'null'
+          - string
+          - 'null'
           description: 解析模式。高速版返回 null。
         enable_highlight:
-          type:
-            - integer
-            - 'null'
-          enum: [0, 1, null]
-          description: 是否显示来源位置。标准版返回 0 或 1；高速版返回 null。
+          anyOf:
+          - type: boolean
+          - type: integer
+            enum:
+            - 0
+            - 1
+          - type: 'null'
+          description: 1425返回实际布尔值；经典版兼容返回0/1。
         enable_pdf_parse:
           type:
-            - boolean
-            - 'null'
+          - boolean
+          - 'null'
           description: 是否开启 PDF 文本优先。高速版返回 null。
         pdf_pic_second_parsing:
           type:
-            - boolean
-            - 'null'
+          - boolean
+          - 'null'
           description: 开启 PDF 文本优先时，是否对 PDF 中的图片进行二次解析。高速版返回 null。
         enable_stamp_recognition:
           type:
-            - boolean
-            - 'null'
+          - boolean
+          - 'null'
           description: 是否开启印章识别。高速版返回 null。
         enable_field_value_translation:
-          type: boolean
-          description: 是否开启抽取结果翻译。
+          type:
+          - boolean
+          - 'null'
+          description: 字段值翻译
         enable_long_doc:
           type: boolean
         long_doc_config:
           type:
-            - array
-            - 'null'
+          - array
+          - 'null'
           items:
             $ref: '#/components/schemas/LongDocConfigResponse'
-      required: [app_id, app_name, config_version, extract_fields, enable_long_doc]
+        description:
+          type:
+          - string
+          - 'null'
+          maxLength: 1500
+          description: 应用分类描述；修改时省略保留，空字符串清空。
+        app_code:
+          type:
+          - string
+          - 'null'
+          maxLength: 64
+          description: 可选业务编码，不限制字符组成；同租户同用户内区分大小写唯一。修改时省略保留，空字符串清空；未设置返回null。不是鉴权凭证。
+        enable_confidence:
+          type:
+          - boolean
+          - 'null'
+          description: 字段置信度评估
+      required:
+      - app_id
+      - app_name
+      - config_version
+      - extract_fields
+      - enable_long_doc
     ExtractionFieldConfigResponse:
       type: object
       properties:
         field_key:
           type:
-            - string
-            - 'null'
+          - string
+          - 'null'
           description: 字段唯一标识。标准版不保证返回。
         field_name:
           type: string
@@ -3700,24 +4984,30 @@ components:
           description: 字段类型。
         field_prompt:
           type:
-            - string
-            - 'null'
+          - string
+          - 'null'
           description: 字段提示词。
         sub_fields:
           type:
-            - array
-            - 'null'
+          - array
+          - 'null'
           description: 表格子字段列表。
           items:
             $ref: '#/components/schemas/ExtractionSubFieldConfigResponse'
-      required: [field_name, field_type]
+        format:
+          anyOf:
+          - $ref: '#/components/schemas/FieldFormat'
+          - type: 'null'
+      required:
+      - field_name
+      - field_type
     ExtractionSubFieldConfigResponse:
       type: object
       properties:
         field_key:
           type:
-            - string
-            - 'null'
+          - string
+          - 'null'
           description: 子字段唯一标识。标准版不保证返回。
         field_name:
           type: string
@@ -3727,10 +5017,16 @@ components:
           description: 子字段类型。
         field_prompt:
           type:
-            - string
-            - 'null'
+          - string
+          - 'null'
           description: 子字段提示词。
-      required: [field_name, field_type]
+        format:
+          anyOf:
+          - $ref: '#/components/schemas/FieldFormat'
+          - type: 'null'
+      required:
+      - field_name
+      - field_type
     LongDocConfigResponse:
       type: object
       properties:
@@ -4491,3 +5787,690 @@ components:
             matched_reason:
               type: string
       description: 字段审核详情。原始抽取结果请读取 extraction_result。
+    PublishApplicationResult:
+      allOf:
+      - $ref: '#/components/schemas/SimpleResponse'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AppManagePublishResponse'
+    RoutedExtractionResult:
+      allOf:
+      - $ref: '#/components/schemas/SimpleResponse'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AppDocRoutedResponse'
+    ClassificationTaskResult:
+      allOf:
+      - $ref: '#/components/schemas/SimpleResponse'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AppDocClassifyResponse'
+    ClassificationApplicationResult:
+      allOf:
+      - $ref: '#/components/schemas/SimpleResponse'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/ClassificationAppResponse'
+    InvoiceApplicationUpdateRequest:
+      type: object
+      required:
+      - app_id
+      properties:
+        app_id:
+          type: string
+        app_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: 去除首尾空白后1～50字符；不接受空名称、纯空白或null。修改时省略保留。
+        description:
+          type:
+          - string
+          - 'null'
+          maxLength: 1500
+          description: 应用分类描述；修改时省略保留，空字符串清空。
+        app_code:
+          type:
+          - string
+          - 'null'
+          maxLength: 64
+          description: 可选业务编码，不限制字符组成；同租户同用户内区分大小写唯一。修改时省略保留，空字符串清空；未设置返回null。不是鉴权凭证。
+      description: 仅修改基础信息；不替换预置发票字段。
+    InvoiceApplicationCreateRequest:
+      type: object
+      required:
+      - ai_function
+      - app_name
+      properties:
+        ai_function:
+          type: integer
+          enum:
+          - 1423
+          - 1424
+        app_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: 去除首尾空白后1～50字符；不接受空名称、纯空白或null。修改时省略保留。
+        description:
+          type:
+          - string
+          - 'null'
+          maxLength: 1500
+          description: 应用分类描述；修改时省略保留，空字符串清空。
+        app_code:
+          type:
+          - string
+          - 'null'
+          maxLength: 64
+          description: 可选业务编码，不限制字符组成；同租户同用户内区分大小写唯一。修改时省略保留，空字符串清空；未设置返回null。不是鉴权凭证。
+      description: 1423海外发票高速版，1424东南亚版；不提交extract_fields。
+    AppManagePublishResponse:
+      properties:
+        app_id:
+          title: App Id
+          type: string
+        config_version:
+          title: Config Version
+          type: string
+        published:
+          default: true
+          title: Published
+          type: boolean
+      required:
+      - app_id
+      - config_version
+      title: AppManagePublishResponse
+      type: object
+    AppManagePublishRequest:
+      additionalProperties: true
+      properties:
+        app_id:
+          title: App Id
+          type: string
+        config_version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          title: Config Version
+      required:
+      - app_id
+      title: AppManagePublishRequest
+      type: object
+    AppDocRoutedResponse:
+      properties:
+        task_id:
+          title: Task Id
+          type: string
+        status:
+          enum:
+          - pending
+          - running
+          - success
+          - partial_success
+          - failed
+          title: Status
+          type: string
+        granularity:
+          const: page
+          default: page
+          title: Granularity
+          type: string
+        extraction_result:
+          items:
+            $ref: '#/components/schemas/RoutedAppResult'
+          title: Extraction Result
+          type: array
+        unclassified_pages:
+          items:
+            type: integer
+          title: Unclassified Pages
+          type: array
+      required:
+      - task_id
+      - status
+      title: AppDocRoutedResponse
+      type: object
+    RoutedError:
+      properties:
+        code:
+          title: Code
+          type: string
+        message:
+          title: Message
+          type: string
+      required:
+      - code
+      - message
+      title: RoutedError
+      type: object
+    RoutedDocument:
+      properties:
+        doc_type:
+          title: Doc Type
+          type: string
+        pages:
+          items:
+            type: integer
+          title: Pages
+          type: array
+        status:
+          enum:
+          - success
+          - failed
+          title: Status
+          type: string
+        extraction_result:
+          anyOf:
+          - items:
+              additionalProperties: true
+              type: object
+            type: array
+          - type: 'null'
+          default: null
+          title: Extraction Result
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/RoutedError'
+          - type: 'null'
+          default: null
+      required:
+      - doc_type
+      - pages
+      - status
+      title: RoutedDocument
+      type: object
+    RoutedAppResult:
+      properties:
+        app_id:
+          title: App Id
+          type: string
+        app_name:
+          title: App Name
+          type: string
+        app_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          title: App Code
+        config_version:
+          title: Config Version
+          type: string
+        object_values:
+          items:
+            $ref: '#/components/schemas/RoutedDocument'
+          title: Object Values
+          type: array
+      required:
+      - app_id
+      - app_name
+      - config_version
+      title: RoutedAppResult
+      type: object
+    AppDocRoutedRequest:
+      additionalProperties: false
+      properties:
+        app_ids:
+          description: Candidate application IDs; their application names must also be unique, ignoring surrounding whitespace
+            and case.
+          items:
+            type: string
+          maxItems: 10
+          minItems: 1
+          title: App Ids
+          type: array
+        file_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          title: File Url
+        file_base64:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          title: File Base64
+        file_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          title: File Name
+        model_params:
+          $ref: '#/components/schemas/RoutedExtractionModelParams'
+      required:
+      - app_ids
+      title: AppDocRoutedRequest
+      type: object
+      oneOf:
+      - required:
+        - file_url
+        properties:
+          file_url:
+            type: string
+            minLength: 1
+            pattern: \S
+      - required:
+        - file_base64
+        properties:
+          file_base64:
+            type: string
+            minLength: 1
+            pattern: \S
+    RoutedExtractionModelParams:
+      additionalProperties: false
+      properties:
+        pages:
+          anyOf:
+          - items:
+              type: integer
+            maxItems: 260
+            minItems: 1
+            type: array
+          - type: 'null'
+          default: null
+          title: Pages
+        enable_highlight:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          default: null
+          description: 原文定位；本次所有子应用生效，省略/null沿用各自配置。
+          title: Enable Highlight
+        enable_field_value_translation:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          default: null
+          description: 字段值翻译；本次所有子应用生效，省略/null沿用各自配置。
+          title: Enable Field Value Translation
+        enable_confidence:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          default: null
+          description: 字段置信度评估；本次所有子应用生效，省略/null沿用各自配置。
+          title: Enable Confidence
+      title: RoutedExtractionModelParams
+      type: object
+    AppDocClassifyResponse:
+      properties:
+        task_id:
+          title: Task Id
+          type: string
+        status:
+          enum:
+          - pending
+          - running
+          - success
+          - failed
+          title: Status
+          type: string
+        app_id:
+          title: App Id
+          type: string
+        config_version:
+          title: Config Version
+          type: string
+        granularity:
+          const: page
+          default: page
+          title: Granularity
+          type: string
+        segments:
+          items:
+            $ref: '#/components/schemas/ClassificationSegment'
+          title: Segments
+          type: array
+        unclassified_pages:
+          items:
+            type: integer
+          title: Unclassified Pages
+          type: array
+        message:
+          default: ''
+          title: Message
+          type: string
+      required:
+      - task_id
+      - status
+      - app_id
+      - config_version
+      title: AppDocClassifyResponse
+      type: object
+    ClassificationSegment:
+      properties:
+        category_key:
+          title: Category Key
+          type: string
+        category_name:
+          title: Category Name
+          type: string
+        pages:
+          items:
+            type: integer
+          title: Pages
+          type: array
+      required:
+      - category_key
+      - category_name
+      - pages
+      title: ClassificationSegment
+      type: object
+    AppDocClassifyRequest:
+      additionalProperties: false
+      properties:
+        app_id:
+          minLength: 1
+          title: App Id
+          type: string
+        file_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          title: File Url
+        file_base64:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          title: File Base64
+        file_name:
+          default: ''
+          title: File Name
+          type: string
+        model_params:
+          $ref: '#/components/schemas/ClassificationModelParams'
+      required:
+      - app_id
+      title: AppDocClassifyRequest
+      type: object
+      oneOf:
+      - required:
+        - file_url
+        properties:
+          file_url:
+            type: string
+            minLength: 1
+            pattern: \S
+      - required:
+        - file_base64
+        properties:
+          file_base64:
+            type: string
+            minLength: 1
+            pattern: \S
+    ClassificationModelParams:
+      additionalProperties: false
+      properties:
+        pages:
+          anyOf:
+          - items:
+              type: integer
+            maxItems: 260
+            minItems: 1
+            type: array
+          - type: 'null'
+          default: null
+          title: Pages
+      title: ClassificationModelParams
+      type: object
+    ClassificationAppResponse:
+      properties:
+        app_id:
+          title: App Id
+          type: string
+        ai_function:
+          const: 1426
+          default: 1426
+          title: Ai Function
+          type: integer
+        app_name:
+          title: App Name
+          type: string
+        description:
+          default: ''
+          title: Description
+          type: string
+        config_version:
+          title: Config Version
+          type: string
+        classify_types:
+          items:
+            $ref: '#/components/schemas/ClassificationCategory'
+          title: Classify Types
+          type: array
+      required:
+      - app_id
+      - app_name
+      - config_version
+      - classify_types
+      title: ClassificationAppResponse
+      type: object
+    ClassificationAppUpdateRequest:
+      additionalProperties: false
+      properties:
+        app_id:
+          minLength: 1
+          title: App Id
+          type: string
+        ai_function:
+          const: 1426
+          default: 1426
+          title: Ai Function
+          type: integer
+        app_name:
+          default: null
+          description: 应用名称；不传则保留，传入时须为去除首尾空白后的1～50字符
+          maxLength: 50
+          minLength: 1
+          title: App Name
+          type: string
+        description:
+          anyOf:
+          - maxLength: 1500
+            type: string
+          - type: 'null'
+          default: null
+          title: Description
+        classify_types:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/ClassificationCategory'
+            maxItems: 10
+            minItems: 1
+            type: array
+          - type: 'null'
+          default: null
+          title: Classify Types
+      required:
+      - app_id
+      title: ClassificationAppUpdateRequest
+      type: object
+    ClassificationAppCreateRequest:
+      additionalProperties: false
+      properties:
+        ai_function:
+          const: 1426
+          title: Ai Function
+          type: integer
+        app_name:
+          description: 应用名称；去除首尾空白后为1～50字符
+          maxLength: 50
+          minLength: 1
+          title: App Name
+          type: string
+        description:
+          default: ''
+          maxLength: 1500
+          title: Description
+          type: string
+        classify_types:
+          items:
+            $ref: '#/components/schemas/ClassificationCategory'
+          maxItems: 10
+          minItems: 1
+          title: Classify Types
+          type: array
+      required:
+      - ai_function
+      - app_name
+      - classify_types
+      title: ClassificationAppCreateRequest
+      type: object
+    ClassificationCategory:
+      additionalProperties: false
+      properties:
+        category_key:
+          pattern: ^[A-Za-z][A-Za-z0-9_]{0,63}$
+          title: Category Key
+          type: string
+        type_name:
+          maxLength: 100
+          minLength: 1
+          title: Type Name
+          type: string
+        description:
+          anyOf:
+          - maxLength: 1500
+            type: string
+          - type: 'null'
+          default: null
+          title: Description
+      required:
+      - category_key
+      - type_name
+      title: ClassificationCategory
+      type: object
+    CustomFieldFormat:
+      type: object
+      additionalProperties: false
+      required:
+      - mode
+      - instruction
+      properties:
+        mode:
+          type: string
+          const: custom
+        instruction:
+          type: string
+          minLength: 1
+          description: 非空自然语言输出要求，建议使用样本验证。
+    DatePresetFormat:
+      type: object
+      additionalProperties: false
+      required:
+      - mode
+      - preset
+      properties:
+        mode:
+          type: string
+          const: preset
+        preset:
+          type: string
+          enum:
+          - date_iso
+          - date_slash
+          - date_cn
+          - datetime
+          description: YYYY-MM-DD / YYYY/MM/DD / YYYY年MM月DD日 / YYYY-MM-DD HH:mm:ss
+    NumberPresetFormat:
+      type: object
+      additionalProperties: false
+      required:
+      - mode
+      - preset
+      properties:
+        mode:
+          type: string
+          const: preset
+        preset:
+          type: string
+          enum:
+          - integer
+          - decimal
+          - grouped_integer
+          - grouped_decimal
+        decimal_places:
+          type: integer
+          minimum: 0
+          description: 仅decimal/grouped_decimal可用，省略默认2，允许0。整数预置不填写。
+        rounding:
+          type: string
+          enum:
+          - half_up
+          - truncate
+          default: half_up
+          description: half_up四舍五入；truncate向零截断。
+      allOf:
+      - if:
+          properties:
+            preset:
+              enum:
+              - integer
+              - grouped_integer
+        then:
+          not:
+            required:
+            - decimal_places
+    FieldFormat:
+      oneOf:
+      - $ref: '#/components/schemas/NumberPresetFormat'
+      - $ref: '#/components/schemas/DatePresetFormat'
+      - $ref: '#/components/schemas/CustomFieldFormat'
+    InvoiceTicketGroup:
+      type: object
+      properties:
+        field_key:
+          type: string
+          enum:
+          - invoice_tickets
+          - receipt_tickets
+        field_name:
+          type: string
+          enum:
+          - invoice
+          - receipt
+        object_values:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceTicketResult'
+    InvoiceTicketResult:
+      type: object
+      additionalProperties: true
+      properties:
+        ticket_id:
+          type:
+          - string
+          - 'null'
+        ticket_index:
+          type:
+          - integer
+          - 'null'
+        doc_type:
+          type: string
+          enum:
+          - invoice
+          - receipt
+        pages:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+        page_regions:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        extraction_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtractionField'

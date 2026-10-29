@@ -1,0 +1,95 @@
+---
+title: Standalone document classification
+description: Classify documents through a standalone API and receive categories and
+  original pages per document instance.
+---
+
+Classify documents through a standalone API and receive categories and original pages per document instance.
+
+## 1. Create a classification app
+
+```json
+{
+  "ai_function": 1426,
+  "app_name": "业务材料分类",
+  "classify_types": [
+    {
+      "category_key": "contract",
+      "type_name": "采购合同",
+      "description": "采购合同正文及签署页"
+    },
+    {
+      "category_key": "invoice",
+      "type_name": "发票"
+    }
+  ]
+}
+```
+
+Call POST /v1/app-manage/create with ai_function=1426 and 1–10 classify_types. category_key is a unique stable identifier up to 64 characters, starting with an English letter followed by letters, digits or underscores. type_name is trimmed, 1–100 characters, unique ignoring case, and cannot be UNCLASSIFIED. App/category descriptions are optional up to 1500 characters. Classification apps do not currently accept app_code.
+
+## 2. Submit classification
+
+```json
+{
+  "app_id": "c59abf0e24d84789930a41e4de6e1c7b",
+  "file_url": "https://files.example.com/materials.pdf",
+  "model_params": {
+    "pages": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  }
+}
+```
+
+```json
+{
+  "code": "success",
+  "message": "",
+  "data": {
+    "task_id": "b2140f5fc6434e428caf35df0abf7862",
+    "status": "success",
+    "app_id": "c59abf0e24d84789930a41e4de6e1c7b",
+    "config_version": "v1",
+    "granularity": "page",
+    "segments": [
+      {
+        "category_key": "contract",
+        "category_name": "采购合同",
+        "pages": [
+          1,
+          2
+        ]
+      },
+      {
+        "category_key": "contract",
+        "category_name": "采购合同",
+        "pages": [
+          3
+        ]
+      },
+      {
+        "category_key": "invoice",
+        "category_name": "发票",
+        "pages": [
+          4
+        ]
+      }
+    ],
+    "unclassified_pages": [
+      5
+    ],
+    "message": ""
+  }
+}
+```
+
+Provide exactly one of file_url and file_base64. PDF/PNG/JPEG, at most 100 MB and 260 original pages, even when selecting a subset. Each segment represents one document instance, and a page may match multiple categories. All-unmatched input succeeds with empty segments and populated unclassified_pages. No downloadable split files or page-region coordinates are generated.
+
+## 3. Update and asynchronous calls
+
+Replace the full classify_types list through update to create a revision. Creation/category updates take effect immediately without publishing; metadata-only updates do not create revisions. Omit unchanged values, use an empty description to clear, and do not send explicit null. Config queries support historical versions. Accepted tasks retain their configuration. Async creation accepts the sync request and query states are pending/running/success/failed. Sync task IDs do not automatically create queryable async tasks. Billing counts selected original pages once, even when a page matches several categories.

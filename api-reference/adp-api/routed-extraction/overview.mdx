@@ -1,0 +1,103 @@
+---
+title: 自动分类路由抽取接入
+description: 按应用名称及描述分类，将每份文档实例交给对应应用抽取，合并返回结果。
+---
+
+按应用名称及描述分类，将每份文档实例交给对应应用抽取，合并返回结果。
+
+## 准备应用
+
+候选应用限1425高速自定义抽取、1423海外发票高速版、1424东南亚版。通过创建应用接口设置名称与可选description，并保存app_id。一次最多10个候选，ID不可重复，名称去除首尾空格后不区分大小写判重。同页可以命中多个应用，相同应用的不同文档实例分开抽取。
+
+## 同步调用
+```json
+{
+  "app_ids": [
+    "8f4b2c506df811f1a3d90242ac120002",
+    "a169e8d06df811f19b5e0242ac120002"
+  ],
+  "file_url": "https://files.example.com/materials.pdf",
+  "model_params": {
+    "pages": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "enable_highlight": true,
+    "enable_field_value_translation": false,
+    "enable_confidence": true
+  }
+}
+```
+
+```json
+{
+  "code": "success",
+  "message": "",
+  "data": {
+    "task_id": "b2140f5fc6434e428caf35df0abf7862",
+    "status": "success",
+    "granularity": "page",
+    "extraction_result": [
+      {
+        "app_id": "8f4b2c506df811f1a3d90242ac120002",
+        "app_name": "采购合同",
+        "app_code": "purchase_contract",
+        "config_version": "v1",
+        "object_values": [
+          {
+            "doc_type": "采购合同",
+            "pages": [
+              1,
+              2
+            ],
+            "status": "success",
+            "extraction_result": [
+              {
+                "field_key": "contract_no",
+                "field_name": "合同编号",
+                "field_values": [
+                  {
+                    "field_value": "HT-001"
+                  }
+                ]
+              },
+              {
+                "field_key": "contract_amount",
+                "field_name": "合同金额",
+                "field_values": [
+                  {
+                    "field_value": "12,345.68",
+                    "field_confidence": 0.96
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "doc_type": "采购合同",
+            "pages": [
+              3
+            ],
+            "status": "success",
+            "extraction_result": []
+          }
+        ]
+      }
+    ],
+    "unclassified_pages": [
+      5
+    ]
+  }
+}
+```
+
+file_url/file_base64二选一；PDF/PNG/JPEG最大100 MB、原文件最多260页。pages使用从1开始、不重复的原始页码。三个临时开关放在model_params与pages同级，作用于本次所有子应用及实例；省略或null分别沿用各应用所选配置，true/false临时覆盖，不修改应用、不生成版本。
+
+## 结果与异步调用
+
+extraction_result按应用分组，object_values每项是一份文档实例，pages始终引用原文件。每份实例只返回一份抽取结果，不重复提供tickets或instance_id。失败实例带error，保留其他成功结果；未匹配页放unclassified_pages。全部成功为success，部分失败partial_success，全部抽取失败failed；全部未分类仍为success且结果为空。上例省略了发票结果和部分字段，仅用于展示结构。
+
+异步创建与同步请求相同；先返回task_id和pending，再查询running/success/partial_success/failed。任务受理后应用配置与临时开关保持不变。同步task_id用于关联调用，不代表生成了可查询的异步任务。

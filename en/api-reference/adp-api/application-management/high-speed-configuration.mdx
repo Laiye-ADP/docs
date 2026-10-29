@@ -1,0 +1,214 @@
+---
+title: High-speed extraction configuration
+description: Create and manage a 1425 high-speed custom extraction app with scalar
+  fields, table columns and output formats.
+---
+
+Create and manage a 1425 high-speed custom extraction app with scalar fields, table columns and output formats.
+
+## Create: three scalar fields and two tables
+
+Use the create application endpoint. Optional description (1500 characters) supports classification. Optional app_code is limited to 64 characters, has no character-pattern restriction and is case-sensitive unique per tenant/owner; it is not an API Key. App names must be 1–50 characters after trimming.
+```json
+{
+  "app_name": "采购合同",
+  "app_code": "purchase_contract",
+  "ai_function": 1425,
+  "description": "采购合同正文及签署页，不包含发票或付款凭证",
+  "extract_fields": [
+    {
+      "field_key": "contract_no",
+      "field_name": "合同编号",
+      "field_type": "string",
+      "field_prompt": "提取合同编号"
+    },
+    {
+      "field_key": "contract_amount",
+      "field_name": "合同金额",
+      "field_type": "number",
+      "field_prompt": "提取合同总金额",
+      "format": {
+        "mode": "preset",
+        "preset": "grouped_decimal",
+        "decimal_places": 2,
+        "rounding": "half_up"
+      }
+    },
+    {
+      "field_key": "signed_at",
+      "field_name": "签署日期",
+      "field_type": "date",
+      "field_prompt": "提取合同签署日期",
+      "format": {
+        "mode": "preset",
+        "preset": "date_iso"
+      }
+    },
+    {
+      "field_key": "purchase_items",
+      "field_name": "采购明细",
+      "field_type": "table",
+      "sub_fields": [
+        {
+          "field_key": "item_name",
+          "field_name": "商品名称",
+          "field_type": "string",
+          "field_prompt": "提取每一行的商品名称"
+        },
+        {
+          "field_key": "item_amount",
+          "field_name": "明细金额",
+          "field_type": "number",
+          "field_prompt": "提取每一行的金额",
+          "format": {
+            "mode": "preset",
+            "preset": "grouped_decimal",
+            "decimal_places": 2,
+            "rounding": "half_up"
+          }
+        },
+        {
+          "field_key": "delivery_date",
+          "field_name": "交付日期",
+          "field_type": "date",
+          "field_prompt": "提取每一行约定的交付日期",
+          "format": {
+            "mode": "preset",
+            "preset": "date_iso"
+          }
+        }
+      ]
+    },
+    {
+      "field_key": "payment_schedule",
+      "field_name": "付款计划",
+      "field_type": "table",
+      "sub_fields": [
+        {
+          "field_key": "payment_stage",
+          "field_name": "付款阶段",
+          "field_type": "string",
+          "field_prompt": "提取每一行的付款阶段"
+        },
+        {
+          "field_key": "payment_amount",
+          "field_name": "应付金额",
+          "field_type": "number",
+          "field_prompt": "提取每一行应付的金额",
+          "format": {
+            "mode": "preset",
+            "preset": "grouped_decimal",
+            "decimal_places": 2,
+            "rounding": "half_up"
+          }
+        },
+        {
+          "field_key": "payment_date",
+          "field_name": "付款日期",
+          "field_type": "date",
+          "field_prompt": "提取每一行约定的付款日期",
+          "format": {
+            "mode": "preset",
+            "preset": "date_iso"
+          }
+        }
+      ]
+    }
+  ],
+  "enable_highlight": true,
+  "enable_field_value_translation": false,
+  "enable_confidence": true
+}
+```
+
+Keys are unique across all scalars, tables and columns, ignoring case. Names may repeat across tables or between columns and scalars. Maximum 50 top-level fields and 30 columns per table. A column type defaults to string when omitted. field_prompt supports up to 3000 characters for both scalars and columns.
+
+## Field output formats
+
+| Property | Applies to | Meaning |
+| --- | --- | --- |
+| `format.mode` | Required with format | `preset` or `custom` |
+| `format.preset` | Required for preset | Identifier below, matching the number/date field type |
+| `format.decimal_places` | Optional for decimal/grouped_decimal | Nonnegative integer; default 2. Omit for integer presets |
+| `format.rounding` | Optional for numeric presets | `half_up` rounds ties away from zero; `truncate` truncates toward zero; default half_up |
+| `format.instruction` | Required for custom | Nonblank natural-language requirement; do not combine with preset properties |
+
+| Type | preset | Example output |
+| --- | --- | --- |
+| number | integer | `12346` |
+| number | decimal | `12345.68` |
+| number | grouped_integer | `12,346` |
+| number | grouped_decimal | `12,345.68` |
+| date | date_iso | `2026-03-07` |
+| date | date_slash | `2026/03/07` |
+| date | date_cn | `2026年03月07日` |
+| date | datetime | `2026-03-07 15:04:05` |
+
+Numeric examples use 12345.678 and two decimal places; date examples use a complete timestamp. Configure format only on number/date scalars and columns. Omission preserves the extracted value; on update, omitted format inherits the same-key/same-type setting and null clears it. If conversion is unreliable, retain the value and report FORMAT_FALLBACK with field keys in the outer message. A formatting fallback alone does not fail the instance.
+```json
+{
+  "field_key": "payment_date",
+  "field_name": "Payment date",
+  "field_type": "date",
+  "format": {
+    "mode": "custom",
+    "instruction": "Do not zero-pad month or day"
+  }
+}
+```
+
+## Saved switches and per-call overrides
+
+New 1425 apps default enable_highlight, enable_field_value_translation and enable_confidence to false. On configuration updates, omitted/null inherits the reference version; false disables. Switch-only updates also create a config version. For single-app sync/async extraction, per-call switches are top-level; for routed extraction, they are inside model_params alongside pages and affect all children. Omitted/null inherits each app setting; true/false applies only to that call and never saves a config/version.
+```json
+{
+  "app_id": "8f4b2c506df811f1a3d90242ac120002",
+  "file_url": "https://files.example.com/materials.pdf",
+  "enable_highlight": true,
+  "enable_field_value_translation": false,
+  "enable_confidence": true
+}
+```
+Source location uses field_values[].references with original page numbers, search_text and points; unavailable locations may contain source text only. Translation is separate in field_value_translation, leaving field_value unchanged; accept-language determines the target language. field_confidence is 0–1 when evaluated; defaults returned while evaluation is off are not evaluated scores.
+```json
+{
+  "field_key": "item_name",
+  "field_values": [
+    {
+      "field_value": "办公用品",
+      "field_value_translation": "Office supplies",
+      "field_confidence": 0.96,
+      "references": [
+        {
+          "page_no": 1,
+          "search_text": "办公用品",
+          "points": [
+            {
+              "x": 100,
+              "y": 200
+            },
+            {
+              "x": 300,
+              "y": 200
+            },
+            {
+              "x": 300,
+              "y": 240
+            },
+            {
+              "x": 100,
+              "y": 240
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Update, query and publish
+
+Changing only app_name, description or app_code does not create a version. Send the complete extract_fields for field changes; omitted switches inherit the reference. Every successful update returns config_version: latest saved for metadata changes, newly created for fields/switches, or null without config. This is not the published version. Config queries nest table columns under sub_fields. Publishing is optional: calls prefer a published configuration, or the latest valid draft when never published. Type 1426 category updates take effect immediately and do not use extraction publishing.
+
+1425 missing scalars and missing cells in existing rows return an empty-string field_value; absent tables return table_values=[] without fabricated rows.

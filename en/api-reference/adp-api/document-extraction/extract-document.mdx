@@ -1,5 +1,95 @@
 ---
-title: "Extract document (sync)"
-sidebarTitle: "Extract document (sync)"
-openapi: "/en/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract"
+title: Extract document (sync)
+sidebarTitle: Extract document (sync)
+openapi: /en/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract
+description: Single-app synchronous and asynchronous extraction share the request
+  body below, including file input, compatibility and capability-specific options.
 ---
+
+Single-app synchronous and asynchronous extraction share the request body below, including file input, compatibility and capability-specific options.
+
+## App identity and file input compatibility
+
+New integrations should send `app_id` and one file source (`file_url` or `file_base64`). A legacy `app_key`/`app_secret` pair is also accepted, and still requires the `X-API-Key` header. `app_code` is not a credential. Avoid mixing app identities: a complete key/secret pair takes precedence over app_id.
+
+Legacy single-app requests with both usable URL and Base64 prioritize Base64; a request with no usable source fails. Send one source in new integrations. This compatibility does not apply to standalone classification or routing, which require exactly one file source. Unknown top-level fields may be ignored and do not activate new features.
+```json
+{
+  "app_key": "YOUR_LEGACY_APP_KEY",
+  "app_secret": "YOUR_LEGACY_APP_SECRET",
+  "file_url": "https://files.example.com/materials.pdf"
+}
+```
+
+## model_params applicability
+
+| Parameter | Applicability and behavior |
+| --- | --- |
+| `scale` | Image-page conversion scale, default 1; not guaranteed to affect native XLSX/Markdown |
+| `pages` | Original pages; native Markdown has logical page 1 only |
+| `disable_collaboration` | Sync defaults to 1; 1425 forces 1 for sync/async and cannot enable human collaboration |
+| `keep_content` | Retain inline content when classic extraction returns large recognition results by URL; does not enable recognition output for 1425 |
+| `page_task_timeout_seconds` | Per-page large recognition result preparation/upload timeout, not inference or total extraction timeout |
+| `card_type` | Card-capable applications only; explicit top-level card_type wins |
+| `enable_multi_ticket` | Multi-ticket-capable apps only; explicit top-level value wins, default true when both omitted |
+| `temperature` / `top_p` / `max_tokens` | Accepted extra keys are not necessarily effective controls. Current 1425/1423/1424 do not use these keys to override call configuration; do not depend on their effect |
+
+Single-app source-location, translation and confidence overrides remain top-level; only routing places these three switches inside model_params. Parameters do not grant unsupported application capabilities.
+
+## Native XLSX and Markdown
+
+Do not apply classification/routing's PDF/PNG/JPEG-only restriction to all single-app extraction. Classic custom extraction, 1425 and 1423/1424 have native XLSX/Markdown entry points, subject to deployed version and capability authorization. Include the correct file_name extension for Base64 input.
+
+Markdown is one logical page for the complete source; select page 1 only. Separator lines do not create pages, and linked images are not fetched for separate recognition. XLSX processing units count visible sheets and embedded image instances; use spreadsheet_billing for the actual count. Results may include a native-preview manifest URL. 1425 does not return recognition output even with with_rec_result=true.
+```json
+{
+  "app_id": "8f4b2c506df811f1a3d90242ac120002",
+  "file_url": "https://files.example.com/contracts.xlsx",
+  "file_name": "contracts.xlsx",
+  "enable_highlight": true
+}
+```
+
+```json
+{
+  "code": "success",
+  "message": "",
+  "data": {
+    "task_id": "b2140f5fc6434e428caf35df0abf7862",
+    "status": 4,
+    "extract_config_version": "v1",
+    "extraction_result": [
+      {
+        "field_key": "contract_no",
+        "field_name": "Contract number",
+        "field_values": [
+          {
+            "field_value": "HT-001"
+          }
+        ]
+      }
+    ],
+    "doc_recognize_result": [],
+    "spreadsheet_manifest_file_id": "5a0b2a506df811f1a3d90242ac120002",
+    "spreadsheet_manifest_url": "https://files.example.com/contracts-manifest.json",
+    "spreadsheet_billing": {
+      "unit_type": "excel_equivalent_page",
+      "units": 2,
+      "metric_version": "excel-v1",
+      "visible_sheet_count": 2,
+      "embedded_image_instance_count": 0
+    },
+    "metadata": {
+      "spreadsheet_billing": {
+        "unit_type": "excel_equivalent_page",
+        "units": 2,
+        "metric_version": "excel-v1",
+        "visible_sheet_count": 2,
+        "embedded_image_instance_count": 0
+      }
+    }
+  }
+}
+```
+
+The example shows selected fields only. Manifest fields are usually empty strings for image/PDF input. For field/table formatting, see [High-speed configuration](/en/api-reference/adp-api/application-management/high-speed-configuration).

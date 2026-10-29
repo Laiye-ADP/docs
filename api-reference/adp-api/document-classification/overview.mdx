@@ -1,0 +1,94 @@
+---
+title: 独立文档分类接入
+description: 将文档分类作为独立API调用，返回文档实例所属类别和原始页码。
+---
+
+将文档分类作为独立API调用，返回文档实例所属类别和原始页码。
+
+## 1. 创建分类应用
+
+```json
+{
+  "ai_function": 1426,
+  "app_name": "业务材料分类",
+  "classify_types": [
+    {
+      "category_key": "contract",
+      "type_name": "采购合同",
+      "description": "采购合同正文及签署页"
+    },
+    {
+      "category_key": "invoice",
+      "type_name": "发票"
+    }
+  ]
+}
+```
+
+调用POST /v1/app-manage/create。ai_function固定1426，classify_types为1～10类；category_key为英文字母开头、后续字母数字下划线、最长64字符的稳定标识且不可重复。type_name去除首尾空白后1～100字符、不区分大小写判重，不可使用UNCLASSIFIED。应用与类别description可省略，最长1500字符。分类应用当前不接受app_code。
+
+## 2. 提交分类
+
+```json
+{
+  "app_id": "c59abf0e24d84789930a41e4de6e1c7b",
+  "file_url": "https://files.example.com/materials.pdf",
+  "model_params": {
+    "pages": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  }
+}
+```
+
+```json
+{
+  "code": "success",
+  "message": "",
+  "data": {
+    "task_id": "b2140f5fc6434e428caf35df0abf7862",
+    "status": "success",
+    "app_id": "c59abf0e24d84789930a41e4de6e1c7b",
+    "config_version": "v1",
+    "granularity": "page",
+    "segments": [
+      {
+        "category_key": "contract",
+        "category_name": "采购合同",
+        "pages": [
+          1,
+          2
+        ]
+      },
+      {
+        "category_key": "contract",
+        "category_name": "采购合同",
+        "pages": [
+          3
+        ]
+      },
+      {
+        "category_key": "invoice",
+        "category_name": "发票",
+        "pages": [
+          4
+        ]
+      }
+    ],
+    "unclassified_pages": [
+      5
+    ],
+    "message": ""
+  }
+}
+```
+
+file_url与file_base64必须且只能提供一个。支持PDF/PNG/JPEG，最大100 MB，原文件最多260页；只处理部分页时原文件仍须满足限额。每个segment是一份文档实例，允许同页命中多个类别；所有页未匹配仍为success，segments为空并列出unclassified_pages。不生成拆分下载文件，不返回页内坐标。
+
+## 3. 更新与异步调用
+
+通过update提交完整classify_types生成新版本，创建/类别更新后立即生效，无需发布；只改名称/应用描述不生成版本。修改时不传保留，description空字符串清空，不接受显式null。config接口可读取指定历史版本。已受理任务保持原配置。异步创建与同步入参相同，查询状态为pending/running/success/failed；同步task_id不自动形成可查询的异步任务。计费按实际选定原始页数，同页命中多个类别不重复计页。

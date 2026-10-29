@@ -1,5 +1,54 @@
 ---
-title: "Export workflow runs (Limited preview)"
-sidebarTitle: "Export workflow runs (Limited preview)"
-openapi: "/en/api-reference/adp-api.yaml POST /open/agentic_engine/laiye/v1/app/runs/export"
+title: Export workflow runs (Limited preview)
+sidebarTitle: Export workflow runs (Limited preview)
+openapi: /en/api-reference/adp-api.yaml POST /open/agentic_engine/laiye/v1/app/runs/export
+description: Export runs triggered by the current account in the current tenant for
+  the specified application. This endpoint remains restricted preview.
 ---
+
+Export runs triggered by the current account in the current tenant for the specified application. This endpoint remains restricted preview.
+
+<Warning>
+A valid API Key is required. No administrator role is required, but knowing application_id or run_id does not grant access to another user's runs. Protect downloaded business data at its original sensitivity level.
+</Warning>
+
+| report_mode | Formats | Result |
+| --- | --- | --- |
+| merged | excel/word/markdown/html/json | One merged file |
+| per_run | excel/word/markdown/html/json | Per-run files in a ZIP |
+| task_data | excel/json | One task's saved business data, without attachments |
+| task_package | word/markdown/html | One task report and authorized attachments in a ZIP |
+
+## Run selection and filtering
+
+For merged/per_run, omitted/null/empty run_ids selects eligible current-user runs for this app, successful runs by default. Explicit IDs are recommended to bound scope. More than 200 selected runs fails instead of silently truncating. include_failed_runs=true includes non-success runs; entries without exportable content can still be skipped. Generic exports are limited to 500000 rows.
+
+node_ids, node_types and variable_filters are generic-mode filters; variable_filters matches run inputs and supports dotted paths. primary_key_variable selects an input variable as export key; max_text_length defaults to 10000 with a range of 1–30000.
+
+## Single-task export
+
+task_data/task_package requires exactly one nonblank run ID and disallows nonempty node, node-type or input-variable filters. The task must be terminal with saved exportable business results; failed/cancelled tasks qualify only when those results were retained. Optional locale is zh-CN or en-US and defaults to the saved run display locale; it does not rerun extraction or retranslate values. task_package must explicitly select word/markdown/html.
+```json
+{
+  "application_id": "app_workflow",
+  "run_ids": [
+    "run_example"
+  ],
+  "report_mode": "task_data",
+  "format": "json",
+  "locale": "en-US"
+}
+```
+
+```json
+{
+  "application_id": "app_workflow",
+  "run_ids": [
+    "run_example"
+  ],
+  "report_mode": "task_package",
+  "format": "html"
+}
+```
+
+The result includes file_id, download_url, filename, file_size, format, report_mode and run counts. Download URLs are temporary with deployment-dependent lifetime; do not treat them as permanent storage.

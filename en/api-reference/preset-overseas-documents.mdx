@@ -24,20 +24,22 @@ GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{tas
 | --- | --- | --- | --- |
 | `tenant_name` | string | Yes | Tenant name. Default: `laiye`. |
 | `accept-language` | string | Optional | Language for returned field names. The default is `en`. Set it to `zh` for Chinese field names. This header also determines the target language for field-value translation. |
-| `app_id` | string | Yes | Preset application ID. High-speed (global) is selected by default; you can also select the Southeast Asia or standard version. |
+| `app_id` | string | Yes | A system preset app ID or a 1423/1424 app ID returned by create. High-speed (global) remains the default preset. |
 | `file_base64` | string | Optional | Base64 content of the file. Use either `file_base64` or `file_url`. |
 | `file_url` | string | Optional | Online file URL. Use either `file_url` or `file_base64`. Only HTTP URLs are supported. |
 | `file_name` | string | Optional | File name. Provide it for Base64 input or when the name cannot be determined from the URL. |
 | `enable_multi_ticket` | boolean | Optional | Whether to split multiple invoices or receipts in one file into separate results. Default: `true`. Only the high-speed (global) and Southeast Asia versions support this option. It applies only to the current request. |
 | `enable_field_value_translation` | boolean | Optional | Whether to enable field-value translation for the current request. If omitted, the saved application setting is used. Passing this option does not modify the application configuration. The `accept-language` header determines the target language. |
+| `enable_highlight` | boolean | Optional | High-speed/global and Southeast Asia only: source locations for this call; omitted/null inherits the app. |
+| `enable_confidence` | boolean | Optional | High-speed/global and Southeast Asia only: confidence evaluation for this call; omitted/null inherits the app. |
 
 ## Result enhancement settings
 
-The high-speed (global) and Southeast Asia versions support the following result enhancement settings. Configure application-level settings in the ADP Console. API calls use the application's current saved settings.
+The high-speed (global) and Southeast Asia versions support the following result enhancement settings. Configure application-level settings in the ADP Console. API calls default to saved app settings; three per-call switches can override this request.
 
 | Feature | Initial default | Configuration method | Description |
 | --- | --- | --- | --- |
-| Show source locations | Off | Application settings in the ADP Console | Preserve each field's location in the source document and include source information in extraction results for review and traceability. Enabling this setting increases processing time. |
+| Show source locations | Off | Console or `enable_highlight` request parameter | Preserve each field's location in the source document and include source information in extraction results for review and traceability. Enabling this setting increases processing time. |
 | Calculate confidence scores | Off | Application settings in the ADP Console | Calculate field-level confidence scores and include them in extraction results. Enabling this setting increases processing time. |
 | Post-process field values | Off | Application settings in the ADP Console | Normalize common field values such as dates, numeric amounts, and tax rates. |
 | Multiple invoices in one file | On | Request field `enable_multi_ticket` | Split multiple invoices or receipts in one file into separate results. Enable or disable this behavior for the current request. |
@@ -46,7 +48,6 @@ The high-speed (global) and Southeast Asia versions support the following result
 <Note>
   Show source locations, calculate confidence scores, and post-process field values are not request fields for the document extraction API. Do not add them directly to the request body. Configure them in the application's settings in the ADP Console.
 </Note>
-
 ## Version selection
 
 All three versions use the same synchronous and asynchronous endpoints. Select a version with `app_id`.
@@ -57,46 +58,197 @@ All three versions use the same synchronous and asynchronous endpoints. Select a
 | Southeast Asia | `ootb_u2v5w8x1y4z7a0b3c6d9e2f5g8` | Designed for Southeast Asian invoices and receipts, with additional payer-country, withholding-tax, and line-level withholding-tax fields. |
 | Standard | `ootb_a3f8h1j5k9n2p7q4w6x0y3b5c8d1` | Uses standard extraction for global invoices and receipts. |
 
-## Fields
 
-The following table summarizes the fields that may be returned. Actual fields depend on the selected `app_id` and document content.
+## Returned fields
 
-| Field | Type | Notes |
+The following are default 1423/1424 fields. Read values by field_key; field_name depends on language and saved configuration. Receipt number/date are scalar fields, not line-item columns. Classic and historical custom configurations may differ.
+
+| field_key | Meaning | Applies to |
 | --- | --- | --- |
-| Country Code | Text |  |
-| Invoice Number | Text |  |
-| Invoice Date | Text |  |
-| Supplier Name | Text |  |
-| Supplier Address | Text |  |
-| Supplier VAT Number | Text |  |
-| Supplier Phone | Text |  |
-| Customer Name | Text |  |
-| Customer Address | Text |  |
-| Customer VAT Number | Text |  |
-| Customer Phone | Text |  |
-| Payer Country | Text | SEA version only |
-| Currency | Text |  |
-| Total Without Tax | Text |  |
-| VAT Rate | Text |  |
-| VAT Amount | Text |  |
-| Total Tax | Text |  |
-| Total Amount | Text |  |
-| Amount Due | Text |  |
-| Supplier Bank Name | Text |  |
-| Supplier Account Number | Text |  |
-| WHT Type | Text | SEA version only |
-| WHT Rate | Text | SEA version only |
-| WHT Amount | Text | SEA version only |
-| Line Items | Table |  |
-| Item Code | Table subfield |  |
-| Description | Table subfield |  |
-| Quantity | Table subfield |  |
-| Unit Price | Table subfield |  |
-| Tax Rate | Table subfield |  |
-| Tax Amount | Table subfield |  |
-| Line WHT Rate | Table subfield | SEA version only |
-| Line WHT Tax | Table subfield | SEA version only |
-| Total Amount | Table subfield |  |
-| Receipt Number | Table subfield |  |
-| Receipt Date | Table subfield |  |
-| Total Amount (Inc. Tax) | Table subfield |  |
+| `country_code` | Country | 1423/1424 invoice/receipt |
+| `invoice_number` | Invoice number | 1423/1424 invoice |
+| `invoice_date` | Invoice date | 1423/1424 invoice |
+| `supplier_name` | Supplier Name | 1423/1424 invoice/receipt |
+| `supplier_vat_address` | Supplier address | 1423/1424 invoice/receipt |
+| `supplier_vat_number` | Supplier VAT number | 1423/1424 invoice/receipt |
+| `supplier_phone` | Supplier Phone | 1423/1424 invoice/receipt |
+| `customer_name` | Customer Name | 1423/1424 invoice/receipt |
+| `customer_address` | Customer Address | 1423/1424 invoice/receipt |
+| `customer_vat_number` | Customer VAT number | 1423/1424 invoice/receipt |
+| `customer_phone` | Customer Phone | 1423/1424 invoice/receipt |
+| `currency` | Currency | 1423/1424 invoice/receipt |
+| `total_without_tax` | Total before tax | 1423/1424 invoice/receipt |
+| `vat_rate` | VAT rate | 1423/1424 invoice/receipt |
+| `vat_amount` | VAT amount | 1423/1424 invoice/receipt |
+| `total_tax` | Total tax | 1423/1424 invoice/receipt |
+| `total_amount` | Total amount (incl. tax) | 1423/1424 invoice |
+| `amount_due` | Amount due | 1423/1424 invoice/receipt |
+| `supplier_bank_name` | Supplier Bank Name | 1423/1424 invoice/receipt |
+| `supplier_account_number` | Supplier Account Number | 1423/1424 invoice/receipt |
+| `line_items` | Line items (table; rows in table_values) | 1423/1424 invoice/receipt |
+| `receipt_number` | Receipt number | 1423/1424 receipt |
+| `receipt_date` | Receipt date | 1423/1424 receipt |
+| `total_amount_inc_tax` | Total amount (incl. tax) | 1423/1424 receipt |
+| `payer_country` | Payer Country | 1424 invoice/receipt |
+| `wht_type` | Withholding tax type | 1424 invoice/receipt |
+| `wht_rate` | Withholding tax rate | 1424 invoice/receipt |
+| `wht_amount` | Withholding tax amount | 1424 invoice/receipt |
+
+### line_items columns
+
+| Column field_key | Meaning | Versions |
+| --- | --- | --- |
+| `line_items_item_code` | Item Code | 1423/1424 |
+| `line_items_description` | Description | 1423/1424 |
+| `line_items_quantity` | Quantity | 1423/1424 |
+| `line_items_unit_price` | Unit Price | 1423/1424 |
+| `line_items_rate` | Rate | 1423/1424 |
+| `line_items_tax` | Tax | 1423/1424 |
+| `line_items_total_amount` | Total Amount | 1423/1424 |
+| `line_items_wht_rate` | Wht Rate | 1424 |
+| `line_items_wht_tax` | Wht Tax | 1424 |
+
+
+## Per-call overrides and routing
+
+For a single-app request, enable_highlight, enable_field_value_translation and enable_confidence are top-level. true/false applies only to this call without saving config; omitted/null inherits the app. The new routed endpoint instead places these switches inside model_params beside pages and supports 1425/1423/1424 apps.
+
+[Routed extraction guide](/en/api-reference/adp-api/routed-extraction/overview)
+
+
+## Legacy single-app multi-ticket results
+
+With enable_multi_ticket, extraction_result groups invoices/receipts under invoice_tickets/receipt_tickets and each object_values entry is one ticket. tickets is the flat projection of the same results: consume one projection, not both. This is not double extraction or billing. ticket_count counts tickets and page_labels maps pages to them. These properties may be null for non-multi-ticket results. The new routed API does not duplicate results as tickets; do not mix the two response contracts.
+```json
+{
+  "code": "success",
+  "message": "",
+  "tips": null,
+  "data": {
+    "task_id": "b2140f5fc6434e428caf35df0abf7862",
+    "file_url": "",
+    "status": 4,
+    "message": "",
+    "extract_config_version": "v1",
+    "extraction_result": [
+      {
+        "field_key": "invoice_tickets",
+        "field_name": "invoice",
+        "object_values": [
+          {
+            "ticket_id": "invoice-1-1",
+            "ticket_index": 1,
+            "doc_type": "invoice",
+            "pages": [
+              1,
+              2
+            ],
+            "page_regions": [],
+            "extraction_result": [
+              {
+                "field_key": "invoice_number",
+                "field_name": "invoice_number",
+                "field_values": [
+                  {
+                    "field_value": "INV-2026-001"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "field_key": "receipt_tickets",
+        "field_name": "receipt",
+        "object_values": [
+          {
+            "ticket_id": "receipt-2-3",
+            "ticket_index": 2,
+            "doc_type": "receipt",
+            "pages": [
+              3
+            ],
+            "page_regions": [],
+            "extraction_result": [
+              {
+                "field_key": "receipt_number",
+                "field_name": "receipt_number",
+                "field_values": [
+                  {
+                    "field_value": "RCPT-2026-002"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "ticket_count": 2,
+    "tickets": [
+      {
+        "ticket_id": "invoice-1-1",
+        "ticket_index": 1,
+        "doc_type": "invoice",
+        "pages": [
+          1,
+          2
+        ],
+        "page_regions": [],
+        "extraction_result": [
+          {
+            "field_key": "invoice_number",
+            "field_name": "invoice_number",
+            "field_values": [
+              {
+                "field_value": "INV-2026-001"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "ticket_id": "receipt-2-3",
+        "ticket_index": 2,
+        "doc_type": "receipt",
+        "pages": [
+          3
+        ],
+        "page_regions": [],
+        "extraction_result": [
+          {
+            "field_key": "receipt_number",
+            "field_name": "receipt_number",
+            "field_values": [
+              {
+                "field_value": "RCPT-2026-002"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "page_labels": [
+      {
+        "page": 1,
+        "type": "invoice",
+        "ticket_index": 1
+      },
+      {
+        "page": 2,
+        "type": "invoice",
+        "ticket_index": 1
+      },
+      {
+        "page": 3,
+        "type": "receipt",
+        "ticket_index": 2
+      }
+    ],
+    "doc_recognize_result": []
+  }
+}
+```
+
+File sources and legacy app credentials follow the single-app compatibility rules; standalone classification/routing remain strictly exclusive. [Parameter guide](/en/api-reference/adp-api/document-extraction/extract-document)

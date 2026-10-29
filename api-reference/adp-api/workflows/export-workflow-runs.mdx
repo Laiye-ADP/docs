@@ -1,5 +1,53 @@
 ---
-title: "导出工作流运行记录（受限预览）"
-sidebarTitle: "导出工作流运行记录（受限预览）"
-openapi: "/api-reference/adp-api.yaml POST /open/agentic_engine/laiye/v1/app/runs/export"
+title: 导出工作流运行记录（受限预览）
+sidebarTitle: 导出工作流运行记录（受限预览）
+openapi: /api-reference/adp-api.yaml POST /open/agentic_engine/laiye/v1/app/runs/export
+description: 导出当前账号在当前租户内触发、且属于指定应用的运行结果。接口仍为受限预览。
 ---
+
+导出当前账号在当前租户内触发、且属于指定应用的运行结果。接口仍为受限预览。
+
+<Warning>
+必须携带有效API Key。不要求管理员角色；提供application_id或run_id不等于获得其他用户运行记录的访问权限。导出包含业务数据，请按原始数据等级保护下载文件。
+</Warning>
+
+| report_mode | 格式 | 结果 |
+| --- | --- | --- |
+| merged | excel/word/markdown/html/json | 合并为一份文件 |
+| per_run | excel/word/markdown/html/json | 每个运行一份文件，打包ZIP |
+| task_data | excel/json | 单个任务的已保存业务数据，不含附件 |
+| task_package | word/markdown/html | 单个任务报告与获准附件组成的ZIP |
+
+## 选择运行与筛选
+
+merged/per_run模式可省略run_ids、传null或空数组，选择当前用户在该应用下符合条件的运行，默认只成功运行。建议显式传ID以控制范围；最终选中超过200个运行会报错，不会静默截断。include_failed_runs=true允许纳入非成功运行；没有可导出内容的运行仍可能跳过。通用导出最多500000行。
+
+node_ids、node_types、variable_filters仅用于通用模式，variable_filters按运行输入变量匹配并支持点路径。primary_key_variable选择输入变量作为导出主键；max_text_length默认10000、范围1～30000。
+
+## 单任务导出
+
+task_data/task_package必须传恰好一个非空run_id，且不允许非空节点、节点类型或输入变量筛选。任务须已结束并保有可导出的业务结果；部分失败/取消任务只有满足已保存结果条件才可导出。locale可选zh-CN或en-US，默认任务保存的展示语言；它不会重跑抽取，或重新翻译字段值。task_package必须显式选择word/markdown/html格式。
+```json
+{
+  "application_id": "app_workflow",
+  "run_ids": [
+    "run_example"
+  ],
+  "report_mode": "task_data",
+  "format": "json",
+  "locale": "en-US"
+}
+```
+
+```json
+{
+  "application_id": "app_workflow",
+  "run_ids": [
+    "run_example"
+  ],
+  "report_mode": "task_package",
+  "format": "html"
+}
+```
+
+结果包含file_id、download_url、filename、file_size、format、report_mode及运行统计。下载链接为临时链接，有效期以部署配置为准；不要将链接视为永久存储地址。

@@ -130,6 +130,85 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/DocumentExtractResponse'
+          examples:
+            multiTicket:
+              summary: 'Legacy multi-ticket response: consume one of the two projections'
+              value:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  task_id: b2140f5fc6434e428caf35df0abf7862
+                  file_url: ''
+                  status: 4
+                  message: ''
+                  extract_config_version: v1
+                  extraction_result:
+                  - field_key: invoice_tickets
+                    field_name: invoice
+                    object_values:
+                    - ticket_id: invoice-1-1
+                      ticket_index: 1
+                      doc_type: invoice
+                      pages:
+                      - 1
+                      - 2
+                      page_regions: []
+                      extraction_result:
+                      - field_key: invoice_number
+                        field_name: invoice_number
+                        field_values:
+                        - field_value: INV-2026-001
+                  - field_key: receipt_tickets
+                    field_name: receipt
+                    object_values:
+                    - ticket_id: receipt-2-3
+                      ticket_index: 2
+                      doc_type: receipt
+                      pages:
+                      - 3
+                      page_regions: []
+                      extraction_result:
+                      - field_key: receipt_number
+                        field_name: receipt_number
+                        field_values:
+                        - field_value: RCPT-2026-002
+                  ticket_count: 2
+                  tickets:
+                  - ticket_id: invoice-1-1
+                    ticket_index: 1
+                    doc_type: invoice
+                    pages:
+                    - 1
+                    - 2
+                    page_regions: []
+                    extraction_result:
+                    - field_key: invoice_number
+                      field_name: invoice_number
+                      field_values:
+                      - field_value: INV-2026-001
+                  - ticket_id: receipt-2-3
+                    ticket_index: 2
+                    doc_type: receipt
+                    pages:
+                    - 3
+                    page_regions: []
+                    extraction_result:
+                    - field_key: receipt_number
+                      field_name: receipt_number
+                      field_values:
+                      - field_value: RCPT-2026-002
+                  page_labels:
+                  - page: 1
+                    type: invoice
+                    ticket_index: 1
+                  - page: 2
+                    type: invoice
+                    ticket_index: 1
+                  - page: 3
+                    type: receipt
+                    ticket_index: 2
+                  doc_recognize_result: []
     TaskCreateResponse:
       description: Task creation result.
       content:
@@ -144,78 +223,110 @@ components:
             $ref: '#/components/schemas/HTTPValidationError'
   schemas:
     DocumentExtractRequest:
-      oneOf:
-        - title: Use file URL
-          type: object
-          additionalProperties: false
+      type: object
+      additionalProperties: true
+      properties:
+        file_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Send one file source. For legacy single-app requests with both valid sources, Base64 takes precedence.
+          examples:
+          - https://files.example.com/materials.pdf
+        file_name:
+          type: string
+          description: File name. Provide it for Base64 input or when the name cannot be determined from the URL.
+        enable_multi_ticket:
+          type: boolean
+          default: true
+          description: Whether to split multiple invoices or receipts in one file into separate results. Only the high-speed (global)
+            and Southeast Asia versions support this option. It applies only to the current request and does not modify the application
+            configuration.
+        enable_field_value_translation:
+          type:
+          - boolean
+          - 'null'
+          description: Whether to enable field-value translation for the current request. If omitted or null, the saved application
+            setting is used. This option does not modify the application configuration. The accept-language header determines
+            the target language.
+        app_id:
+          type:
+          - string
+          - 'null'
+          description: Recommended application ID; legacy callers may use app_key and app_secret instead.
+          examples:
+          - ootb_r3s6t9u2v5w8x1y4z7a0b3c6d9e2
+          - ootb_u2v5w8x1y4z7a0b3c6d9e2f5g8
+          - ootb_a3f8h1j5k9n2p7q4w6x0y3b5c8d1
+          - a169e8d06df811f19b5e0242ac120002
+        enable_highlight:
+          type:
+          - boolean
+          - 'null'
+          description: Source locations; for 1423/1424 high-speed apps only. Omitted/null inherits the app; does not save config.
+        enable_confidence:
+          type:
+          - boolean
+          - 'null'
+          description: Field confidence evaluation; for 1423/1424 high-speed apps only. Omitted/null inherits the app; does not
+            save config.
+        file_base64:
+          type:
+          - string
+          - 'null'
+          description: Send one file source. For legacy single-app requests with both valid sources, Base64 takes precedence.
+          examples:
+          - JVBERi0xLjQK...
+        app_key:
+          type:
+          - string
+          - 'null'
+          description: Legacy app credential; requires app_secret and still requires X-API-Key.
+        app_secret:
+          type:
+          - string
+          - 'null'
+          writeOnly: true
+          description: Legacy application secret. Avoid mixing with app_id; a complete key/secret pair takes precedence.
+      allOf:
+      - anyOf:
+        - required:
+          - app_id
+          properties:
+            app_id:
+              type: string
+              minLength: 1
+              pattern: \S
+        - required:
+          - app_key
+          - app_secret
+          properties:
+            app_key:
+              type: string
+              minLength: 1
+              pattern: \S
+            app_secret:
+              type: string
+              minLength: 1
+              pattern: \S
+      - anyOf:
+        - required:
+          - file_url
           properties:
             file_url:
-              default: *overseasDocumentsFileUrl
               type: string
-              format: uri
-              description: File URL. Use either file_url or file_base64.
-            file_name:
-              type: string
-              description: File name. Provide it for Base64 input or when the name cannot be determined from the URL.
-            enable_multi_ticket:
-              type: boolean
-              default: true
-              description: Whether to split multiple invoices or receipts in one file into separate results. Only the high-speed (global) and Southeast Asia versions support this option. It applies only to the current request and does not modify the application configuration.
-            enable_field_value_translation:
-              type: [boolean, 'null']
-              description: Whether to enable field-value translation for the current request. If omitted or null, the saved application setting is used. This option does not modify the application configuration. The accept-language header determines the target language.
-            app_id:
-              type: string
-              enum:
-                - ootb_r3s6t9u2v5w8x1y4z7a0b3c6d9e2
-                - ootb_u2v5w8x1y4z7a0b3c6d9e2f5g8
-                - ootb_a3f8h1j5k9n2p7q4w6x0y3b5c8d1
-              x-enumNames:
-                - High-speed (global)
-                - Southeast Asia
-                - Standard
-              x-enumDescriptions:
-                - High-speed for global invoices and receipts (default)
-                - Southeast Asia version with additional withholding tax fields
-                - Standard
-              default: ootb_r3s6t9u2v5w8x1y4z7a0b3c6d9e2
-              description: "Preset application ID. High-speed (global, default): ootb_r3s6t9u2v5w8x1y4z7a0b3c6d9e2; Southeast Asia: ootb_u2v5w8x1y4z7a0b3c6d9e2f5g8; Standard: ootb_a3f8h1j5k9n2p7q4w6x0y3b5c8d1."
-          required: [app_id, file_url]
-        - title: Use file Base64
-          type: object
-          additionalProperties: false
+              minLength: 1
+              pattern: \S
+        - required:
+          - file_base64
           properties:
             file_base64:
-              default: *overseasDocumentsFileBase64
               type: string
-              description: Base64-encoded file. Use either file_base64 or file_url.
-            file_name:
-              type: string
-              description: File name. Provide it for Base64 input or when the name cannot be determined from the URL.
-            enable_multi_ticket:
-              type: boolean
-              default: true
-              description: Whether to split multiple invoices or receipts in one file into separate results. Only the high-speed (global) and Southeast Asia versions support this option. It applies only to the current request and does not modify the application configuration.
-            enable_field_value_translation:
-              type: [boolean, 'null']
-              description: Whether to enable field-value translation for the current request. If omitted or null, the saved application setting is used. This option does not modify the application configuration. The accept-language header determines the target language.
-            app_id:
-              type: string
-              enum:
-                - ootb_r3s6t9u2v5w8x1y4z7a0b3c6d9e2
-                - ootb_u2v5w8x1y4z7a0b3c6d9e2f5g8
-                - ootb_a3f8h1j5k9n2p7q4w6x0y3b5c8d1
-              x-enumNames:
-                - High-speed (global)
-                - Southeast Asia
-                - Standard
-              x-enumDescriptions:
-                - High-speed for global invoices and receipts (default)
-                - Southeast Asia version with additional withholding tax fields
-                - Standard
-              default: ootb_r3s6t9u2v5w8x1y4z7a0b3c6d9e2
-              description: "Preset application ID. High-speed (global, default): ootb_r3s6t9u2v5w8x1y4z7a0b3c6d9e2; Southeast Asia: ootb_u2v5w8x1y4z7a0b3c6d9e2f5g8; Standard: ootb_a3f8h1j5k9n2p7q4w6x0y3b5c8d1."
-          required: [app_id, file_base64]
+              minLength: 1
+              pattern: \S
+      description: 'Single-app compatibility: at least one app identity and file source. Unknown top-level fields may be ignored,
+        not interpreted as new options. Classification/routing still enforce exactly one file source.'
     SimpleResponse:
       type: object
       properties:
@@ -272,48 +383,169 @@ components:
                   description: Document processing task metadata.
     DocumentExtractResponse:
       allOf:
-        - $ref: '#/components/schemas/SimpleResponse'
-        - type: object
-          properties:
-            data:
+      - $ref: '#/components/schemas/SimpleResponse'
+      - type: object
+        properties:
+          data:
+            type: object
+            additionalProperties: true
+            properties:
+              task_id:
+                type: string
+              file_url:
+                type: string
+              status:
+                type: integer
+                enum:
+                - 0
+                - 1
+                - 2
+                - 4
+                - 5
+                - 6
+                description: 0=unknown, 1=ready, 2=running, 4=succeeded, 5=failed, 6=canceled or rejected.
+              message:
+                type: string
+                description: Task status or processing result message.
+              extract_config_version:
+                type: string
+                description: Extraction configuration version used for this request.
+              metadata:
+                type:
+                - object
+                - 'null'
+                additionalProperties: true
+                description: Document processing task metadata.
+              aigc:
+                type:
+                - object
+                - 'null'
+                additionalProperties: true
+                description: AI-generated content compliance label.
+              doc_recognize_result:
+                type: array
+                description: Document parsing results.
+                items:
+                  type: object
+                  additionalProperties: true
+              extraction_result:
+                type: array
+                description: Document field extraction results.
+                items:
+                  anyOf:
+                  - $ref: '#/components/schemas/InvoiceField'
+                  - $ref: '#/components/schemas/InvoiceTicketGroup'
+              classify_result:
+                type:
+                - object
+                - 'null'
+                description: Document classification result.
+                additionalProperties: true
+              ticket_count:
+                type:
+                - integer
+                - 'null'
+              tickets:
+                type:
+                - array
+                - 'null'
+                items:
+                  $ref: '#/components/schemas/InvoiceTicketResult'
+              page_labels:
+                type:
+                - array
+                - 'null'
+                items:
+                  type: object
+                  additionalProperties: true
+    InvoiceTicketGroup:
+      type: object
+      properties:
+        field_key:
+          type: string
+          enum:
+          - invoice_tickets
+          - receipt_tickets
+        field_name:
+          type: string
+          enum:
+          - invoice
+          - receipt
+        object_values:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceTicketResult'
+    InvoiceTicketResult:
+      type: object
+      additionalProperties: true
+      properties:
+        ticket_id:
+          type:
+          - string
+          - 'null'
+        ticket_index:
+          type:
+          - integer
+          - 'null'
+        doc_type:
+          type: string
+          enum:
+          - invoice
+          - receipt
+        pages:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+        page_regions:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        extraction_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceField'
+    InvoiceField:
+      type: object
+      additionalProperties: true
+      properties:
+        field_key:
+          type: string
+        field_name:
+          type: string
+        field_values:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              field_value:
+                description: 1425/1423/1424 return string values, including an empty string when missing.
+              field_value_translation:
+                type: string
+                description: Translation separate from field_value.
+              field_confidence:
+                type: number
+                minimum: 0
+                maximum: 1
+                description: For review when enabled; disabled defaults are not evaluated scores.
+              references:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        references:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        table_values:
+          type: array
+          items:
+            type: array
+            items:
               type: object
               additionalProperties: true
-              properties:
-                task_id:
-                  type: string
-                file_url:
-                  type: string
-                status:
-                  type: integer
-                  enum: [0, 1, 2, 4, 5, 6]
-                  description: 0=unknown, 1=ready, 2=running, 4=succeeded, 5=failed, 6=canceled or rejected.
-                message:
-                  type: string
-                  description: Task status or processing result message.
-                extract_config_version:
-                  type: string
-                  description: Extraction configuration version used for this request.
-                metadata:
-                  type: [object, 'null']
-                  additionalProperties: true
-                  description: Document processing task metadata.
-                aigc:
-                  type: [object, 'null']
-                  additionalProperties: true
-                  description: AI-generated content compliance label.
-                doc_recognize_result:
-                  type: array
-                  description: Document parsing results.
-                  items:
-                    type: object
-                    additionalProperties: true
-                extraction_result:
-                  type: array
-                  description: Document field extraction results.
-                  items:
-                    type: object
-                    additionalProperties: true
-                classify_result:
-                  type: object
-                  description: Document classification result.
-                  additionalProperties: true
+      description: 1425 missing scalar values/cells in existing rows return field_value=""; absent tables return table_values=[]
+        without fabricated rows. Zero and valid multiple values are preserved.

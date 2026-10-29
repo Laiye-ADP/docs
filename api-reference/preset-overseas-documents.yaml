@@ -130,6 +130,85 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/DocumentExtractResponse'
+          examples:
+            multiTicket:
+              summary: 旧单应用多票结构：两份投影只消费一份
+              value:
+                code: success
+                message: ''
+                tips: null
+                data:
+                  task_id: b2140f5fc6434e428caf35df0abf7862
+                  file_url: ''
+                  status: 4
+                  message: ''
+                  extract_config_version: v1
+                  extraction_result:
+                  - field_key: invoice_tickets
+                    field_name: invoice
+                    object_values:
+                    - ticket_id: invoice-1-1
+                      ticket_index: 1
+                      doc_type: invoice
+                      pages:
+                      - 1
+                      - 2
+                      page_regions: []
+                      extraction_result:
+                      - field_key: invoice_number
+                        field_name: invoice_number
+                        field_values:
+                        - field_value: INV-2026-001
+                  - field_key: receipt_tickets
+                    field_name: receipt
+                    object_values:
+                    - ticket_id: receipt-2-3
+                      ticket_index: 2
+                      doc_type: receipt
+                      pages:
+                      - 3
+                      page_regions: []
+                      extraction_result:
+                      - field_key: receipt_number
+                        field_name: receipt_number
+                        field_values:
+                        - field_value: RCPT-2026-002
+                  ticket_count: 2
+                  tickets:
+                  - ticket_id: invoice-1-1
+                    ticket_index: 1
+                    doc_type: invoice
+                    pages:
+                    - 1
+                    - 2
+                    page_regions: []
+                    extraction_result:
+                    - field_key: invoice_number
+                      field_name: invoice_number
+                      field_values:
+                      - field_value: INV-2026-001
+                  - ticket_id: receipt-2-3
+                    ticket_index: 2
+                    doc_type: receipt
+                    pages:
+                    - 3
+                    page_regions: []
+                    extraction_result:
+                    - field_key: receipt_number
+                      field_name: receipt_number
+                      field_values:
+                      - field_value: RCPT-2026-002
+                  page_labels:
+                  - page: 1
+                    type: invoice
+                    ticket_index: 1
+                  - page: 2
+                    type: invoice
+                    ticket_index: 1
+                  - page: 3
+                    type: receipt
+                    ticket_index: 2
+                  doc_recognize_result: []
     TaskCreateResponse:
       description: 任务创建结果。
       content:
@@ -144,78 +223,104 @@ components:
             $ref: '#/components/schemas/HTTPValidationError'
   schemas:
     DocumentExtractRequest:
-      oneOf:
-        - title: 使用文件 URL
-          type: object
-          additionalProperties: false
+      type: object
+      additionalProperties: true
+      properties:
+        file_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: 推荐只传一个文件来源；历史单应用接口同时传有效URL与Base64时优先使用Base64。
+          examples:
+          - https://files.example.com/materials.pdf
+        file_name:
+          type: string
+          description: 文件名（含扩展名）。使用文件 Base64，或无法从 URL 判断文件名时传入。
+        enable_multi_ticket:
+          type: boolean
+          default: true
+          description: 是否将同一文件中的多张票据拆分为独立结果。仅高速版（国际通用）和东南亚版支持；仅对本次调用生效，不修改应用配置。
+        enable_field_value_translation:
+          type:
+          - boolean
+          - 'null'
+          description: 是否仅为本次调用开启字段值翻译。不传或传 null 时使用应用已保存的配置，且不会修改应用配置。翻译目标语言由 accept-language 请求头决定。
+        app_id:
+          type:
+          - string
+          - 'null'
+          description: 推荐使用应用ID；历史调用可改用app_key与app_secret。
+          examples:
+          - ootb_r3s6t9u2v5w8x1y4z7a0b3c6d9e2
+          - ootb_u2v5w8x1y4z7a0b3c6d9e2f5g8
+          - ootb_a3f8h1j5k9n2p7q4w6x0y3b5c8d1
+          - a169e8d06df811f19b5e0242ac120002
+        enable_highlight:
+          type:
+          - boolean
+          - 'null'
+          description: 原文定位；仅1423/1424高速版生效，省略/null沿用应用，不保存配置。
+        enable_confidence:
+          type:
+          - boolean
+          - 'null'
+          description: 字段置信度评估；仅1423/1424高速版生效，省略/null沿用应用，不保存配置。
+        file_base64:
+          type:
+          - string
+          - 'null'
+          description: 推荐只传一个文件来源；历史单应用接口同时传有效URL与Base64时优先使用Base64。
+          examples:
+          - JVBERi0xLjQK...
+        app_key:
+          type:
+          - string
+          - 'null'
+          description: 历史应用凭证，须与app_secret成对传入；仍需X-API-Key。
+        app_secret:
+          type:
+          - string
+          - 'null'
+          writeOnly: true
+          description: 历史应用签名；不要与app_id混用，成对凭证优先。
+      allOf:
+      - anyOf:
+        - required:
+          - app_id
+          properties:
+            app_id:
+              type: string
+              minLength: 1
+              pattern: \S
+        - required:
+          - app_key
+          - app_secret
+          properties:
+            app_key:
+              type: string
+              minLength: 1
+              pattern: \S
+            app_secret:
+              type: string
+              minLength: 1
+              pattern: \S
+      - anyOf:
+        - required:
+          - file_url
           properties:
             file_url:
-              default: *overseasDocumentsFileUrl
               type: string
-              format: uri
-              description: 待抽取文件 URL，与 file_base64 二选一。
-            file_name:
-              type: string
-              description: 文件名（含扩展名）。使用文件 Base64，或无法从 URL 判断文件名时传入。
-            enable_multi_ticket:
-              type: boolean
-              default: true
-              description: 是否将同一文件中的多张票据拆分为独立结果。仅高速版（国际通用）和东南亚版支持；仅对本次调用生效，不修改应用配置。
-            enable_field_value_translation:
-              type: [boolean, 'null']
-              description: 是否仅为本次调用开启字段值翻译。不传或传 null 时使用应用已保存的配置，且不会修改应用配置。翻译目标语言由 accept-language 请求头决定。
-            app_id:
-              type: string
-              enum:
-                - ootb_r3s6t9u2v5w8x1y4z7a0b3c6d9e2
-                - ootb_u2v5w8x1y4z7a0b3c6d9e2f5g8
-                - ootb_a3f8h1j5k9n2p7q4w6x0y3b5c8d1
-              x-enumNames:
-                - 高速版（国际通用）
-                - 东南亚版
-                - 标准版
-              x-enumDescriptions:
-                - 高速版（国际通用，默认）
-                - 东南亚版（增强预扣税相关字段）
-                - 标准版
-              default: ootb_r3s6t9u2v5w8x1y4z7a0b3c6d9e2
-              description: 预置应用标识。高速版（国际通用，默认）：ootb_r3s6t9u2v5w8x1y4z7a0b3c6d9e2；东南亚版：ootb_u2v5w8x1y4z7a0b3c6d9e2f5g8；标准版：ootb_a3f8h1j5k9n2p7q4w6x0y3b5c8d1。
-          required: [app_id, file_url]
-        - title: 使用文件 Base64
-          type: object
-          additionalProperties: false
+              minLength: 1
+              pattern: \S
+        - required:
+          - file_base64
           properties:
             file_base64:
-              default: *overseasDocumentsFileBase64
               type: string
-              description: 待抽取文件 Base64，与 file_url 二选一。
-            file_name:
-              type: string
-              description: 文件名（含扩展名）。使用文件 Base64，或无法从 URL 判断文件名时传入。
-            enable_multi_ticket:
-              type: boolean
-              default: true
-              description: 是否将同一文件中的多张票据拆分为独立结果。仅高速版（国际通用）和东南亚版支持；仅对本次调用生效，不修改应用配置。
-            enable_field_value_translation:
-              type: [boolean, 'null']
-              description: 是否仅为本次调用开启字段值翻译。不传或传 null 时使用应用已保存的配置，且不会修改应用配置。翻译目标语言由 accept-language 请求头决定。
-            app_id:
-              type: string
-              enum:
-                - ootb_r3s6t9u2v5w8x1y4z7a0b3c6d9e2
-                - ootb_u2v5w8x1y4z7a0b3c6d9e2f5g8
-                - ootb_a3f8h1j5k9n2p7q4w6x0y3b5c8d1
-              x-enumNames:
-                - 高速版（国际通用）
-                - 东南亚版
-                - 标准版
-              x-enumDescriptions:
-                - 高速版（国际通用，默认）
-                - 东南亚版（增强预扣税相关字段）
-                - 标准版
-              default: ootb_r3s6t9u2v5w8x1y4z7a0b3c6d9e2
-              description: 预置应用标识。高速版（国际通用，默认）：ootb_r3s6t9u2v5w8x1y4z7a0b3c6d9e2；东南亚版：ootb_u2v5w8x1y4z7a0b3c6d9e2f5g8；标准版：ootb_a3f8h1j5k9n2p7q4w6x0y3b5c8d1。
-          required: [app_id, file_base64]
+              minLength: 1
+              pattern: \S
+      description: 单应用兼容协议：至少一种应用身份及至少一种文件来源。未知顶层字段可能被忽略，不代表启用了新能力。分类/路由仍严格二选一。
     SimpleResponse:
       type: object
       properties:
@@ -266,48 +371,164 @@ components:
                   additionalProperties: true
     DocumentExtractResponse:
       allOf:
-        - $ref: '#/components/schemas/SimpleResponse'
-        - type: object
-          properties:
-            data:
+      - $ref: '#/components/schemas/SimpleResponse'
+      - type: object
+        properties:
+          data:
+            type: object
+            additionalProperties: true
+            properties:
+              task_id:
+                type: string
+              file_url:
+                type: string
+              status:
+                type: integer
+                enum:
+                - 0
+                - 1
+                - 2
+                - 4
+                - 5
+                - 6
+                description: 0=未知，1=就绪，2=运行中，4=成功，5=失败，6=取消或拒绝。
+              message:
+                type: string
+              extract_config_version:
+                type: string
+              metadata:
+                type:
+                - object
+                - 'null'
+                additionalProperties: true
+              aigc:
+                type:
+                - object
+                - 'null'
+                additionalProperties: true
+              doc_recognize_result:
+                type: array
+                description: 文档解析结果。
+                items:
+                  type: object
+                  additionalProperties: true
+              extraction_result:
+                type: array
+                description: 文档字段抽取结果。
+                items:
+                  anyOf:
+                  - $ref: '#/components/schemas/InvoiceField'
+                  - $ref: '#/components/schemas/InvoiceTicketGroup'
+              classify_result:
+                type:
+                - object
+                - 'null'
+                description: 文档分类结果。
+                additionalProperties: true
+              ticket_count:
+                type:
+                - integer
+                - 'null'
+              tickets:
+                type:
+                - array
+                - 'null'
+                items:
+                  $ref: '#/components/schemas/InvoiceTicketResult'
+              page_labels:
+                type:
+                - array
+                - 'null'
+                items:
+                  type: object
+                  additionalProperties: true
+    InvoiceTicketGroup:
+      type: object
+      properties:
+        field_key:
+          type: string
+          enum:
+          - invoice_tickets
+          - receipt_tickets
+        field_name:
+          type: string
+          enum:
+          - invoice
+          - receipt
+        object_values:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceTicketResult'
+    InvoiceTicketResult:
+      type: object
+      additionalProperties: true
+      properties:
+        ticket_id:
+          type:
+          - string
+          - 'null'
+        ticket_index:
+          type:
+          - integer
+          - 'null'
+        doc_type:
+          type: string
+          enum:
+          - invoice
+          - receipt
+        pages:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+        page_regions:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        extraction_result:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceField'
+    InvoiceField:
+      type: object
+      additionalProperties: true
+      properties:
+        field_key:
+          type: string
+        field_name:
+          type: string
+        field_values:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              field_value:
+                description: 1425/1423/1424返回字符串，缺失值为空字符串。
+              field_value_translation:
+                type: string
+                description: 译文，不覆盖field_value。
+              field_confidence:
+                type: number
+                minimum: 0
+                maximum: 1
+                description: 开启评估时辅助复核；关闭时默认值不是评估分数。
+              references:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        references:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        table_values:
+          type: array
+          items:
+            type: array
+            items:
               type: object
               additionalProperties: true
-              properties:
-                task_id:
-                  type: string
-                file_url:
-                  type: string
-                status:
-                  type: integer
-                  enum: [0, 1, 2, 4, 5, 6]
-                  description: 0=未知，1=就绪，2=运行中，4=成功，5=失败，6=取消或拒绝。
-                message:
-                  type: string
-                extract_config_version:
-                  type: string
-                metadata:
-                  type:
-                    - object
-                    - 'null'
-                  additionalProperties: true
-                aigc:
-                  type:
-                    - object
-                    - 'null'
-                  additionalProperties: true
-                doc_recognize_result:
-                  type: array
-                  description: 文档解析结果。
-                  items:
-                    type: object
-                    additionalProperties: true
-                extraction_result:
-                  type: array
-                  description: 文档字段抽取结果。
-                  items:
-                    type: object
-                    additionalProperties: true
-                classify_result:
-                  type: object
-                  description: 文档分类结果。
-                  additionalProperties: true
+      description: 1425缺失普通字段/已有行的空单元格返回field_value=""；空表table_values=[]，不制造空行；保留数值0和有效多值。

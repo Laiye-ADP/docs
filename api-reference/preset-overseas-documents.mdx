@@ -24,21 +24,23 @@ GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{tas
 | --- | --- | --- | --- |
 | `tenant_name` | string | 是 | 租户名称，默认 `laiye`。 |
 | `accept-language` | string | 可选 | 返回字段名称的语言。默认 `zh`；设置为 `en` 时返回英文字段名，并作为字段值翻译的目标语言。 |
-| `app_id` | string | 是 | 预置应用标识。高速版（国际通用）为默认选项，也可选择东南亚版或标准版。 |
+| `app_id` | string | 是 | 系统预置应用标识，或通过创建接口获得的1423/1424应用ID。高速版（国际通用）为默认预置选项。 |
 | `file_base64` | string | 可选 | 待抽取文件的 Base64，与 `file_url` 二选一。 |
 | `file_url` | string | 可选 | 待抽取文件 URL，与 `file_base64` 二选一。仅支持 HTTP 开头的线上地址。 |
 | `file_name` | string | 可选 | 文件名（含扩展名）。使用 Base64，或无法从 URL 判断文件名时传入。 |
 | `enable_multi_ticket` | boolean | 可选 | 是否将同一文件中的多张票据拆分为独立结果，默认为 `true`。仅高速版（国际通用）和东南亚版支持，该参数只对本次调用生效。 |
 | `enable_field_value_translation` | boolean | 可选 | 是否仅为本次调用开启字段值翻译。不传时使用应用已保存的配置，且传入该参数不会修改应用配置。翻译目标语言由 `accept-language` 请求头决定。 |
+| `enable_highlight` | boolean | 可选 | 仅高速版/东南亚版：本次调用原文定位开关，省略/null沿用应用。 |
+| `enable_confidence` | boolean | 可选 | 仅高速版/东南亚版：本次调用置信度开关，省略/null沿用应用。 |
 
 ## 结果增强配置
 
-高速版（国际通用）和东南亚版支持以下结果增强配置。应用级配置可在 ADP 工作台的应用配置中开启或关闭；API 调用会使用当前已保存的应用配置。
+高速版（国际通用）和东南亚版支持以下结果增强配置。应用级配置可在 ADP 工作台的应用配置中开启或关闭；API 默认使用已保存的应用配置，三个临时开关可覆盖本次调用。
 
 | 功能 | 初始默认值 | 配置方式 | 说明 |
 | --- | --- | --- | --- |
-| 显示来源位置 | 关闭 | 工作台应用配置 | 保留字段在原文中的位置，并在抽取结果中提供来源信息，便于核对和追溯。开启后会增加处理时间。 |
-| 启用置信度计算 | 关闭 | 工作台应用配置 | 计算字段级置信度并随抽取结果返回。开启后会增加处理时间。 |
+| 显示来源位置 | 关闭 | 工作台或请求参数 `enable_highlight` | 保留字段在原文中的位置，并在抽取结果中提供来源信息，便于核对和追溯。开启后会增加处理时间。 |
+| 启用置信度计算 | 关闭 | 工作台或请求参数 `enable_confidence` | 计算字段级置信度并随抽取结果返回。开启后会增加处理时间。 |
 | 字段后处理 | 关闭 | 工作台应用配置 | 自动规范化日期、金额数字和税率等常见字段值。 |
 | 多页多票 | 开启 | 请求参数 `enable_multi_ticket` | 将同一文件中的多张票据自动拆分为独立结果。可为本次调用开启或关闭。 |
 | 字段值翻译 | 关闭 | 工作台应用配置或请求参数 `enable_field_value_translation` | 根据字段内容和目标语言判断是否需要翻译；数量、金额等内容可能保留原值。请求参数仅覆盖本次调用。 |
@@ -56,47 +58,196 @@ GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{tas
 | 高速版（国际通用） | `ootb_r3s6t9u2v5w8x1y4z7a0b3c6d9e2` | 默认选项，适用于国际通用的海外发票和收据。 |
 | 东南亚版 | `ootb_u2v5w8x1y4z7a0b3c6d9e2f5g8` | 面向东南亚发票和收据，额外提供付款方国家、预扣税及行级预扣税字段。 |
 | 标准版 | `ootb_a3f8h1j5k9n2p7q4w6x0y3b5c8d1` | 使用标准抽取方式处理海外发票和收据。 |
+## 返回字段
 
-## 字段
+以下为1423/1424默认字段。以field_key读取值；field_name受语言和保存配置影响。收据号码/日期属于普通字段，不是商品表格列。标准版及历史自定义配置以对应配置为准。
 
-下表汇总可能返回的字段。实际返回字段取决于所选 `app_id` 和文档内容。
+| field_key | 字段说明 | 适用范围 |
+| --- | --- | --- |
+| `country_code` | 国家 | 1423/1424 invoice/receipt |
+| `invoice_number` | 发票号码 | 1423/1424 invoice |
+| `invoice_date` | 发票日期 | 1423/1424 invoice |
+| `supplier_name` | 供应商名称 | 1423/1424 invoice/receipt |
+| `supplier_vat_address` | 供应商地址 | 1423/1424 invoice/receipt |
+| `supplier_vat_number` | 供应商增值税号 | 1423/1424 invoice/receipt |
+| `supplier_phone` | 供应商电话 | 1423/1424 invoice/receipt |
+| `customer_name` | 客户名称 | 1423/1424 invoice/receipt |
+| `customer_address` | 客户地址 | 1423/1424 invoice/receipt |
+| `customer_vat_number` | 客户增值税号 | 1423/1424 invoice/receipt |
+| `customer_phone` | 客户电话 | 1423/1424 invoice/receipt |
+| `currency` | 币种 | 1423/1424 invoice/receipt |
+| `total_without_tax` | 总额（未税） | 1423/1424 invoice/receipt |
+| `vat_rate` | 增值税税率 | 1423/1424 invoice/receipt |
+| `vat_amount` | 增值税金额 | 1423/1424 invoice/receipt |
+| `total_tax` | 总税额 | 1423/1424 invoice/receipt |
+| `total_amount` | 总金额（含税） | 1423/1424 invoice |
+| `amount_due` | 应付金额 | 1423/1424 invoice/receipt |
+| `supplier_bank_name` | 供应商开户行 | 1423/1424 invoice/receipt |
+| `supplier_account_number` | 供应商账号 | 1423/1424 invoice/receipt |
+| `line_items` | 商品/服务明细表格（表格，行数据在table_values） | 1423/1424 invoice/receipt |
+| `receipt_number` | 收据号码 | 1423/1424 receipt |
+| `receipt_date` | 收据日期 | 1423/1424 receipt |
+| `total_amount_inc_tax` | 总金额（含税） | 1423/1424 receipt |
+| `payer_country` | 付款方国家 | 1424 invoice/receipt |
+| `wht_type` | 预扣税类型 | 1424 invoice/receipt |
+| `wht_rate` | 预扣税税率 | 1424 invoice/receipt |
+| `wht_amount` | 预扣税金额 | 1424 invoice/receipt |
 
-| 中文名 | 英文名 | 类型 | 备注 |
-| --- | --- | --- | --- |
-| 国家 | Country Code | 文本 |  |
-| 发票号码 | Invoice Number | 文本 |  |
-| 发票日期 | Invoice Date | 文本 |  |
-| 供应商名称 | Supplier Name | 文本 |  |
-| 供应商地址 | Supplier Address | 文本 |  |
-| 供应商增值税号 | Supplier VAT Number | 文本 |  |
-| 供应商电话 | Supplier Phone | 文本 |  |
-| 客户名称 | Customer Name | 文本 |  |
-| 客户地址 | Customer Address | 文本 |  |
-| 客户增值税号 | Customer VAT Number | 文本 |  |
-| 客户电话 | Customer Phone | 文本 |  |
-| 付款方国家 | Payer Country | 文本 | 东南亚版特有 |
-| 币种 | Currency | 文本 |  |
-| 总额（未税） | Total Without Tax | 文本 |  |
-| 增值税税率 | VAT Rate | 文本 |  |
-| 增值税金额 | VAT Amount | 文本 |  |
-| 总税额 | Total Tax | 文本 |  |
-| 总金额 | Total Amount | 文本 |  |
-| 应付金额 | Amount Due | 文本 |  |
-| 供应商开户行 | Supplier Bank Name | 文本 |  |
-| 供应商账号 | Supplier Account Number | 文本 |  |
-| 预扣税类型 | WHT Type | 文本 | 东南亚版特有 |
-| 预扣税税率 | WHT Rate | 文本 | 东南亚版特有 |
-| 预扣税金额 | WHT Amount | 文本 | 东南亚版特有 |
-| 商品明细表格 | Line Items | 表格 |  |
-| 项目代码 | Item Code | 表格子字段 |  |
-| 描述 | Description | 表格子字段 |  |
-| 数量 | Quantity | 表格子字段 |  |
-| 单价 | Unit Price | 表格子字段 |  |
-| 税率 | Tax Rate | 表格子字段 |  |
-| 税金 | Tax Amount | 表格子字段 |  |
-| 行预扣税税率 | Line WHT Rate | 表格子字段 | 东南亚版特有 |
-| 行预扣税税金 | Line WHT Tax | 表格子字段 | 东南亚版特有 |
-| 总金额 | Total Amount | 表格子字段 |  |
-| 收据号码 | Receipt Number | 表格子字段 |  |
-| 收据日期 | Receipt Date | 表格子字段 |  |
-| 总金额（含税） | Total Amount (Inc. Tax) | 表格子字段 |  |
+### line_items表格列
+
+| 列field_key | 字段说明 | 适用版本 |
+| --- | --- | --- |
+| `line_items_item_code` | 项目代码 | 1423/1424 |
+| `line_items_description` | 描述 | 1423/1424 |
+| `line_items_quantity` | 数量 | 1423/1424 |
+| `line_items_unit_price` | 单价 | 1423/1424 |
+| `line_items_rate` | 税率 | 1423/1424 |
+| `line_items_tax` | 税金 | 1423/1424 |
+| `line_items_total_amount` | 总金额 | 1423/1424 |
+| `line_items_wht_rate` | 行预扣税税率 | 1424 |
+| `line_items_wht_tax` | 行预扣税税金 | 1424 |
+
+
+## 按次覆盖与自动路由
+
+三个临时开关enable_highlight、enable_field_value_translation、enable_confidence均放在单应用请求顶层。true/false只影响本次调用，不保存应用配置；省略/null沿用应用设置。自动路由新接口中三个开关改放model_params，与pages同级，可同时处理1425、1423、1424应用。
+
+[自动路由抽取接入](/api-reference/adp-api/routed-extraction/overview)
+
+
+## 旧单应用多票结果
+
+启用enable_multi_ticket后，extraction_result按invoice_tickets/receipt_tickets分组，每组object_values是对应票据。tickets提供同一批票据的平铺形式；两者是兼容投影，选择一份消费即可，不是抽取或计费两次。ticket_count是票据数，page_labels说明每页所属票据；非多票结果中这些属性可为null。新自动路由接口的结果不重复返回tickets，不能把旧结构和新结构混用。
+```json
+{
+  "code": "success",
+  "message": "",
+  "tips": null,
+  "data": {
+    "task_id": "b2140f5fc6434e428caf35df0abf7862",
+    "file_url": "",
+    "status": 4,
+    "message": "",
+    "extract_config_version": "v1",
+    "extraction_result": [
+      {
+        "field_key": "invoice_tickets",
+        "field_name": "invoice",
+        "object_values": [
+          {
+            "ticket_id": "invoice-1-1",
+            "ticket_index": 1,
+            "doc_type": "invoice",
+            "pages": [
+              1,
+              2
+            ],
+            "page_regions": [],
+            "extraction_result": [
+              {
+                "field_key": "invoice_number",
+                "field_name": "invoice_number",
+                "field_values": [
+                  {
+                    "field_value": "INV-2026-001"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "field_key": "receipt_tickets",
+        "field_name": "receipt",
+        "object_values": [
+          {
+            "ticket_id": "receipt-2-3",
+            "ticket_index": 2,
+            "doc_type": "receipt",
+            "pages": [
+              3
+            ],
+            "page_regions": [],
+            "extraction_result": [
+              {
+                "field_key": "receipt_number",
+                "field_name": "receipt_number",
+                "field_values": [
+                  {
+                    "field_value": "RCPT-2026-002"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "ticket_count": 2,
+    "tickets": [
+      {
+        "ticket_id": "invoice-1-1",
+        "ticket_index": 1,
+        "doc_type": "invoice",
+        "pages": [
+          1,
+          2
+        ],
+        "page_regions": [],
+        "extraction_result": [
+          {
+            "field_key": "invoice_number",
+            "field_name": "invoice_number",
+            "field_values": [
+              {
+                "field_value": "INV-2026-001"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "ticket_id": "receipt-2-3",
+        "ticket_index": 2,
+        "doc_type": "receipt",
+        "pages": [
+          3
+        ],
+        "page_regions": [],
+        "extraction_result": [
+          {
+            "field_key": "receipt_number",
+            "field_name": "receipt_number",
+            "field_values": [
+              {
+                "field_value": "RCPT-2026-002"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "page_labels": [
+      {
+        "page": 1,
+        "type": "invoice",
+        "ticket_index": 1
+      },
+      {
+        "page": 2,
+        "type": "invoice",
+        "ticket_index": 1
+      },
+      {
+        "page": 3,
+        "type": "receipt",
+        "ticket_index": 2
+      }
+    ],
+    "doc_recognize_result": []
+  }
+}
+```
+
+文件来源与历史应用凭证沿用单应用接口的兼容规则；独立分类/路由仍严格二选一。 [参数说明](/api-reference/adp-api/document-extraction/extract-document)
