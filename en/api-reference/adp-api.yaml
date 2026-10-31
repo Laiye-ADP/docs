@@ -618,21 +618,21 @@ paths:
           $ref: '#/components/responses/ExtractionAppVersionDeleteResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
-  /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend:
+  /open/agentic_doc_processor/{tenant_name}/v1/app-manage/field-config/generate:
     post:
       tags: [Application management]
-      summary: Generate extraction field prompts
-      description: Generate field names, field types, field prompts, and other configuration references from a sample document or prompt. Standard applications require at least one of prompt, file_url, or file_base64. High-speed applications still require file_url or file_base64, and prompt is only an auxiliary instruction. When app_id belongs to a high-speed custom extraction application, the endpoint returns a configuration preview containing common_rule, field_rule, and table_rule. It does not save a configuration version or automatically populate the Web application. An HTTP 200 response can still represent a business failure, so callers must check both the HTTP status and the response code.
-      operationId: recommendExtractionFields
+      summary: Generate extraction field configuration from a sample file
+      description: Submit one sample file and return a high-speed extraction field configuration that can be used directly as extract_fields in the application create or update endpoint. Exactly one of file_url and file_base64 is required. prompt is optional and limited to 3000 characters. app_id is not required. The endpoint does not create an application, save a configuration version, or deduct extraction credits. Number and date fields return format as null to preserve the model's original output value. An HTTP 200 response can still represent a business failure, so callers must check both the HTTP status and the response code.
+      operationId: generateExtractionFieldConfig
       security:
         - ApiKeyAuth: []
       parameters:
         - $ref: '#/components/parameters/TenantName'
       requestBody:
-        $ref: '#/components/requestBodies/AiRecommendRequest'
+        $ref: '#/components/requestBodies/FieldConfigGenerateRequest'
       responses:
         '200':
-          $ref: '#/components/responses/AiRecommendResponse'
+          $ref: '#/components/responses/FieldConfigGenerateResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
       x-codeSamples:
@@ -642,11 +642,11 @@ paths:
             import requests
 
             response = requests.post(
-                "https://adp-global.laiye.com/open/agentic_doc_processor/laiye/v1/app-manage/ai-recommend",
+                "https://adp-global.laiye.com/open/agentic_doc_processor/laiye/v1/app-manage/field-config/generate",
                 headers={"X-API-KEY": "YOUR_API_KEY"},
                 json={
-                    "app_id": "app_1406",
-                    "prompt": "Generate fields for invoice number, invoice date, and total amount.",
+                    "file_url": "https://files.example.com/purchase-contract.pdf",
+                    "prompt": "Generate contract number, total amount, signing date, and purchase item fields.",
                 },
                 timeout=120,
             )
@@ -2127,24 +2127,18 @@ components:
               value:
                 app_id: app_1425
                 config_version: v1
-    AiRecommendRequest:
+    FieldConfigGenerateRequest:
       required: true
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/AiRecommendRequest'
+            $ref: '#/components/schemas/FieldConfigGenerateRequest'
           examples:
-            standardCustomExtractionApp:
-              summary: Generate field prompts for a standard custom extraction application
+            sampleFileUrl:
+              summary: Generate field configuration from a sample file URL
               value:
-                app_id: app_1406
-                prompt: Extract the invoice number, invoice date, and total amount from the invoice.
-            highSpeedCustomExtractionApp:
-              summary: Generate a high-speed custom extraction configuration preview
-              value:
-                app_id: app_1425
-                file_url: https://adp.laiye.com/web/agentic_doc_processor/laiye/file/2003c711818811f1a36200163e358400
-                prompt: Generate field configuration based on the document layout. Use English snake_case field keys.
+                file_url: https://files.example.com/purchase-contract.pdf
+                prompt: Generate contract number, total amount, signing date, and purchase item fields.
     DocumentConvertRequest:
       required: true
       content:
@@ -2530,85 +2524,45 @@ components:
                   enable_field_value_translation: false
                   enable_confidence: true
                   enable_long_doc: false
-    AiRecommendResponse:
-      description: Field configuration generation result. High-speed applications return a configuration preview and do not save a configuration version.
+    FieldConfigGenerateResponse:
+      description: Normalized field configuration generated from a sample file. The endpoint does not create an application or save a configuration version.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/AiRecommendResponse'
-          examples:
-            standardCustomExtractionApp:
-              summary: Recommended fields for a standard custom extraction application
-              value:
-                code: success
-                message: ''
-                tips: null
-                data:
-                  app_id: app_1406
-                  app_name: ''
-                  extract_fields:
-                    - field_name: Invoice number
-                      field_type: string
-                      field_prompt: Extract the unique identifier of the tax invoice.
-                    - field_name: Invoice date
-                      field_type: date
-                      field_prompt: Extract the invoice issue date.
-            highSpeedCustomExtractionApp:
-              summary: Generated high-speed custom extraction configuration preview
-              value:
-                code: success
-                message: ''
-                tips: null
-                data:
-                  app_id: app_1425
-                  app_name: High-speed invoice extraction app
-                  ai_function: 1425
-                  extract_fields:
-                    - field_key: invoice_number
-                      field_name: Invoice number
-                      field_type: string
-                      field_prompt: Unique identifier of the tax invoice.
-                      field_description: Unique identifier of the tax invoice.
-                    - field_key: invoice_date
-                      field_name: Invoice date
-                      field_type: date
-                      field_prompt: Invoice issue date.
-                      field_description: Invoice issue date.
-                  prompt_rule: Extract only fields that clearly appear in the document.
-                  common_rule: Extract only fields that clearly appear in the document.
-                  field_rule:
-                    - field_key: invoice_number
-                      field_name: Invoice number
-                      field_type: string
-                      field_description: Unique identifier of the tax invoice.
-                    - field_key: invoice_date
-                      field_name: Invoice date
-                      field_type: date
-                      field_description: Invoice issue date.
-                  table_rule:
-                    - field_key: line_items
-                      field_name: Line items
-                      field_type: table
-                      field_description: Invoice line item table.
-                      field_parent_id: ''
+            $ref: '#/components/schemas/FieldConfigGenerateResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              extract_fields:
+                - field_key: contract_no
+                  field_name: Contract number
+                  field_type: string
+                  field_prompt: Extract the contract number.
+                - field_key: contract_amount
+                  field_name: Contract amount
+                  field_type: number
+                  field_prompt: Extract the total contract amount.
+                  format: null
+                - field_key: signed_at
+                  field_name: Signing date
+                  field_type: date
+                  field_prompt: Extract the contract signing date.
+                  format: null
+                - field_key: purchase_items
+                  field_name: Purchase items
+                  field_type: table
+                  sub_fields:
                     - field_key: item_name
                       field_name: Item name
                       field_type: string
-                      field_description: Product or service name in the line item.
-                      field_parent_id: line_items
+                      field_prompt: Extract the item name from each row.
                     - field_key: item_amount
-                      field_name: Amount
-                      field_type: string
-                      field_description: Line item amount.
-                      field_parent_id: line_items
-                  page_count: 2
-                  document_type: invoice
-            promptOrFileRequired:
-              summary: Standard application missing a prompt or file (HTTP 200 business failure)
-              value:
-                code: prompt_or_file_required
-                message: Provide at least one of prompt, file_url, or file_base64
-                tips: null
+                      field_name: Item amount
+                      field_type: number
+                      field_prompt: Extract the amount from each row.
+                      format: null
     AppListResponse:
       description: Application list.
       content:
@@ -4744,35 +4698,27 @@ components:
           type: string
           description: Configuration version. Optional. Defaults to the latest version.
       required: [app_id]
-    AiRecommendRequest:
+    FieldConfigGenerateRequest:
       type: object
       additionalProperties: false
-      description: Field configuration generation request. Standard applications require at least one of prompt, file_url, or file_base64. High-speed applications still require file_url or file_base64, and prompt is only supporting guidance. Because the application type is resolved from app_id, OpenAPI cannot fully express the two conditional contracts from request fields alone.
+      description: Generate a high-speed extraction field configuration from one sample file for direct use in create or update.
       properties:
-        app_id:
-          type: string
-          description: Application ID. When you pass a high-speed custom extraction application, the response returns a high-speed auto-configuration preview.
         file_base64:
           type: string
-          description: Base64-encoded file. Required for high-speed applications if file_url is not provided.
+          minLength: 1
+          description: Base64-encoded file. Mutually exclusive with file_url.
         file_url:
           type: string
           format: uri
-          description: File URL. Required for high-speed applications if file_base64 is not provided.
+          minLength: 1
+          description: Downloadable file URL. Mutually exclusive with file_base64.
         prompt:
           type: string
-          description: User-provided generation instruction. Standard applications can use prompt alone; high-speed applications must also provide a file.
-        doc_type:
-          type: string
-          description: Document type. You can provide this for standard application recommendations. High-speed applications detect the document type automatically.
-        doc_type_description:
-          type: string
-          description: Document type description. You can provide this for standard application recommendations.
-      required: [app_id]
-      anyOf:
-        - required: [prompt]
-        - required: [file_base64]
+          maxLength: 3000
+          description: Optional field-generation instruction, up to 3000 characters.
+      oneOf:
         - required: [file_url]
+        - required: [file_base64]
     ExtractionAppResponse:
       allOf:
       - $ref: '#/components/schemas/SimpleResponse'
@@ -5144,139 +5090,95 @@ components:
             - 'null'
           description: Document type description.
       required: [doc_type]
-    AiRecommendResponse:
+    FieldConfigGenerateResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
         - type: object
           properties:
             data:
-              $ref: '#/components/schemas/AiRecommendData'
-    AiRecommendData:
+              $ref: '#/components/schemas/FieldConfigGenerateData'
+          required: [data]
+    FieldConfigGenerateData:
       type: object
-      additionalProperties: true
+      additionalProperties: false
       properties:
-        app_id:
-          type: string
-          description: Application ID.
-        app_name:
-          type: string
-          description: Application name.
-        ai_function:
-          type: integer
-          enum: [1406, 1425]
-          description: Application type. 1406 means standard custom extraction. 1425 means high-speed custom extraction.
         extract_fields:
           type: array
-          description: Compatibility field list. Standard applications return recommended fields. High-speed applications currently return an ordinary field preview here. Use field_rule and table_rule for the full configuration.
+          minItems: 1
+          maxItems: 50
+          description: Field configuration that can be used directly as extract_fields in application create or update.
           items:
-            $ref: '#/components/schemas/AiRecommendFieldConfig'
-        prompt_rule:
-          type: string
-          description: Overall rule for high-speed auto-configuration. Compatibility field.
-        common_rule:
-          type: string
-          description: Overall rule for high-speed auto-configuration.
-        field_rule:
-          type: array
-          description: Ordinary field configuration preview generated for high-speed applications. This field is not automatically saved to the application configuration.
-          items:
-            $ref: '#/components/schemas/AiRecommendGeneratedRuleField'
-        table_rule:
-          type: array
-          description: Table field configuration preview generated for high-speed applications. This uses a flat structure. Records whose field_parent_id is empty are table parent fields. Records whose field_parent_id points to a parent field_key are table sub-fields.
-          items:
-            $ref: '#/components/schemas/AiRecommendGeneratedRuleField'
-        page_count:
-          type: integer
-          description: Number of pages used for high-speed auto-configuration.
-        document_type:
-          type: string
-          description: Document type detected automatically by the high-speed service.
-    AiRecommendFieldConfig:
+            oneOf:
+              - $ref: '#/components/schemas/GeneratedStringFieldConfig'
+              - $ref: '#/components/schemas/GeneratedFormattedFieldConfig'
+              - $ref: '#/components/schemas/GeneratedTableFieldConfig'
+      required: [extract_fields]
+    GeneratedStringFieldConfig:
       type: object
-      additionalProperties: true
+      additionalProperties: false
       properties:
-        field_key:
-          type: string
-          description: Unique field identifier. Returned for high-speed auto-configuration.
-        field_name:
-          type: string
-          description: Field name.
-        field_type:
-          type: string
-          enum: [string, date, table]
-          description: Field type.
+        field_key: {type: string, minLength: 1, maxLength: 64}
+        field_name: {type: string, minLength: 1, maxLength: 50}
+        field_type: {type: string, const: string}
         field_prompt:
-          type:
-            - string
-            - 'null'
-          description: Field prompt.
-        field_description:
-          type:
-            - string
-            - 'null'
-          description: Field description.
+          type: [string, 'null']
+          maxLength: 3000
+      required: [field_key, field_name, field_type]
+    GeneratedFormattedFieldConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        field_key: {type: string, minLength: 1, maxLength: 64}
+        field_name: {type: string, minLength: 1, maxLength: 50}
+        field_type: {type: string, enum: [number, date]}
+        field_prompt:
+          type: [string, 'null']
+          maxLength: 3000
+        format:
+          type: 'null'
+          description: Always null to preserve the model's original output value.
+      required: [field_key, field_name, field_type, format]
+    GeneratedTableFieldConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        field_key: {type: string, minLength: 1, maxLength: 64}
+        field_name: {type: string, minLength: 1, maxLength: 50}
+        field_type: {type: string, const: table}
         sub_fields:
           type: array
-          description: Table sub-field list. Standard table fields may return this field. For high-speed table fields, use table_rule.
+          minItems: 1
+          maxItems: 30
           items:
-            $ref: '#/components/schemas/AiRecommendSubFieldConfig'
-      required: [field_name, field_type]
-    AiRecommendSubFieldConfig:
+            oneOf:
+              - $ref: '#/components/schemas/GeneratedStringSubFieldConfig'
+              - $ref: '#/components/schemas/GeneratedFormattedSubFieldConfig'
+      required: [field_key, field_name, field_type, sub_fields]
+    GeneratedStringSubFieldConfig:
       type: object
-      additionalProperties: true
+      additionalProperties: false
       properties:
-        field_key:
-          type: string
-          description: Unique sub-field identifier.
-        field_name:
-          type: string
-          description: Sub-field name.
-        field_type:
-          type: string
-          enum: [string, date]
-          description: Sub-field type.
+        field_key: {type: string, minLength: 1, maxLength: 64}
+        field_name: {type: string, minLength: 1, maxLength: 50}
+        field_type: {type: string, const: string}
         field_prompt:
-          type:
-            - string
-            - 'null'
-          description: Sub-field prompt.
-        field_description:
-          type:
-            - string
-            - 'null'
-          description: Sub-field description.
-      required: [field_name, field_type]
-    AiRecommendGeneratedRuleField:
+          type: [string, 'null']
+          maxLength: 3000
+      required: [field_key, field_name, field_type]
+    GeneratedFormattedSubFieldConfig:
       type: object
-      additionalProperties: true
+      additionalProperties: false
       properties:
-        field_key:
-          type: string
-          description: Unique field identifier. A table sub-field's field_parent_id references the table parent field's field_key.
-        field_name:
-          type: string
-          description: Field name.
-        field_type:
-          type: string
-          enum: [string, date, table]
-          description: Field type. table means a table parent field.
-        field_description:
-          type: string
-          description: Field description.
-        field_parent_id:
-          type: string
-          description: Parent field_key for a table sub-field. Empty means an ordinary field or a table parent field.
-        config:
-          type: object
-          additionalProperties: true
-          description: Field extension configuration.
-        source:
-          type: integer
-          description: Field source.
-        _field_key_source:
-          type: string
-          description: Original field key generated by the model. Returned only when the service keeps debug information.
+        field_key: {type: string, minLength: 1, maxLength: 64}
+        field_name: {type: string, minLength: 1, maxLength: 50}
+        field_type: {type: string, enum: [number, date]}
+        field_prompt:
+          type: [string, 'null']
+          maxLength: 3000
+        format:
+          type: 'null'
+          description: Always null to preserve the model's original output value.
+      required: [field_key, field_name, field_type, format]
     UserPaymentResponse:
       type: object
       properties:

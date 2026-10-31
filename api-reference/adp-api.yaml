@@ -601,21 +601,21 @@ paths:
           $ref: '#/components/responses/ExtractionAppVersionDeleteResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
-  /open/agentic_doc_processor/{tenant_name}/v1/app-manage/ai-recommend:
+  /open/agentic_doc_processor/{tenant_name}/v1/app-manage/field-config/generate:
     post:
       tags: [应用管理]
-      summary: 智能体生成抽取字段提示词
-      description: 基于示例文档或提示词，AI 自动生成字段名称、字段类型和字段提示词等配置参考。标准版应用至少提供 prompt、file_url 或 file_base64 之一；高速版应用必须提供 file_url 或 file_base64，prompt 仅作为辅助生成提示。传入高速版自定义抽取应用的 app_id 时，会返回 common_rule、field_rule、table_rule 等配置预览；该接口不会保存配置版本，也不会自动回填到 Web 页面应用中。注意：HTTP 200 也可能表示业务失败，调用方必须同时检查响应中的业务 code。
-      operationId: recommendExtractionFields
+      summary: 根据样例文件生成抽取字段配置
+      description: 提交一个样例文件，生成可直接用于应用创建或修改接口 extract_fields 的高速抽取字段配置。file_url 与 file_base64 必须且只能提交一个；prompt 为可选补充要求，最多 3000 个字符。接口无需 app_id，不创建应用、不保存配置版本，也不扣除抽取积分。数值和日期字段的 format 固定返回 null，表示保留模型原始输出值。注意：HTTP 200 也可能表示业务失败，调用方必须同时检查响应中的业务 code。
+      operationId: generateExtractionFieldConfig
       security:
         - ApiKeyAuth: []
       parameters:
         - $ref: '#/components/parameters/TenantName'
       requestBody:
-        $ref: '#/components/requestBodies/AiRecommendRequest'
+        $ref: '#/components/requestBodies/FieldConfigGenerateRequest'
       responses:
         '200':
-          $ref: '#/components/responses/AiRecommendResponse'
+          $ref: '#/components/responses/FieldConfigGenerateResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
       x-codeSamples:
@@ -625,11 +625,11 @@ paths:
             import requests
 
             response = requests.post(
-                "https://adp.laiye.com/open/agentic_doc_processor/laiye/v1/app-manage/ai-recommend",
+                "https://adp.laiye.com/open/agentic_doc_processor/laiye/v1/app-manage/field-config/generate",
                 headers={"X-API-KEY": "YOUR_API_KEY"},
                 json={
-                    "app_id": "app_1406",
-                    "prompt": "请生成发票号码、开票日期和价税合计字段",
+                    "file_url": "https://files.example.com/purchase-contract.pdf",
+                    "prompt": "生成合同编号、合同金额、签署日期和采购明细字段",
                 },
                 timeout=120,
             )
@@ -2089,24 +2089,18 @@ components:
               value:
                 app_id: app_1425
                 config_version: v1
-    AiRecommendRequest:
+    FieldConfigGenerateRequest:
       required: true
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/AiRecommendRequest'
+            $ref: '#/components/schemas/FieldConfigGenerateRequest'
           examples:
-            standardCustomExtractionApp:
-              summary: 标准版自定义抽取应用生成字段提示词
+            sampleFileUrl:
+              summary: 根据样例文件 URL 生成字段配置
               value:
-                app_id: app_1406
-                prompt: 请从发票中抽取发票号码、开票日期和价税合计。
-            highSpeedCustomExtractionApp:
-              summary: 高速版自定义抽取应用自动生成配置预览
-              value:
-                app_id: app_1425
-                file_url: https://adp.laiye.com/web/agentic_doc_processor/laiye/file/2003c711818811f1a36200163e358400
-                prompt: 请根据票据版面生成字段配置，字段 key 使用英文下划线命名。
+                file_url: https://files.example.com/purchase-contract.pdf
+                prompt: 生成合同编号、合同金额、签署日期和采购明细字段。
     DocFlowRunRequest:
       required: true
       content:
@@ -2492,85 +2486,45 @@ components:
                   enable_field_value_translation: false
                   enable_confidence: true
                   enable_long_doc: false
-    AiRecommendResponse:
-      description: 智能体生成字段配置结果。高速版返回配置预览，不会保存配置版本。
+    FieldConfigGenerateResponse:
+      description: 根据样例文件生成的规范化字段配置，不创建应用或保存配置版本。
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/AiRecommendResponse'
-          examples:
-            standardCustomExtractionApp:
-              summary: 标准版自定义抽取应用推荐字段
-              value:
-                code: success
-                message: ''
-                tips: null
-                data:
-                  app_id: app_1406
-                  app_name: ''
-                  extract_fields:
-                    - field_name: 发票号码
-                      field_type: string
-                      field_prompt: 抽取税务发票的唯一标识编号。
-                    - field_name: 开票日期
-                      field_type: date
-                      field_prompt: 抽取发票开具日期。
-            highSpeedCustomExtractionApp:
-              summary: 高速版自定义抽取应用自动生成配置预览
-              value:
-                code: success
-                message: ''
-                tips: null
-                data:
-                  app_id: app_1425
-                  app_name: 高速版发票抽取应用
-                  ai_function: 1425
-                  extract_fields:
-                    - field_key: invoice_number
-                      field_name: 发票号码
-                      field_type: string
-                      field_prompt: 税务发票的唯一标识编号。
-                      field_description: 税务发票的唯一标识编号。
-                    - field_key: invoice_date
-                      field_name: 开票日期
-                      field_type: date
-                      field_prompt: 发票开具日期。
-                      field_description: 发票开具日期。
-                  prompt_rule: 仅抽取票面中明确出现的字段。
-                  common_rule: 仅抽取票面中明确出现的字段。
-                  field_rule:
-                    - field_key: invoice_number
-                      field_name: 发票号码
-                      field_type: string
-                      field_description: 税务发票的唯一标识编号。
-                    - field_key: invoice_date
-                      field_name: 开票日期
-                      field_type: date
-                      field_description: 发票开具日期。
-                  table_rule:
-                    - field_key: line_items
-                      field_name: 明细
-                      field_type: table
-                      field_description: 发票明细表。
-                      field_parent_id: ''
+            $ref: '#/components/schemas/FieldConfigGenerateResponse'
+          example:
+            code: success
+            message: ''
+            tips: null
+            data:
+              extract_fields:
+                - field_key: contract_no
+                  field_name: 合同编号
+                  field_type: string
+                  field_prompt: 提取合同编号。
+                - field_key: contract_amount
+                  field_name: 合同金额
+                  field_type: number
+                  field_prompt: 提取合同总金额。
+                  format: null
+                - field_key: signed_at
+                  field_name: 签署日期
+                  field_type: date
+                  field_prompt: 提取合同签署日期。
+                  format: null
+                - field_key: purchase_items
+                  field_name: 采购明细
+                  field_type: table
+                  sub_fields:
                     - field_key: item_name
                       field_name: 商品名称
                       field_type: string
-                      field_description: 明细中的商品或服务名称。
-                      field_parent_id: line_items
+                      field_prompt: 提取每一行的商品名称。
                     - field_key: item_amount
-                      field_name: 金额
-                      field_type: string
-                      field_description: 明细金额。
-                      field_parent_id: line_items
-                  page_count: 2
-                  document_type: invoice
-            promptOrFileRequired:
-              summary: 标准版未提供提示词或文件（HTTP 200 业务失败）
-              value:
-                code: prompt_or_file_required
-                message: prompt、file_url 或 file_base64 至少提供一个
-                tips: null
+                      field_name: 明细金额
+                      field_type: number
+                      field_prompt: 提取每一行的金额。
+                      format: null
     AppListResponse:
       description: 应用列表。
       content:
@@ -4646,35 +4600,27 @@ components:
           type: string
           description: 配置版本。可选，默认返回最新版本。
       required: [app_id]
-    AiRecommendRequest:
+    FieldConfigGenerateRequest:
       type: object
       additionalProperties: false
-      description: 智能体生成字段配置请求。标准版应用至少提供 prompt、file_url 或 file_base64 之一；高速版应用仍必须提供 file_url 或 file_base64，prompt 只作为辅助说明。应用类型由 app_id 对应的应用决定，因此 OpenAPI 无法仅根据请求字段进一步区分两种条件约束。
+      description: 根据一个样例文件生成可直接用于 create/update 的高速抽取字段配置。
       properties:
-        app_id:
-          type: string
-          description: 应用 ID。传入高速版自定义抽取应用时，返回高速版自动生成配置预览。
         file_base64:
           type: string
-          description: 文件 Base64 编码。高速版应用与 file_url 二选一必填。
+          minLength: 1
+          description: 文件 Base64 编码；与 file_url 二选一。
         file_url:
           type: string
           format: uri
-          description: 文件 URL。高速版应用与 file_base64 二选一必填。
+          minLength: 1
+          description: 可下载的文件 URL；与 file_base64 二选一。
         prompt:
           type: string
-          description: 用户提供的生成提示。标准版可只传 prompt；高速版需要同时提供文件。
-        doc_type:
-          type: string
-          description: 文档类型。标准版自动生成建议时可传入；高速版会根据文档自动识别。
-        doc_type_description:
-          type: string
-          description: 文档类型描述。标准版自动生成建议时可传入。
-      required: [app_id]
-      anyOf:
-        - required: [prompt]
-        - required: [file_base64]
+          maxLength: 3000
+          description: 可选的字段生成要求，最多 3000 个字符。
+      oneOf:
         - required: [file_url]
+        - required: [file_base64]
     ExtractionAppResponse:
       allOf:
       - $ref: '#/components/schemas/SimpleResponse'
@@ -5039,139 +4985,95 @@ components:
             - 'null'
           description: 文档类型描述。
       required: [doc_type]
-    AiRecommendResponse:
+    FieldConfigGenerateResponse:
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
         - type: object
           properties:
             data:
-              $ref: '#/components/schemas/AiRecommendData'
-    AiRecommendData:
+              $ref: '#/components/schemas/FieldConfigGenerateData'
+          required: [data]
+    FieldConfigGenerateData:
       type: object
-      additionalProperties: true
+      additionalProperties: false
       properties:
-        app_id:
-          type: string
-          description: 应用 ID。
-        app_name:
-          type: string
-          description: 应用名称。
-        ai_function:
-          type: integer
-          enum: [1406, 1425]
-          description: 应用类型。1406 表示标准版自定义抽取；1425 表示高速版自定义抽取。
         extract_fields:
           type: array
-          description: 兼容字段列表。标准版返回推荐字段；高速版当前返回普通字段预览，完整配置请使用 field_rule 和 table_rule。
+          minItems: 1
+          maxItems: 50
+          description: 可直接作为应用 create/update 接口 extract_fields 使用的字段配置。
           items:
-            $ref: '#/components/schemas/AiRecommendFieldConfig'
-        prompt_rule:
-          type: string
-          description: 高速版自动生成配置的整体规则，兼容字段。
-        common_rule:
-          type: string
-          description: 高速版自动生成配置的整体规则。
-        field_rule:
-          type: array
-          description: 高速版自动生成的普通字段配置预览。该字段不会自动保存到应用配置中。
-          items:
-            $ref: '#/components/schemas/AiRecommendGeneratedRuleField'
-        table_rule:
-          type: array
-          description: 高速版自动生成的表格字段配置预览，采用平铺结构。field_parent_id 为空的记录为表格父字段，field_parent_id 指向父字段 field_key 的记录为表格子字段。
-          items:
-            $ref: '#/components/schemas/AiRecommendGeneratedRuleField'
-        page_count:
-          type: integer
-          description: 高速版自动生成配置时使用的页数。
-        document_type:
-          type: string
-          description: 高速版自动识别的文档类型。
-    AiRecommendFieldConfig:
+            oneOf:
+              - $ref: '#/components/schemas/GeneratedStringFieldConfig'
+              - $ref: '#/components/schemas/GeneratedFormattedFieldConfig'
+              - $ref: '#/components/schemas/GeneratedTableFieldConfig'
+      required: [extract_fields]
+    GeneratedStringFieldConfig:
       type: object
-      additionalProperties: true
+      additionalProperties: false
       properties:
-        field_key:
-          type: string
-          description: 字段唯一标识。高速版自动生成配置时返回。
-        field_name:
-          type: string
-          description: 字段名称。
-        field_type:
-          type: string
-          enum: [string, date, table]
-          description: 字段类型。
+        field_key: {type: string, minLength: 1, maxLength: 64}
+        field_name: {type: string, minLength: 1, maxLength: 50}
+        field_type: {type: string, const: string}
         field_prompt:
-          type:
-            - string
-            - 'null'
-          description: 字段提示词。
-        field_description:
-          type:
-            - string
-            - 'null'
-          description: 字段描述。
+          type: [string, 'null']
+          maxLength: 3000
+      required: [field_key, field_name, field_type]
+    GeneratedFormattedFieldConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        field_key: {type: string, minLength: 1, maxLength: 64}
+        field_name: {type: string, minLength: 1, maxLength: 50}
+        field_type: {type: string, enum: [number, date]}
+        field_prompt:
+          type: [string, 'null']
+          maxLength: 3000
+        format:
+          type: 'null'
+          description: 固定为 null，表示保留模型原始输出值。
+      required: [field_key, field_name, field_type, format]
+    GeneratedTableFieldConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        field_key: {type: string, minLength: 1, maxLength: 64}
+        field_name: {type: string, minLength: 1, maxLength: 50}
+        field_type: {type: string, const: table}
         sub_fields:
           type: array
-          description: 表格子字段列表。标准版表格字段可能返回该字段；高速版表格字段请查看 table_rule。
+          minItems: 1
+          maxItems: 30
           items:
-            $ref: '#/components/schemas/AiRecommendSubFieldConfig'
-      required: [field_name, field_type]
-    AiRecommendSubFieldConfig:
+            oneOf:
+              - $ref: '#/components/schemas/GeneratedStringSubFieldConfig'
+              - $ref: '#/components/schemas/GeneratedFormattedSubFieldConfig'
+      required: [field_key, field_name, field_type, sub_fields]
+    GeneratedStringSubFieldConfig:
       type: object
-      additionalProperties: true
+      additionalProperties: false
       properties:
-        field_key:
-          type: string
-          description: 子字段唯一标识。
-        field_name:
-          type: string
-          description: 子字段名称。
-        field_type:
-          type: string
-          enum: [string, date]
-          description: 子字段类型。
+        field_key: {type: string, minLength: 1, maxLength: 64}
+        field_name: {type: string, minLength: 1, maxLength: 50}
+        field_type: {type: string, const: string}
         field_prompt:
-          type:
-            - string
-            - 'null'
-          description: 子字段提示词。
-        field_description:
-          type:
-            - string
-            - 'null'
-          description: 子字段描述。
-      required: [field_name, field_type]
-    AiRecommendGeneratedRuleField:
+          type: [string, 'null']
+          maxLength: 3000
+      required: [field_key, field_name, field_type]
+    GeneratedFormattedSubFieldConfig:
       type: object
-      additionalProperties: true
+      additionalProperties: false
       properties:
-        field_key:
-          type: string
-          description: 字段唯一标识。表格子字段的 field_parent_id 会引用表格父字段的 field_key。
-        field_name:
-          type: string
-          description: 字段名称。
-        field_type:
-          type: string
-          enum: [string, date, table]
-          description: 字段类型。table 表示表格父字段。
-        field_description:
-          type: string
-          description: 字段描述。
-        field_parent_id:
-          type: string
-          description: 表格子字段所属的父字段 field_key。为空时表示普通字段或表格父字段。
-        config:
-          type: object
-          additionalProperties: true
-          description: 字段扩展配置。
-        source:
-          type: integer
-          description: 字段来源。
-        _field_key_source:
-          type: string
-          description: 模型生成的原始字段 key，仅在服务保留调试信息时返回。
+        field_key: {type: string, minLength: 1, maxLength: 64}
+        field_name: {type: string, minLength: 1, maxLength: 50}
+        field_type: {type: string, enum: [number, date]}
+        field_prompt:
+          type: [string, 'null']
+          maxLength: 3000
+        format:
+          type: 'null'
+          description: 固定为 null，表示保留模型原始输出值。
+      required: [field_key, field_name, field_type, format]
     UserPaymentResponse:
       type: object
       properties:
