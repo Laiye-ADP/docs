@@ -1,0 +1,11 @@
+---
+title: Publish extraction configuration
+description: See the API definition below for parameters, response structure and examples.
+openapi: /en/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/publish
+---
+
+See the API definition below for parameters, response structure and examples.
+
+[Integration guide](/en/api-reference/adp-api/application-management/high-speed-configuration)
+
+Publishing is optional. Repeating an explicit published version returns the same config_version and published=true. Omit config_version for the latest unpublished version; no available target is an error.

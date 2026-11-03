@@ -71,3 +71,12 @@ Workflow changes are currently available only through the [ADP website interface
 | Create and publish an application from a workflow template | `POST /open/agentic_engine/laiye/v1/app/applications/create-from-template` |
 | Update or delete an application | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update`, `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete` |
 | Query or delete a configuration version | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config`, `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete` |
+
+
+## v1.19 classification and routing
+
+The create endpoint now supports 1426 standalone classification, 1425 high-speed custom extraction and 1423/1424 invoice apps. New 1425 apps default all three switches to off; publishing is optional.
+
+- [High-speed configuration and field formats](/en/api-reference/adp-api/application-management/high-speed-configuration)
+- [Standalone classification](/en/api-reference/adp-api/document-classification/overview)
+- [Routed extraction](/en/api-reference/adp-api/routed-extraction/overview)

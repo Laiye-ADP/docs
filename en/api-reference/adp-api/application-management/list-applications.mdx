@@ -1,5 +1,49 @@
 ---
-title: "List applications"
-sidebarTitle: "List applications"
-openapi: "/en/api-reference/adp-api.yaml GET /open/agentic_doc_processor/{tenant_name}/v1/app-list"
+title: List applications
+sidebarTitle: List applications
+openapi: /en/api-reference/adp-api.yaml GET /open/agentic_doc_processor/{tenant_name}/v1/app-list
+description: List applications in the current account access scope, filtered by capability,
+  owner or published configuration.
 ---
+
+List applications in the current account access scope, filtered by capability, owner or published configuration.
+
+`ai_function` has no default 1425 filter. Omission does not select a capability, but listing classification apps requires explicit `ai_function=1426`. All filters still follow account and deployment access policy. `owner_only=false` does not grant access to all users or tenants.
+
+| Parameter | Default | Behavior |
+| --- | --- | --- |
+| `owner_only` | false | Only apps created by the current user |
+| `published_only` | false | Only apps with a published extraction config; not a general callable-state filter. Classification apps do not use extraction publication |
+| `with_output_schema` | false | Include the latest published extraction version ID and business field structure |
+| `active_template_only` | false | Active-template preset apps, intersected with other filters |
+| `offset` | 0 | Nonnegative offset, without a 1000 maximum |
+| `limit` | 20 | 1–1000 entries per page |
+
+`published_version_id` is a published-record ID, not a name such as `v1`. `output_schema` contains business field keys, types and labels, without extraction prompts; it may be null without the corresponding version/fields. It is not the `field_values` response envelope and does not imply formatted values become JSON numbers.
+```json
+{
+  "published_version_id": "b2140f5fc6434e428caf35df0abf7862",
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "contract_no": {
+        "type": "string"
+      },
+      "contract_amount": {
+        "type": "number"
+      },
+      "purchase_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "item_name": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```

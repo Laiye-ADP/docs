@@ -1,0 +1,11 @@
+---
+title: 发布抽取配置版本
+description: 参数、返回结构与示例见下方接口定义。
+openapi: /api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/publish
+---
+
+参数、返回结构与示例见下方接口定义。
+
+[接入流程与使用说明](/api-reference/adp-api/application-management/high-speed-configuration)
+
+可选发布。指定已发布版本重复调用仍返回相同config_version和published=true。省略config_version选择最新未发布版本；无可发布目标时返回错误。

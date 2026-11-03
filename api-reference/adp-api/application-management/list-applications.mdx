@@ -1,5 +1,48 @@
 ---
-title: "查询应用列表"
-sidebarTitle: "查询应用列表"
-openapi: "/api-reference/adp-api.yaml GET /open/agentic_doc_processor/{tenant_name}/v1/app-list"
+title: 查询应用列表
+sidebarTitle: 查询应用列表
+openapi: /api-reference/adp-api.yaml GET /open/agentic_doc_processor/{tenant_name}/v1/app-list
+description: 查询当前账号权限范围内的应用，按能力、创建人和已发布配置筛选。
 ---
+
+查询当前账号权限范围内的应用，按能力、创建人和已发布配置筛选。
+
+`ai_function`没有1425默认值；不传时不指定某一种能力，但1426分类应用须显式传`ai_function=1426`才会列出。其他筛选仍受账号与部署权限规则约束。`owner_only=false`不代表可以跨用户或跨租户读取所有应用。
+
+| 参数 | 默认 | 作用 |
+| --- | --- | --- |
+| `owner_only` | false | 仅当前用户创建的应用 |
+| `published_only` | false | 仅有已发布抽取配置的应用，不等价于“可调用”；分类应用不采用抽取发布版本 |
+| `with_output_schema` | false | 带上最新已发布抽取版本ID和输出字段结构 |
+| `active_template_only` | false | 只列关联当前有效系统模板的预置应用，与其他条件取交集 |
+| `offset` | 0 | 非负偏移，没有1000上限 |
+| `limit` | 20 | 每页1～1000条 |
+
+`published_version_id`是发布记录ID，不是`v1`这样的版本名。`output_schema`只包含业务字段key、类型和展示名，不包含抽取提示词；没有相应版本或字段时可为null。它不是`field_values`等API结果外壳，也不表示经过format后的字符串会变成JSON number。
+```json
+{
+  "published_version_id": "b2140f5fc6434e428caf35df0abf7862",
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "contract_no": {
+        "type": "string"
+      },
+      "contract_amount": {
+        "type": "number"
+      },
+      "purchase_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "item_name": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```

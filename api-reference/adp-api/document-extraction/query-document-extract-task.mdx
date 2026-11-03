@@ -1,5 +1,12 @@
 ---
-title: "查询文档抽取任务结果"
-sidebarTitle: "查询文档抽取任务结果"
-openapi: "/api-reference/adp-api.yaml GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}"
+title: 查询文档抽取任务结果
+sidebarTitle: 查询文档抽取任务结果
+openapi: /api-reference/adp-api.yaml GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}
+description: 单应用异步抽取沿用同步请求的身份、文件与参数规则。1425异步同样禁用人机协同。
 ---
+
+单应用异步抽取沿用同步请求的身份、文件与参数规则。1425异步同样禁用人机协同。
+
+[完整参数适用范围与原生文件示例](/api-reference/adp-api/document-extraction/extract-document)
+
+任务status为0/1/2/4/5/6，分别为未知/就绪/运行中/成功/失败/取消或拒绝。海外发票多票返回可能同时包含tickets和按类型分组的extraction_result；它们表示同批结果，不要重复入账。
