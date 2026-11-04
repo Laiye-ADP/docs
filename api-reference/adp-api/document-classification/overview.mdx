@@ -7,7 +7,7 @@ description: "创建独立分类应用，将文档页面映射到预设类别并
 
 ## 接入流程
 
-1. **创建分类应用。** 调用[创建应用](/api-reference/adp-api/application-management/create-extraction-application)，设置 `ai_function=1426`，并通过 `classify_types` 定义类别；保存返回的 `app_id`。
+1. **创建分类应用。** 调用[创建应用](/api-reference/adp-api/application-management/create-extraction-application?request-schema=classification)，设置 `ai_function=1426`，并通过 `classify_types` 定义类别；保存返回的 `app_id`。
 2. **维护类别。** 使用[修改应用](/api-reference/adp-api/application-management/update-extraction-application)更新类别定义。需要重新查找分类应用时，调用[查询应用列表](/api-reference/adp-api/application-management/list-applications)并显式传入 `ai_function=1426`。
 3. **选择调用方式。** 需要立即取得结果时调用[文档分类（同步）](/api-reference/adp-api/document-classification/classify-document)；页数较多或不希望阻塞请求时调用[创建分类任务](/api-reference/adp-api/document-classification/create-classification-task)。
 4. **查询异步结果。** 使用创建任务返回的 `task_id` 调用[查询分类任务](/api-reference/adp-api/document-classification/query-classification-task)，直到任务成功或失败。
