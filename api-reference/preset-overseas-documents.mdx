@@ -112,9 +112,6 @@ GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{tas
 
 三个临时开关enable_highlight、enable_field_value_translation、enable_confidence均放在单应用请求顶层。true/false只影响本次调用，不保存应用配置；省略/null沿用应用设置。自动路由新接口中三个开关改放model_params，与pages同级，可同时处理1425、1423、1424应用。
 
-[自动路由抽取接入](/api-reference/adp-api/routed-extraction/overview)
-
-
 ## 旧单应用多票结果
 
 启用enable_multi_ticket后，extraction_result按invoice_tickets/receipt_tickets分组，每组object_values是对应票据。tickets提供同一批票据的平铺形式；两者是兼容投影，选择一份消费即可，不是抽取或计费两次。ticket_count是票据数，page_labels说明每页所属票据；非多票结果中这些属性可为null。新自动路由接口的结果不重复返回tickets，不能把旧结构和新结构混用。

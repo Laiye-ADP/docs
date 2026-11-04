@@ -376,8 +376,7 @@ paths:
       tags:
       - Application management
       summary: Create application
-      description: Supports 1406 classic custom extraction, 1425 high-speed custom extraction, 1423/1424 invoices, and 1426
-        standalone classification.
+      description: Supports 1406 classic custom extraction, 1425 high-speed custom extraction, and 1426 standalone classification.
       operationId: createExtractionApp
       security:
       - ApiKeyAuth: []
@@ -412,8 +411,8 @@ paths:
       tags:
       - Application management
       summary: Update application
-      description: Supports 1406 classic custom extraction, 1425 high-speed custom extraction, 1423/1424 invoices, and 1426
-        standalone classification. Metadata-only updates keep the saved version. 1425 fields/switches create a version and inherit
+      description: Supports 1406 classic custom extraction, 1425 high-speed custom extraction, and 1426 standalone classification.
+        Metadata-only updates keep the saved version. 1425 fields/switches create a version and inherit
         omitted switches. Always returns config_version, which does not indicate publication.
       operationId: updateExtractionApp
       security:
@@ -1225,11 +1224,12 @@ paths:
       - name: task_id
         in: path
         required: true
+        description: Task ID returned by the routed extraction task creation endpoint.
         schema:
           type: string
       responses:
         '200':
-          description: Operation result; check code and task status.
+          description: Query result; check code and data.status.
           content:
             application/json:
               schema:
@@ -1246,26 +1246,26 @@ paths:
                       granularity: page
                       extraction_result:
                       - app_id: 8f4b2c506df811f1a3d90242ac120002
-                        app_name: 采购合同
+                        app_name: Purchase Contract
                         app_code: purchase_contract
                         config_version: v1
                         object_values:
-                        - doc_type: 采购合同
+                        - doc_type: Purchase Contract
                           pages:
                           - 1
                           - 2
                           status: success
                           extraction_result:
                           - field_key: contract_no
-                            field_name: 合同编号
+                            field_name: Contract Number
                             field_values:
                             - field_value: HT-001
                           - field_key: contract_amount
-                            field_name: 合同金额
+                            field_name: Contract Amount
                             field_values:
                             - field_value: 12,345.68
                               field_confidence: 0.96
-                        - doc_type: 采购合同
+                        - doc_type: Purchase Contract
                           pages:
                           - 3
                           status: success
@@ -1283,26 +1283,26 @@ paths:
                       granularity: page
                       extraction_result:
                       - app_id: 8f4b2c506df811f1a3d90242ac120002
-                        app_name: 采购合同
+                        app_name: Purchase Contract
                         app_code: purchase_contract
                         config_version: v1
                         object_values:
-                        - doc_type: 采购合同
+                        - doc_type: Purchase Contract
                           pages:
                           - 1
                           - 2
                           status: success
                           extraction_result:
                           - field_key: contract_no
-                            field_name: 合同编号
+                            field_name: Contract Number
                             field_values:
                             - field_value: HT-001
                           - field_key: contract_amount
-                            field_name: 合同金额
+                            field_name: Contract Amount
                             field_values:
                             - field_value: 12,345.68
                               field_confidence: 0.96
-                        - doc_type: 采购合同
+                        - doc_type: Purchase Contract
                           pages:
                           - 3
                           status: success
@@ -1415,26 +1415,26 @@ paths:
                       granularity: page
                       extraction_result:
                       - app_id: 8f4b2c506df811f1a3d90242ac120002
-                        app_name: 采购合同
+                        app_name: Purchase Contract
                         app_code: purchase_contract
                         config_version: v1
                         object_values:
-                        - doc_type: 采购合同
+                        - doc_type: Purchase Contract
                           pages:
                           - 1
                           - 2
                           status: success
                           extraction_result:
                           - field_key: contract_no
-                            field_name: 合同编号
+                            field_name: Contract Number
                             field_values:
                             - field_value: HT-001
                           - field_key: contract_amount
-                            field_name: 合同金额
+                            field_name: Contract Amount
                             field_values:
                             - field_value: 12,345.68
                               field_confidence: 0.96
-                        - doc_type: 采购合同
+                        - doc_type: Purchase Contract
                           pages:
                           - 3
                           status: success
@@ -1452,26 +1452,26 @@ paths:
                       granularity: page
                       extraction_result:
                       - app_id: 8f4b2c506df811f1a3d90242ac120002
-                        app_name: 采购合同
+                        app_name: Purchase Contract
                         app_code: purchase_contract
                         config_version: v1
                         object_values:
-                        - doc_type: 采购合同
+                        - doc_type: Purchase Contract
                           pages:
                           - 1
                           - 2
                           status: success
                           extraction_result:
                           - field_key: contract_no
-                            field_name: 合同编号
+                            field_name: Contract Number
                             field_values:
                             - field_value: HT-001
                           - field_key: contract_amount
-                            field_name: 合同金额
+                            field_name: Contract Amount
                             field_values:
                             - field_value: 12,345.68
                               field_confidence: 0.96
-                        - doc_type: 采购合同
+                        - doc_type: Purchase Contract
                           pages:
                           - 3
                           status: success
@@ -1530,6 +1530,7 @@ paths:
       - name: task_id
         in: path
         required: true
+        description: Task ID returned by the classification task creation endpoint.
         schema:
           type: string
       responses:
@@ -1541,7 +1542,7 @@ paths:
                 $ref: '#/components/schemas/ClassificationTaskResult'
               examples:
                 example:
-                  summary: Response structure; extracted fields are abbreviated
+                  summary: Classification result example
                   value:
                     code: success
                     message: ''
@@ -1553,16 +1554,16 @@ paths:
                       granularity: page
                       segments:
                       - category_key: contract
-                        category_name: 采购合同
+                        category_name: Purchase Contract
                         pages:
                         - 1
                         - 2
                       - category_key: contract
-                        category_name: 采购合同
+                        category_name: Purchase Contract
                         pages:
                         - 3
                       - category_key: invoice
-                        category_name: 发票
+                        category_name: Invoice
                         pages:
                         - 4
                       unclassified_pages:
@@ -1592,7 +1593,7 @@ paths:
                 $ref: '#/components/schemas/ClassificationTaskResult'
               examples:
                 example:
-                  summary: Response structure; extracted fields are abbreviated
+                  summary: Classification result example
                   value:
                     code: success
                     message: ''
@@ -1643,7 +1644,7 @@ paths:
                 $ref: '#/components/schemas/ClassificationTaskResult'
               examples:
                 example:
-                  summary: Response structure; extracted fields are abbreviated
+                  summary: Classification result example
                   value:
                     code: success
                     message: ''
@@ -1655,16 +1656,16 @@ paths:
                       granularity: page
                       segments:
                       - category_key: contract
-                        category_name: 采购合同
+                        category_name: Purchase Contract
                         pages:
                         - 1
                         - 2
                       - category_key: contract
-                        category_name: 采购合同
+                        category_name: Purchase Contract
                         pages:
                         - 3
                       - category_key: invoice
-                        category_name: 发票
+                        category_name: Invoice
                         pages:
                         - 4
                       unclassified_pages:
@@ -1703,7 +1704,7 @@ paths:
       - $ref: '#/components/parameters/TenantName'
       responses:
         '200':
-          description: Operation result; check code and task status.
+          description: Publication result; check code, data.config_version, and data.published.
           content:
             application/json:
               schema:
@@ -1880,11 +1881,11 @@ components:
                 - field_key: contract_no
                   field_name: Contract No
                   field_type: string
-                  field_prompt: 提取合同编号
+                  field_prompt: Extract the contract number.
                 - field_key: contract_amount
                   field_name: Contract Amount
                   field_type: number
-                  field_prompt: 提取合同总金额
+                  field_prompt: Extract the total contract amount.
                   format:
                     mode: preset
                     preset: grouped_decimal
@@ -1893,7 +1894,7 @@ components:
                 - field_key: signed_at
                   field_name: Signed At
                   field_type: date
-                  field_prompt: 提取合同签署日期
+                  field_prompt: Extract the contract signing date.
                   format:
                     mode: preset
                     preset: date_iso
@@ -1904,11 +1905,11 @@ components:
                   - field_key: item_name
                     field_name: Item Name
                     field_type: string
-                    field_prompt: 提取每一行的商品名称
+                    field_prompt: Extract the item name from each row.
                   - field_key: item_amount
                     field_name: Item Amount
                     field_type: number
-                    field_prompt: 提取每一行的金额
+                    field_prompt: Extract the amount from each row.
                     format:
                       mode: preset
                       preset: grouped_decimal
@@ -1917,7 +1918,7 @@ components:
                   - field_key: delivery_date
                     field_name: Delivery Date
                     field_type: date
-                    field_prompt: 提取每一行约定的交付日期
+                    field_prompt: Extract the agreed delivery date from each row.
                     format:
                       mode: preset
                       preset: date_iso
@@ -1928,11 +1929,11 @@ components:
                   - field_key: payment_stage
                     field_name: Payment Stage
                     field_type: string
-                    field_prompt: 提取每一行的付款阶段
+                    field_prompt: Extract the payment stage from each row.
                   - field_key: payment_amount
                     field_name: Payment Amount
                     field_type: number
-                    field_prompt: 提取每一行应付的金额
+                    field_prompt: Extract the payable amount from each row.
                     format:
                       mode: preset
                       preset: grouped_decimal
@@ -1941,7 +1942,7 @@ components:
                   - field_key: payment_date
                     field_name: Payment Date
                     field_type: date
-                    field_prompt: 提取每一行约定的付款日期
+                    field_prompt: Extract the agreed payment date from each row.
                     format:
                       mode: preset
                       preset: date_iso
@@ -1972,19 +1973,13 @@ components:
               summary: Classification app
               value:
                 ai_function: 1426
-                app_name: 业务材料分类
+                app_name: Business Document Classification
                 classify_types:
                 - category_key: contract
-                  type_name: 采购合同
-                  description: 采购合同正文及签署页
+                  type_name: Purchase Contract
+                  description: Purchase contract body and signature pages.
                 - category_key: invoice
-                  type_name: 发票
-            invoiceApp:
-              summary: High-speed invoice app
-              value:
-                ai_function: 1423
-                app_name: Global invoices and receipts
-                description: Overseas transaction invoices and receipts
+                  type_name: Invoice
     ExtractionAppUpdateRequest:
       required: true
       content:
@@ -2022,11 +2017,11 @@ components:
                 - field_key: contract_no
                   field_name: Contract No
                   field_type: string
-                  field_prompt: 提取合同编号
+                  field_prompt: Extract the contract number.
                 - field_key: contract_amount
                   field_name: Contract Amount
                   field_type: number
-                  field_prompt: 提取合同总金额
+                  field_prompt: Extract the total contract amount.
                   format:
                     mode: preset
                     preset: grouped_decimal
@@ -2035,7 +2030,7 @@ components:
                 - field_key: signed_at
                   field_name: Signed At
                   field_type: date
-                  field_prompt: 提取合同签署日期
+                  field_prompt: Extract the contract signing date.
                   format:
                     mode: preset
                     preset: date_iso
@@ -2046,11 +2041,11 @@ components:
                   - field_key: item_name
                     field_name: Item Name
                     field_type: string
-                    field_prompt: 提取每一行的商品名称
+                    field_prompt: Extract the item name from each row.
                   - field_key: item_amount
                     field_name: Item Amount
                     field_type: number
-                    field_prompt: 提取每一行的金额
+                    field_prompt: Extract the amount from each row.
                     format:
                       mode: preset
                       preset: grouped_decimal
@@ -2059,7 +2054,7 @@ components:
                   - field_key: delivery_date
                     field_name: Delivery Date
                     field_type: date
-                    field_prompt: 提取每一行约定的交付日期
+                    field_prompt: Extract the agreed delivery date from each row.
                     format:
                       mode: preset
                       preset: date_iso
@@ -2070,11 +2065,11 @@ components:
                   - field_key: payment_stage
                     field_name: Payment Stage
                     field_type: string
-                    field_prompt: 提取每一行的付款阶段
+                    field_prompt: Extract the payment stage from each row.
                   - field_key: payment_amount
                     field_name: Payment Amount
                     field_type: number
-                    field_prompt: 提取每一行应付的金额
+                    field_prompt: Extract the payable amount from each row.
                     format:
                       mode: preset
                       preset: grouped_decimal
@@ -2083,7 +2078,7 @@ components:
                   - field_key: payment_date
                     field_name: Payment Date
                     field_type: date
-                    field_prompt: 提取每一行约定的付款日期
+                    field_prompt: Extract the agreed payment date from each row.
                     format:
                       mode: preset
                       preset: date_iso
@@ -2107,10 +2102,10 @@ components:
                 ai_function: 1426
                 classify_types:
                 - category_key: contract
-                  type_name: 采购合同
-                  description: 采购合同正文及签署页
+                  type_name: Purchase Contract
+                  description: Purchase contract body and signature pages.
                 - category_key: invoice
-                  type_name: 发票
+                  type_name: Invoice
     AppConfigQueryRequest:
       required: true
       content:
@@ -2454,11 +2449,11 @@ components:
                   - field_key: contract_no
                     field_name: Contract No
                     field_type: string
-                    field_prompt: 提取合同编号
+                    field_prompt: Extract the contract number.
                   - field_key: contract_amount
                     field_name: Contract Amount
                     field_type: number
-                    field_prompt: 提取合同总金额
+                    field_prompt: Extract the total contract amount.
                     format:
                       mode: preset
                       preset: grouped_decimal
@@ -2467,7 +2462,7 @@ components:
                   - field_key: signed_at
                     field_name: Signed At
                     field_type: date
-                    field_prompt: 提取合同签署日期
+                    field_prompt: Extract the contract signing date.
                     format:
                       mode: preset
                       preset: date_iso
@@ -2478,11 +2473,11 @@ components:
                     - field_key: item_name
                       field_name: Item Name
                       field_type: string
-                      field_prompt: 提取每一行的商品名称
+                      field_prompt: Extract the item name from each row.
                     - field_key: item_amount
                       field_name: Item Amount
                       field_type: number
-                      field_prompt: 提取每一行的金额
+                      field_prompt: Extract the amount from each row.
                       format:
                         mode: preset
                         preset: grouped_decimal
@@ -2491,7 +2486,7 @@ components:
                     - field_key: delivery_date
                       field_name: Delivery Date
                       field_type: date
-                      field_prompt: 提取每一行约定的交付日期
+                      field_prompt: Extract the agreed delivery date from each row.
                       format:
                         mode: preset
                         preset: date_iso
@@ -2502,11 +2497,11 @@ components:
                     - field_key: payment_stage
                       field_name: Payment Stage
                       field_type: string
-                      field_prompt: 提取每一行的付款阶段
+                      field_prompt: Extract the payment stage from each row.
                     - field_key: payment_amount
                       field_name: Payment Amount
                       field_type: number
-                      field_prompt: 提取每一行应付的金额
+                      field_prompt: Extract the payable amount from each row.
                       format:
                         mode: preset
                         preset: grouped_decimal
@@ -2515,7 +2510,7 @@ components:
                     - field_key: payment_date
                       field_name: Payment Date
                       field_type: date
-                      field_prompt: 提取每一行约定的付款日期
+                      field_prompt: Extract the agreed payment date from each row.
                       format:
                         mode: preset
                         preset: date_iso
@@ -4217,7 +4212,6 @@ components:
       oneOf:
       - $ref: '#/components/schemas/HighSpeedExtractionAppCreateRequest'
       - $ref: '#/components/schemas/StandardExtractionAppCreateRequest'
-      - $ref: '#/components/schemas/InvoiceApplicationCreateRequest'
       - $ref: '#/components/schemas/ClassificationAppCreateRequest'
     StandardExtractionAppCreateRequest:
       type: object
@@ -4490,7 +4484,6 @@ components:
       anyOf:
       - $ref: '#/components/schemas/HighSpeedExtractionAppUpdateRequest'
       - $ref: '#/components/schemas/StandardExtractionAppUpdateRequest'
-      - $ref: '#/components/schemas/InvoiceApplicationUpdateRequest'
       - $ref: '#/components/schemas/ClassificationAppUpdateRequest'
       description: Behavior follows the app identified by app_id. Explicitly send ai_function=1426 for classification apps.
     StandardExtractionAppUpdateRequest:
@@ -4701,6 +4694,7 @@ components:
     FieldConfigGenerateRequest:
       type: object
       additionalProperties: false
+      title: Generate field configuration from a sample file
       description: Generate a high-speed extraction field configuration from one sample file for direct use in create or update.
       properties:
         file_base64:
@@ -4716,15 +4710,20 @@ components:
           type: string
           maxLength: 3000
           description: Optional field-generation instruction, up to 3000 characters.
-      oneOf:
-        - required: [file_url]
-        - required: [file_base64]
+      if:
+        required: [file_url]
+      then:
+        not:
+          required: [file_base64]
+      else:
+        required: [file_base64]
     ExtractionAppResponse:
       allOf:
       - $ref: '#/components/schemas/SimpleResponse'
       - type: object
         properties:
           data:
+            description: Created extraction or standalone classification application data.
             anyOf:
             - $ref: '#/components/schemas/ExtractionAppCreateData'
             - $ref: '#/components/schemas/ClassificationAppResponse'
@@ -4733,8 +4732,10 @@ components:
       properties:
         app_id:
           type: string
+          description: ID of the created application.
         app_name:
           type: string
+          description: Name of the created application.
         app_label:
           type:
           - array
@@ -4783,6 +4784,7 @@ components:
       - type: object
         properties:
           data:
+            description: Updated extraction or standalone classification application data.
             anyOf:
             - $ref: '#/components/schemas/ExtractionAppUpdateData'
             - $ref: '#/components/schemas/ClassificationAppResponse'
@@ -4810,8 +4812,10 @@ components:
             per tenant/owner. Omit on update to retain; empty clears; unset returns null. Not an authentication credential.
         app_id:
           type: string
+          description: ID of the updated application.
         app_name:
           type: string
+          description: Application name after the update.
       required:
       - app_id
       - app_name
@@ -4928,6 +4932,7 @@ components:
       - type: object
         properties:
           data:
+            description: Extraction application or standalone classification application configuration.
             anyOf:
             - $ref: '#/components/schemas/AppConfigData'
             - $ref: '#/components/schemas/ClassificationAppResponse'
@@ -4937,16 +4942,20 @@ components:
       properties:
         app_id:
           type: string
+          description: Application ID.
         app_name:
           type: string
+          description: Application name.
         app_label:
           type:
           - array
           - 'null'
+          description: Application labels, or null when none are configured.
           items:
             type: string
         config_version:
           type: string
+          description: Configuration version returned by this query.
         extract_fields:
           type: array
           items:
@@ -4989,10 +4998,12 @@ components:
           description: Field-value translation
         enable_long_doc:
           type: boolean
+          description: Whether long-document processing is enabled; false when it does not apply.
         long_doc_config:
           type:
           - array
           - 'null'
+          description: Long-document type configuration, or null when not applicable or not configured.
           items:
             $ref: '#/components/schemas/LongDocConfigResponse'
         description:
@@ -5049,6 +5060,7 @@ components:
           anyOf:
           - $ref: '#/components/schemas/FieldFormat'
           - type: 'null'
+          description: Output format for number or date fields; null when unset or not applicable.
       required:
       - field_name
       - field_type
@@ -5075,6 +5087,7 @@ components:
           anyOf:
           - $ref: '#/components/schemas/FieldFormat'
           - type: 'null'
+          description: Output format for number or date sub-fields; null when unset or not applicable.
       required:
       - field_name
       - field_type
@@ -5091,16 +5104,19 @@ components:
           description: Document type description.
       required: [doc_type]
     FieldConfigGenerateResponse:
+      title: Field configuration generation response
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
         - type: object
           properties:
             data:
+              description: Generated field configuration data.
               $ref: '#/components/schemas/FieldConfigGenerateData'
           required: [data]
     FieldConfigGenerateData:
       type: object
       additionalProperties: false
+      title: Generated field configuration
       properties:
         extract_fields:
           type: array
@@ -5116,24 +5132,28 @@ components:
     GeneratedStringFieldConfig:
       type: object
       additionalProperties: false
+      title: Text field
       properties:
-        field_key: {type: string, minLength: 1, maxLength: 64}
-        field_name: {type: string, minLength: 1, maxLength: 50}
-        field_type: {type: string, const: string}
+        field_key: {type: string, minLength: 1, maxLength: 64, description: Unique field key for direct use in application create or update.}
+        field_name: {type: string, minLength: 1, maxLength: 50, description: Field display name.}
+        field_type: {type: string, const: string, description: Field type. Always string for a text field.}
         field_prompt:
           type: [string, 'null']
           maxLength: 3000
+          description: Field extraction prompt; null when no prompt was generated.
       required: [field_key, field_name, field_type]
     GeneratedFormattedFieldConfig:
       type: object
       additionalProperties: false
+      title: Number or date field
       properties:
-        field_key: {type: string, minLength: 1, maxLength: 64}
-        field_name: {type: string, minLength: 1, maxLength: 50}
-        field_type: {type: string, enum: [number, date]}
+        field_key: {type: string, minLength: 1, maxLength: 64, description: Unique field key for direct use in application create or update.}
+        field_name: {type: string, minLength: 1, maxLength: 50, description: Field display name.}
+        field_type: {type: string, enum: [number, date], description: "Field type, either number or date."}
         field_prompt:
           type: [string, 'null']
           maxLength: 3000
+          description: Field extraction prompt; null when no prompt was generated.
         format:
           type: 'null'
           description: Always null to preserve the model's original output value.
@@ -5141,14 +5161,16 @@ components:
     GeneratedTableFieldConfig:
       type: object
       additionalProperties: false
+      title: Table field
       properties:
-        field_key: {type: string, minLength: 1, maxLength: 64}
-        field_name: {type: string, minLength: 1, maxLength: 50}
-        field_type: {type: string, const: table}
+        field_key: {type: string, minLength: 1, maxLength: 64, description: Unique table field key for direct use in application create or update.}
+        field_name: {type: string, minLength: 1, maxLength: 50, description: Table display name.}
+        field_type: {type: string, const: table, description: Field type. Always table for a table field.}
         sub_fields:
           type: array
           minItems: 1
           maxItems: 30
+          description: Table column configuration, up to 30 columns.
           items:
             oneOf:
               - $ref: '#/components/schemas/GeneratedStringSubFieldConfig'
@@ -5157,24 +5179,28 @@ components:
     GeneratedStringSubFieldConfig:
       type: object
       additionalProperties: false
+      title: Text column
       properties:
-        field_key: {type: string, minLength: 1, maxLength: 64}
-        field_name: {type: string, minLength: 1, maxLength: 50}
-        field_type: {type: string, const: string}
+        field_key: {type: string, minLength: 1, maxLength: 64, description: Unique table column key.}
+        field_name: {type: string, minLength: 1, maxLength: 50, description: Table column display name.}
+        field_type: {type: string, const: string, description: Column type. Always string for a text column.}
         field_prompt:
           type: [string, 'null']
           maxLength: 3000
+          description: Table column extraction prompt; null when no prompt was generated.
       required: [field_key, field_name, field_type]
     GeneratedFormattedSubFieldConfig:
       type: object
       additionalProperties: false
+      title: Number or date column
       properties:
-        field_key: {type: string, minLength: 1, maxLength: 64}
-        field_name: {type: string, minLength: 1, maxLength: 50}
-        field_type: {type: string, enum: [number, date]}
+        field_key: {type: string, minLength: 1, maxLength: 64, description: Unique table column key.}
+        field_name: {type: string, minLength: 1, maxLength: 50, description: Table column display name.}
+        field_type: {type: string, enum: [number, date], description: "Column type, either number or date."}
         field_prompt:
           type: [string, 'null']
           maxLength: 3000
+          description: Table column extraction prompt; null when no prompt was generated.
         format:
           type: 'null'
           description: Always null to preserve the model's original output value.
@@ -5804,6 +5830,7 @@ components:
       - type: object
         properties:
           data:
+            description: Published application configuration version information.
             $ref: '#/components/schemas/AppManagePublishResponse'
     RoutedExtractionResult:
       allOf:
@@ -5811,6 +5838,7 @@ components:
       - type: object
         properties:
           data:
+            description: Routed extraction task and result data.
             $ref: '#/components/schemas/AppDocRoutedResponse'
     ClassificationTaskResult:
       allOf:
@@ -5818,6 +5846,7 @@ components:
       - type: object
         properties:
           data:
+            description: Document classification task and result data.
             $ref: '#/components/schemas/AppDocClassifyResponse'
     ClassificationApplicationResult:
       allOf:
@@ -5825,6 +5854,7 @@ components:
       - type: object
         properties:
           data:
+            description: Standalone classification application data.
             $ref: '#/components/schemas/ClassificationAppResponse'
     InvoiceApplicationUpdateRequest:
       type: object
@@ -5885,13 +5915,16 @@ components:
     AppManagePublishResponse:
       properties:
         app_id:
+          description: Application ID that owns the published configuration.
           title: App Id
           type: string
         config_version:
+          description: Configuration version published or confirmed as already published by this request.
           title: Config Version
           type: string
         published:
           default: true
+          description: Whether the configuration is published. A successful response always returns true.
           title: Published
           type: boolean
       required:
@@ -5903,6 +5936,7 @@ components:
       additionalProperties: true
       properties:
         app_id:
+          description: ID of the extraction application whose configuration version will be published.
           title: App Id
           type: string
         config_version:
@@ -5910,6 +5944,7 @@ components:
           - type: string
           - type: 'null'
           default: null
+          description: Configuration version to publish. Omit or send null to publish the latest unpublished version; an error is returned if none exists. Supplying an already published version succeeds idempotently.
           title: Config Version
       required:
       - app_id
@@ -5918,9 +5953,11 @@ components:
     AppDocRoutedResponse:
       properties:
         task_id:
+          description: Task ID. The asynchronous create endpoint returns a queryable task ID; the synchronous endpoint returns an execution ID.
           title: Task Id
           type: string
         status:
+          description: Task status. partial_success means only some document instances were extracted successfully.
           enum:
           - pending
           - running
@@ -5930,16 +5967,19 @@ components:
           title: Status
           type: string
         granularity:
+          description: Classification granularity. Currently always page.
           const: page
           default: page
           title: Granularity
           type: string
         extraction_result:
+          description: Routed extraction results grouped by candidate application.
           items:
             $ref: '#/components/schemas/RoutedAppResult'
           title: Extraction Result
           type: array
         unclassified_pages:
+          description: Original page numbers that did not match any candidate application.
           items:
             type: integer
           title: Unclassified Pages
@@ -5952,9 +5992,11 @@ components:
     RoutedError:
       properties:
         code:
+          description: Error code for the current document instance.
           title: Code
           type: string
         message:
+          description: Error message for the current document instance.
           title: Message
           type: string
       required:
@@ -5965,20 +6007,24 @@ components:
     RoutedDocument:
       properties:
         doc_type:
+          description: Matched document type, normally the candidate application name.
           title: Doc Type
           type: string
         pages:
+          description: Original page numbers in this document instance.
           items:
             type: integer
           title: Pages
           type: array
         status:
+          description: Extraction status for this document instance.
           enum:
           - success
           - failed
           title: Status
           type: string
         extraction_result:
+          description: Extracted fields for this document instance; may be null on failure.
           anyOf:
           - items:
               additionalProperties: true
@@ -5988,6 +6034,7 @@ components:
           default: null
           title: Extraction Result
         error:
+          description: Error details when this document instance fails; null on success.
           anyOf:
           - $ref: '#/components/schemas/RoutedError'
           - type: 'null'
@@ -6001,21 +6048,26 @@ components:
     RoutedAppResult:
       properties:
         app_id:
+          description: ID of the matched candidate application.
           title: App Id
           type: string
         app_name:
+          description: Name of the matched candidate application.
           title: App Name
           type: string
         app_code:
+          description: Optional business code of the candidate application.
           anyOf:
           - type: string
           - type: 'null'
           default: null
           title: App Code
         config_version:
+          description: Application configuration version used for this extraction.
           title: Config Version
           type: string
         object_values:
+          description: Matched document instances and extraction results for this application.
           items:
             $ref: '#/components/schemas/RoutedDocument'
           title: Object Values
@@ -6030,62 +6082,77 @@ components:
       additionalProperties: false
       properties:
         app_ids:
-          description: Candidate application IDs; their application names must also be unique, ignoring surrounding whitespace
-            and case.
+          description: 1–10 distinct candidate application IDs. Only 1425, 1423, and 1424 applications are supported; their
+            application names must also be unique after trimming and case folding.
           items:
             type: string
+            minLength: 1
+            pattern: \S
           maxItems: 10
           minItems: 1
+          uniqueItems: true
           title: App Ids
           type: array
         file_url:
+          description: Downloadable file URL. Provide exactly one of file_url and file_base64.
           anyOf:
           - type: string
+            minLength: 1
+            pattern: \S
           - type: 'null'
           default: null
           title: File Url
         file_base64:
+          description: Base64-encoded file. Provide exactly one of file_base64 and file_url.
           anyOf:
           - type: string
+            minLength: 1
+            pattern: \S
           - type: 'null'
           default: null
           title: File Base64
         file_name:
+          description: File name. When using file_base64, include the correct file extension.
           anyOf:
           - type: string
           - type: 'null'
           default: null
           title: File Name
         model_params:
+          description: Original page numbers and per-request temporary switches.
           $ref: '#/components/schemas/RoutedExtractionModelParams'
       required:
       - app_ids
       title: AppDocRoutedRequest
       type: object
-      oneOf:
-      - required:
+      if:
+        required:
         - file_url
         properties:
           file_url:
             type: string
-            minLength: 1
-            pattern: \S
-      - required:
+      then:
+        properties:
+          file_base64:
+            type: 'null'
+      else:
+        required:
         - file_base64
         properties:
           file_base64:
             type: string
-            minLength: 1
-            pattern: \S
     RoutedExtractionModelParams:
       additionalProperties: false
       properties:
         pages:
+          description: Original page numbers to process. Values start at 1 and must be unique; omit to process all pages.
           anyOf:
           - items:
               type: integer
+              minimum: 1
             maxItems: 260
             minItems: 1
+            uniqueItems: true
             type: array
           - type: 'null'
           default: null
@@ -6116,9 +6183,11 @@ components:
     AppDocClassifyResponse:
       properties:
         task_id:
+          description: Task ID. The asynchronous create endpoint returns a queryable task ID; the synchronous endpoint returns an execution ID.
           title: Task Id
           type: string
         status:
+          description: Task status.
           enum:
           - pending
           - running
@@ -6127,27 +6196,33 @@ components:
           title: Status
           type: string
         app_id:
+          description: ID of the standalone classification application used for this request.
           title: App Id
           type: string
         config_version:
+          description: Application configuration version used for classification.
           title: Config Version
           type: string
         granularity:
+          description: Classification granularity. Currently always page.
           const: page
           default: page
           title: Granularity
           type: string
         segments:
+          description: Classification results by document instance. One category may appear in multiple noncontiguous instances.
           items:
             $ref: '#/components/schemas/ClassificationSegment'
           title: Segments
           type: array
         unclassified_pages:
+          description: Original page numbers that did not match any category.
           items:
             type: integer
           title: Unclassified Pages
           type: array
         message:
+          description: Additional task status information; normally empty on success.
           default: ''
           title: Message
           type: string
@@ -6161,12 +6236,15 @@ components:
     ClassificationSegment:
       properties:
         category_key:
+          description: Category key configured when the classification application was created.
           title: Category Key
           type: string
         category_name:
+          description: Category name configured when the classification application was created.
           title: Category Name
           type: string
         pages:
+          description: Original page numbers in this document instance.
           items:
             type: integer
           title: Pages
@@ -6181,55 +6259,68 @@ components:
       additionalProperties: false
       properties:
         app_id:
+          description: Standalone classification application ID. The application type must be 1426.
           minLength: 1
           title: App Id
           type: string
         file_url:
+          description: Downloadable file URL. Provide exactly one of file_url and file_base64.
           anyOf:
           - type: string
+            minLength: 1
+            pattern: \S
           - type: 'null'
           default: null
           title: File Url
         file_base64:
+          description: Base64-encoded file. Provide exactly one of file_base64 and file_url.
           anyOf:
           - type: string
+            minLength: 1
+            pattern: \S
           - type: 'null'
           default: null
           title: File Base64
         file_name:
+          description: File name. When using file_base64, include the correct file extension.
           default: ''
           title: File Name
           type: string
         model_params:
+          description: Classification parameters, including the original page numbers to process.
           $ref: '#/components/schemas/ClassificationModelParams'
       required:
       - app_id
       title: AppDocClassifyRequest
       type: object
-      oneOf:
-      - required:
+      if:
+        required:
         - file_url
         properties:
           file_url:
             type: string
-            minLength: 1
-            pattern: \S
-      - required:
+      then:
+        properties:
+          file_base64:
+            type: 'null'
+      else:
+        required:
         - file_base64
         properties:
           file_base64:
             type: string
-            minLength: 1
-            pattern: \S
     ClassificationModelParams:
       additionalProperties: false
       properties:
         pages:
+          description: Original page numbers to classify. Values start at 1 and must be unique; omit to classify all pages.
           anyOf:
           - items:
               type: integer
+              minimum: 1
             maxItems: 260
             minItems: 1
+            uniqueItems: true
             type: array
           - type: 'null'
           default: null
@@ -6239,24 +6330,30 @@ components:
     ClassificationAppResponse:
       properties:
         app_id:
+          description: Standalone classification application ID.
           title: App Id
           type: string
         ai_function:
+          description: Application type. Always 1426 for standalone classification.
           const: 1426
           default: 1426
           title: Ai Function
           type: integer
         app_name:
+          description: Application name.
           title: App Name
           type: string
         description:
+          description: Application description.
           default: ''
           title: Description
           type: string
         config_version:
+          description: Classification configuration version.
           title: Config Version
           type: string
         classify_types:
+          description: Classification categories configured for the application.
           items:
             $ref: '#/components/schemas/ClassificationCategory'
           title: Classify Types
@@ -6270,38 +6367,41 @@ components:
       type: object
     ClassificationAppUpdateRequest:
       additionalProperties: false
+      minProperties: 2
+      dependentSchemas:
+        ai_function:
+          minProperties: 3
+      title: Update standalone classification application
       properties:
         app_id:
+          description: ID of the standalone classification application to update.
           minLength: 1
           title: App Id
           type: string
         ai_function:
+          description: Application type. Always 1426 for standalone classification.
           const: 1426
           default: 1426
           title: Ai Function
           type: integer
         app_name:
-          default: null
+          description: Application name. Omit to retain the current name; when supplied, the trimmed value must contain 1 to 50 characters.
           maxLength: 50
           minLength: 1
           title: App Name
           type: string
         description:
-          anyOf:
-          - maxLength: 1500
-            type: string
-          - type: 'null'
-          default: null
+          description: Application description. Omit to retain the current value; send an empty string to clear it.
+          maxLength: 1500
+          type: string
           title: Description
         classify_types:
-          anyOf:
-          - items:
-              $ref: '#/components/schemas/ClassificationCategory'
-            maxItems: 10
-            minItems: 1
-            type: array
-          - type: 'null'
-          default: null
+          description: Complete replacement category list. Omit to retain the current configuration.
+          items:
+            $ref: '#/components/schemas/ClassificationCategory'
+          maxItems: 10
+          minItems: 1
+          type: array
           title: Classify Types
       required:
       - app_id
@@ -6309,22 +6409,27 @@ components:
       type: object
     ClassificationAppCreateRequest:
       additionalProperties: false
+      title: Create standalone classification application
       properties:
         ai_function:
+          description: Application type. Use 1426 to create a standalone classification application.
           const: 1426
           title: Ai Function
           type: integer
         app_name:
+          description: Application name. The trimmed value must contain 1 to 50 characters.
           maxLength: 50
           minLength: 1
           title: App Name
           type: string
         description:
+          description: Application description, up to 1,500 characters.
           default: ''
           maxLength: 1500
           title: Description
           type: string
         classify_types:
+          description: Classification category list containing 1–10 categories.
           items:
             $ref: '#/components/schemas/ClassificationCategory'
           maxItems: 10
@@ -6341,15 +6446,18 @@ components:
       additionalProperties: false
       properties:
         category_key:
+          description: Category key. Start with a letter and use only letters, digits, and underscores; unique within the application.
           pattern: ^[A-Za-z][A-Za-z0-9_]{0,63}$
           title: Category Key
           type: string
         type_name:
+          description: Category name, 1–100 characters after trimming; case-insensitively unique and cannot be UNCLASSIFIED.
           maxLength: 100
           minLength: 1
           title: Type Name
           type: string
         description:
+          description: Category description explaining the document content represented by this category.
           anyOf:
           - maxLength: 1500
             type: string
@@ -6364,6 +6472,7 @@ components:
     CustomFieldFormat:
       type: object
       additionalProperties: false
+      title: Custom format instruction
       required:
       - mode
       - instruction
@@ -6371,6 +6480,7 @@ components:
         mode:
           type: string
           const: custom
+          description: Format mode. Always custom.
         instruction:
           type: string
           minLength: 1
@@ -6378,6 +6488,7 @@ components:
     DatePresetFormat:
       type: object
       additionalProperties: false
+      title: Preset date and time format
       required:
       - mode
       - preset
@@ -6385,6 +6496,7 @@ components:
         mode:
           type: string
           const: preset
+          description: Format mode. Always preset.
         preset:
           type: string
           enum:
@@ -6396,6 +6508,7 @@ components:
     NumberPresetFormat:
       type: object
       additionalProperties: false
+      title: Preset number format
       required:
       - mode
       - preset
@@ -6403,6 +6516,7 @@ components:
         mode:
           type: string
           const: preset
+          description: Format mode. Always preset.
         preset:
           type: string
           enum:
@@ -6410,6 +6524,7 @@ components:
           - decimal
           - grouped_integer
           - grouped_decimal
+          description: "Number output format: integer, decimal, grouped integer, or grouped decimal."
         decimal_places:
           type: integer
           minimum: 0
@@ -6433,6 +6548,7 @@ components:
             required:
             - decimal_places
     FieldFormat:
+      title: Field output format
       oneOf:
       - $ref: '#/components/schemas/NumberPresetFormat'
       - $ref: '#/components/schemas/DatePresetFormat'
