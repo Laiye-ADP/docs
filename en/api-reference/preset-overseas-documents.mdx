@@ -113,9 +113,6 @@ The following are default 1423/1424 fields. Read values by field_key; field_name
 
 For a single-app request, enable_highlight, enable_field_value_translation and enable_confidence are top-level. true/false applies only to this call without saving config; omitted/null inherits the app. The new routed endpoint instead places these switches inside model_params beside pages and supports 1425/1423/1424 apps.
 
-[Routed extraction guide](/en/api-reference/adp-api/routed-extraction/overview)
-
-
 ## Legacy single-app multi-ticket results
 
 With enable_multi_ticket, extraction_result groups invoices/receipts under invoice_tickets/receipt_tickets and each object_values entry is one ticket. tickets is the flat projection of the same results: consume one projection, not both. This is not double extraction or billing. ticket_count counts tickets and page_labels maps pages to them. These properties may be null for non-multi-ticket results. The new routed API does not duplicate results as tickets; do not mix the two response contracts.
