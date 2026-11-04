@@ -100,21 +100,27 @@
                     "pages": [
                       "api-reference/adp-api/document-extraction/extract-document",
                       "api-reference/adp-api/document-extraction/create-document-extract-task",
-                      "api-reference/adp-api/document-extraction/query-document-extract-task",
-                      "api-reference/adp-api/routed-extraction/extract-routed-document",
-                      "api-reference/adp-api/routed-extraction/create-routed-task",
-                      "api-reference/adp-api/routed-extraction/query-routed-task"
+                      "api-reference/adp-api/document-extraction/query-document-extract-task"
                     ],
                     "icon": "asterisk"
                   },
                   {
                     "group": "文档分类",
                     "pages": [
+                      "api-reference/adp-api/document-classification/overview",
                       "api-reference/adp-api/document-classification/classify-document",
                       "api-reference/adp-api/document-classification/create-classification-task",
                       "api-reference/adp-api/document-classification/query-classification-task"
-                    ],
-                    "icon": "asterisk"
+                    ]
+                  },
+                  {
+                    "group": "自动路由抽取",
+                    "pages": [
+                      "api-reference/adp-api/routed-extraction/overview",
+                      "api-reference/adp-api/routed-extraction/extract-routed-document",
+                      "api-reference/adp-api/routed-extraction/create-routed-task",
+                      "api-reference/adp-api/routed-extraction/query-routed-task"
+                    ]
                   },
                   {
                     "group": "文档解析",
@@ -159,7 +165,8 @@
                       "api-reference/adp-api/application-management/list-applications",
                       "api-reference/adp-api/application-management/get-application-configuration",
                       "api-reference/adp-api/application-management/delete-application-configuration",
-                      "api-reference/adp-api/application-management/generate-extraction-field-config",
+                      "api-reference/adp-api/application-management/generate-extraction-field-prompts",
+                      "api-reference/adp-api/application-management/high-speed-configuration",
                       "api-reference/adp-api/application-management/publish-application-version"
                     ],
                     "icon": "asterisk"
@@ -301,21 +308,27 @@
                     "pages": [
                       "en/api-reference/adp-api/document-extraction/extract-document",
                       "en/api-reference/adp-api/document-extraction/create-document-extract-task",
-                      "en/api-reference/adp-api/document-extraction/query-document-extract-task",
-                      "en/api-reference/adp-api/routed-extraction/extract-routed-document",
-                      "en/api-reference/adp-api/routed-extraction/create-routed-task",
-                      "en/api-reference/adp-api/routed-extraction/query-routed-task"
+                      "en/api-reference/adp-api/document-extraction/query-document-extract-task"
                     ],
                     "icon": "asterisk"
                   },
                   {
                     "group": "Document classification",
                     "pages": [
+                      "en/api-reference/adp-api/document-classification/overview",
                       "en/api-reference/adp-api/document-classification/classify-document",
                       "en/api-reference/adp-api/document-classification/create-classification-task",
                       "en/api-reference/adp-api/document-classification/query-classification-task"
-                    ],
-                    "icon": "asterisk"
+                    ]
+                  },
+                  {
+                    "group": "Routed extraction",
+                    "pages": [
+                      "en/api-reference/adp-api/routed-extraction/overview",
+                      "en/api-reference/adp-api/routed-extraction/extract-routed-document",
+                      "en/api-reference/adp-api/routed-extraction/create-routed-task",
+                      "en/api-reference/adp-api/routed-extraction/query-routed-task"
+                    ]
                   },
                   {
                     "group": "Document recognition",
@@ -375,7 +388,8 @@
                       "en/api-reference/adp-api/application-management/list-applications",
                       "en/api-reference/adp-api/application-management/get-application-configuration",
                       "en/api-reference/adp-api/application-management/delete-application-configuration",
-                      "en/api-reference/adp-api/application-management/generate-extraction-field-config",
+                      "en/api-reference/adp-api/application-management/generate-extraction-field-prompts",
+                      "en/api-reference/adp-api/application-management/high-speed-configuration",
                       "en/api-reference/adp-api/application-management/publish-application-version"
                     ],
                     "icon": "asterisk"
