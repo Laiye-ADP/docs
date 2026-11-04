@@ -6365,7 +6365,6 @@ components:
           title: Classify Types
       required:
       - app_id
-      title: ClassificationAppUpdateRequest
       type: object
     ClassificationAppCreateRequest:
       additionalProperties: false
@@ -6400,7 +6399,6 @@ components:
       - ai_function
       - app_name
       - classify_types
-      title: ClassificationAppCreateRequest
       type: object
     ClassificationCategory:
       additionalProperties: false
