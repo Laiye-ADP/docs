@@ -76,7 +76,7 @@ paths:
       - 文档抽取
       summary: 文档抽取（同步接口）
       description: 针对用户上传的文档，调用指定的文档抽取应用，根据应用配置和规则从文件中提取指定内容。同一接口适用于自定义抽取应用、海外发票、收据、采购订单、国内通用票据和卡证等场景。 同步抽取默认禁用人机协同；需要人工审核时请使用异步创建与查询接口。
-        高速版的三个临时开关enable_highlight、enable_field_value_translation、enable_confidence均位于顶层；省略/null沿用应用配置，不生成版本。 1425同步和异步均不进入人机协同；文件与历史应用凭证的兼容规则见调用说明。
+        高速版的临时开关enable_highlight、enable_field_value_translation、enable_confidence、enable_cross_page_enhancement均位于顶层；省略/null沿用应用配置，不生成版本。 1425同步和异步均不进入人机协同；文件与历史应用凭证的兼容规则见调用说明。
       operationId: extractDocument
       security:
       - ApiKeyAuth: []
@@ -96,7 +96,7 @@ paths:
       - 文档抽取
       summary: 创建文档抽取异步任务
       description: "创建文档抽取任务并立即返回 task_id。适用于大文档或长时间抽取任务。\n\n启用人机协同时，data.metadata.collaboration_task_id 是协同任务 ID，data.task_id\
-        \ 是异步抽取任务 ID，二者不能互换。高速自定义抽取不支持人机协同。\n 高速版的三个临时开关enable_highlight、enable_field_value_translation、enable_confidence均位于顶层；省略/null沿用应用配置，不生成版本。\
+        \ 是异步抽取任务 ID，二者不能互换。高速自定义抽取不支持人机协同。\n 高速版的临时开关enable_highlight、enable_field_value_translation、enable_confidence、enable_cross_page_enhancement均位于顶层；省略/null沿用应用配置，不生成版本。\
         \ 1425同步和异步均不进入人机协同；文件与历史应用凭证的兼容规则见调用说明。"
       operationId: createDocumentExtractTask
       security:
@@ -1755,6 +1755,7 @@ components:
           recognize_config:
             recognize_mode: standard
             enable_highlight: 1
+            remove_header_footer: false
             enable_pdf_parse: false
             pdf_pic_second_parsing: false
             enable_stamp_recognition: false
@@ -1767,6 +1768,7 @@ components:
           recognize_config:
             recognize_mode: standard
             enable_highlight: 1
+            remove_header_footer: false
             enable_pdf_parse: true
             pdf_pic_second_parsing: false
             enable_stamp_recognition: false
@@ -1799,6 +1801,14 @@ components:
                 app_id: app_abc123
                 file_base64: JVBERi0xLjQKJcfs...
                 with_rec_result: true
+            highSpeedCrossPage:
+              summary: 高速版 PDF 表格跨页增强
+              value:
+                app_id: app_1425
+                file_url: https://files.example.com/multi-page-table.pdf
+                enable_cross_page_enhancement: true
+                enable_highlight: false
+                enable_confidence: false
     AppIdRequest:
       required: true
       content:
@@ -3611,21 +3621,27 @@ components:
       properties:
         recognize_mode:
           type: string
-          enum: [standard, advance, agentic, fast_vlm, agentic_v2]
+          enum: [standard, advance, agentic, fast_vlm, agentic_v2, thai_ocr]
           default: standard
           description: |
             解析模式。可选值如下：
 
             - standard：标准解析，适用于清晰的电子版文档，速度和准确率均衡。
             - advance：增强解析 1.0，适用于印章、签名、多表格等版式较复杂的文档。
-            - agentic：智能解析，组合标准解析与增强解析，并按条件进行二次解析。
+            - agentic：智能解析，适用于内容类型多样、版式复杂的文档。
             - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，提升解析稳定性。
-            - agentic_v2：智能解析 2.0，采用两阶段版面分析与内容识别，适用于复杂版式、表格和公式文档。
+            - agentic_v2：智能解析 2.0，适用于复杂版式、表格和公式文档。
+
+            - thai_ocr：泰语优先模式，适用于以泰语为主的文档。不支持来源位置回标和去除页眉页脚。
         enable_highlight:
           type: integer
           enum: [0, 1]
           default: 1
-          description: 是否显示来源位置。1 表示保留文本块和表格在原文中的位置；0 表示不返回位置。standard、agentic、fast_vlm、agentic_v2 模式支持，advance 模式不支持。
+          description: 是否显示来源位置。1 表示保留文本块和表格在原文中的位置；0 表示不返回位置。standard、agentic、fast_vlm、agentic_v2 模式支持，advance、thai_ocr 模式不支持。
+        remove_header_footer:
+          type: boolean
+          default: false
+          description: 是否去除解析结果中识别出的页眉、页脚和页码。仅 standard、agentic、agentic_v2 模式生效；其他模式不执行去除。仅含这些内容的页面解析结果可能为空。
         enable_pdf_parse:
           type: boolean
           default: false
@@ -3633,7 +3649,7 @@ components:
         pdf_pic_second_parsing:
           type: boolean
           default: false
-          description: 启用 PDF 文本优先时，是否对 PDF 中的图片区域进行 VLM 二次解析。
+          description: 启用 PDF 文本优先时，是否对 PDF 中的图片区域进行二次解析。
         enable_stamp_recognition:
           type: boolean
           default: false
@@ -3705,12 +3721,17 @@ components:
               type: boolean
               default: true
               description: 仅支持多票的应用；显式顶层同名值优先。
-          description: 已知参数按应用能力生效。额外键被接收不代表生效；当前1425/1423/1424不会用temperature、top_p、max_tokens覆盖保存的调用配置。三个临时结果开关必须放顶层。
+          description: 已知参数按应用能力生效。额外键被接收不代表生效；当前1425/1423/1424不会用temperature、top_p、max_tokens覆盖保存的调用配置。临时开关 enable_highlight、enable_field_value_translation、enable_confidence、enable_cross_page_enhancement 必须放顶层。
+        enable_cross_page_enhancement:
+          type:
+          - boolean
+          - 'null'
+          description: 高速自定义抽取的跨页增强开关，适用于多页 PDF 表格。仅本次调用生效；省略或 null 沿用应用配置，未配置时默认关闭。开启时必须关闭 enable_highlight 和 enable_confidence，否则报错。不符合增强条件时使用常规抽取。
         enable_highlight:
           type:
           - boolean
           - 'null'
-          description: 原文定位；高速版仅本次调用覆盖，省略/null沿用应用，不保存配置。
+          description: 原文定位；高速版仅本次调用覆盖，省略/null沿用应用，不保存配置。开启跨页增强时必须为 false。
         enable_field_value_translation:
           type:
           - boolean
@@ -3720,7 +3741,7 @@ components:
           type:
           - boolean
           - 'null'
-          description: 字段置信度评估；高速版仅本次调用覆盖，省略/null沿用应用，不保存配置。
+          description: 字段置信度评估；高速版仅本次调用覆盖，省略/null沿用应用，不保存配置。开启跨页增强时必须为 false。
         file_base64:
           type:
           - string
@@ -4181,6 +4202,7 @@ components:
           - agentic
           - fast_vlm
           - agentic_v2
+          - thai_ocr
           description: '解析模式。标准版自定义抽取应用必填。可选解析模式如下：
 
 
@@ -4188,11 +4210,13 @@ components:
 
             - advance：增强解析 1.0，适用于印章、签名、多表格等版式较复杂的文档。
 
-            - agentic：智能解析，组合标准解析与增强解析，并按条件进行二次解析。
+            - agentic：智能解析，适用于内容类型多样、版式复杂的文档。
 
             - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，提升解析稳定性。
 
-            - agentic_v2：智能解析 2.0，采用两阶段版面分析与内容识别，适用于复杂版式、表格和公式文档。
+            - agentic_v2：智能解析 2.0，适用于复杂版式、表格和公式文档。
+
+            - thai_ocr：泰语优先模式，适用于以泰语为主的文档。不支持来源位置回标和去除页眉页脚。
 
             '
         enable_highlight:
@@ -4203,6 +4227,10 @@ components:
             - 0
             - 1
           description: 经典版创建默认开启；兼容旧0/1入参。高速版使用布尔值。
+        remove_header_footer:
+          type: boolean
+          default: false
+          description: 是否去除解析结果中识别出的页眉、页脚和页码。默认关闭，仅 standard、agentic、agentic_v2 模式生效；其他模式不执行去除。高速版不支持设置该参数。
         enable_pdf_parse:
           type: boolean
           default: false
@@ -4437,6 +4465,7 @@ components:
           - agentic
           - fast_vlm
           - agentic_v2
+          - thai_ocr
           description: '解析模式。标准版自定义抽取应用必填；高速版自定义抽取应用不支持设置该参数。可选解析模式如下：
 
 
@@ -4444,11 +4473,13 @@ components:
 
             - advance：增强解析 1.0，适用于印章、签名、多表格等版式较复杂的文档。
 
-            - agentic：智能解析，组合标准解析与增强解析，并按条件进行二次解析。
+            - agentic：智能解析，适用于内容类型多样、版式复杂的文档。
 
             - fast_vlm：增强解析 2.0，适用于复杂版式、扫描件、多表格等文档，提升解析稳定性。
 
-            - agentic_v2：智能解析 2.0，采用两阶段版面分析与内容识别，适用于复杂版式、表格和公式文档。
+            - agentic_v2：智能解析 2.0，适用于复杂版式、表格和公式文档。
+
+            - thai_ocr：泰语优先模式，适用于以泰语为主的文档。不支持来源位置回标和去除页眉页脚。
 
             '
         enable_highlight:
@@ -4459,6 +4490,10 @@ components:
             - 0
             - 1
           description: 经典版创建默认开启；兼容旧0/1入参。高速版使用布尔值。
+        remove_header_footer:
+          type: boolean
+          default: false
+          description: 是否去除解析结果中识别出的页眉、页脚和页码。默认关闭，仅 standard、agentic、agentic_v2 模式生效；其他模式不执行去除。高速版不支持设置该参数。
         enable_pdf_parse:
           type: boolean
           default: false
@@ -4866,6 +4901,11 @@ components:
             - 1
           - type: 'null'
           description: 1425返回实际布尔值；经典版兼容返回0/1。
+        remove_header_footer:
+          type:
+          - boolean
+          - 'null'
+          description: 是否去除解析结果中的页眉、页脚和页码。高速版返回 null。
         enable_pdf_parse:
           type:
           - boolean

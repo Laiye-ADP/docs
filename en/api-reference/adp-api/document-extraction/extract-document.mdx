@@ -33,7 +33,7 @@ Legacy single-app requests with both usable URL and Base64 prioritize Base64; a 
 | `enable_multi_ticket` | Multi-ticket-capable apps only; explicit top-level value wins, default true when both omitted |
 | `temperature` / `top_p` / `max_tokens` | Accepted extra keys are not necessarily effective controls. Current 1425/1423/1424 do not use these keys to override call configuration; do not depend on their effect |
 
-Single-app source-location, translation and confidence overrides remain top-level; only routing places these three switches inside model_params. Parameters do not grant unsupported application capabilities.
+Single-app source-location, translation, confidence, and cross-page enhancement overrides are top-level. Routing places source-location, translation, and confidence switches inside `model_params`. Parameters do not grant unsupported application capabilities.
 
 ## Native XLSX and Markdown
 
