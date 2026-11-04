@@ -4,6 +4,14 @@
   const REQUIRED_PILL_SELECTOR = '[data-component-part="field-required-pill"]';
   const BLOCKED_ATTR = 'data-api-required-blocked';
   const SHOW_CHILD_ATTRIBUTES_PATTERN = /^(Show child attributes|显示子属性)$/i;
+  const REQUEST_SCHEMA_PARAM = 'request-schema';
+  const REQUEST_SCHEMA_MAX_RETRIES = 80;
+  const REQUEST_SCHEMA_TABS = {
+    classification: [
+      'tab-创建独立分类应用',
+      'tab-Create standalone classification application',
+    ],
+  };
   const BLOCKED_REASON = {
     zh: '请先填写必填项',
     en: 'Fill required fields first',
@@ -11,6 +19,11 @@
 
   let scheduled = false;
   let childAttributesScheduled = false;
+  let requestSchemaScheduled = false;
+  let requestSchemaRetryCount = 0;
+  let requestSchemaRetryTimer;
+  let requestSchemaLocationKey = '';
+  let requestSchemaApplied = false;
   const expandedChildAttributeButtons = new WeakSet();
 
   function isVisible(element) {
@@ -198,6 +211,88 @@
     window.requestAnimationFrame(expandChildAttributes);
   }
 
+  function requestSchemaLocation() {
+    return `${window.location.pathname}${window.location.search}`;
+  }
+
+  function requestedSchemaTab() {
+    if (!window.location.pathname.endsWith('/create-extraction-application')) {
+      return null;
+    }
+
+    const schema = new URLSearchParams(window.location.search).get(REQUEST_SCHEMA_PARAM);
+    const testIds = REQUEST_SCHEMA_TABS[schema];
+
+    if (!testIds) {
+      return null;
+    }
+
+    return testIds
+      .map((testId) => document.querySelector(`[data-testid="${testId}"]`))
+      .find(Boolean);
+  }
+
+  function retryRequestSchemaSelection() {
+    if (
+      requestSchemaRetryTimer ||
+      requestSchemaRetryCount >= REQUEST_SCHEMA_MAX_RETRIES
+    ) {
+      return;
+    }
+
+    requestSchemaRetryCount += 1;
+    requestSchemaRetryTimer = window.setTimeout(() => {
+      requestSchemaRetryTimer = undefined;
+      scheduleRequestSchemaSelection();
+    }, 100);
+  }
+
+  function selectRequestedSchema() {
+    requestSchemaScheduled = false;
+
+    const locationKey = requestSchemaLocation();
+    if (locationKey !== requestSchemaLocationKey) {
+      requestSchemaLocationKey = locationKey;
+      requestSchemaRetryCount = 0;
+      requestSchemaApplied = false;
+    }
+
+    if (requestSchemaApplied) {
+      return;
+    }
+
+    const schema = new URLSearchParams(window.location.search).get(REQUEST_SCHEMA_PARAM);
+    if (!REQUEST_SCHEMA_TABS[schema]) {
+      requestSchemaApplied = true;
+      return;
+    }
+
+    const label = requestedSchemaTab();
+    const tab = label && label.closest('[role="tab"]');
+
+    if (!tab || !isVisible(tab)) {
+      retryRequestSchemaSelection();
+      return;
+    }
+
+    if (tab.getAttribute('aria-selected') === 'true') {
+      requestSchemaApplied = true;
+      return;
+    }
+
+    tab.click();
+    retryRequestSchemaSelection();
+  }
+
+  function scheduleRequestSchemaSelection() {
+    if (requestSchemaScheduled) {
+      return;
+    }
+
+    requestSchemaScheduled = true;
+    window.requestAnimationFrame(selectRequestedSchema);
+  }
+
   document.addEventListener(
     'click',
     (event) => {
@@ -219,6 +314,7 @@
   new MutationObserver(() => {
     scheduleUpdate();
     scheduleChildAttributesExpansion();
+    scheduleRequestSchemaSelection();
   }).observe(document.documentElement, {
     attributes: true,
     childList: true,
@@ -227,6 +323,9 @@
 
   window.addEventListener('pageshow', scheduleUpdate);
   window.addEventListener('pageshow', scheduleChildAttributesExpansion);
+  window.addEventListener('pageshow', scheduleRequestSchemaSelection);
+  window.addEventListener('popstate', scheduleRequestSchemaSelection);
   scheduleUpdate();
   scheduleChildAttributesExpansion();
+  scheduleRequestSchemaSelection();
 })();
