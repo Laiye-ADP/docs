@@ -1,0 +1,104 @@
+---
+title: Automatic classification and routed extraction
+description: Classify by app name and description, extract each document instance
+  with its matching app, and return grouped results.
+---
+
+Classify by app name and description, extract each document instance with its matching app, and return grouped results.
+
+## Prepare applications
+
+Candidates are 1425 high-speed custom extraction, 1423 high-speed global invoices and 1424 Southeast Asia invoices. Set the app name and optional description through create, and retain app_id. Up to 10 distinct IDs and distinct trimmed case-insensitive names per request. A page may match multiple apps; separate instances matched to the same app are extracted separately.
+
+## Synchronous call
+```json
+{
+  "app_ids": [
+    "8f4b2c506df811f1a3d90242ac120002",
+    "a169e8d06df811f19b5e0242ac120002"
+  ],
+  "file_url": "https://files.example.com/materials.pdf",
+  "model_params": {
+    "pages": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "enable_highlight": true,
+    "enable_field_value_translation": false,
+    "enable_confidence": true
+  }
+}
+```
+
+```json
+{
+  "code": "success",
+  "message": "",
+  "data": {
+    "task_id": "b2140f5fc6434e428caf35df0abf7862",
+    "status": "success",
+    "granularity": "page",
+    "extraction_result": [
+      {
+        "app_id": "8f4b2c506df811f1a3d90242ac120002",
+        "app_name": "采购合同",
+        "app_code": "purchase_contract",
+        "config_version": "v1",
+        "object_values": [
+          {
+            "doc_type": "采购合同",
+            "pages": [
+              1,
+              2
+            ],
+            "status": "success",
+            "extraction_result": [
+              {
+                "field_key": "contract_no",
+                "field_name": "合同编号",
+                "field_values": [
+                  {
+                    "field_value": "HT-001"
+                  }
+                ]
+              },
+              {
+                "field_key": "contract_amount",
+                "field_name": "合同金额",
+                "field_values": [
+                  {
+                    "field_value": "12,345.68",
+                    "field_confidence": 0.96
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "doc_type": "采购合同",
+            "pages": [
+              3
+            ],
+            "status": "success",
+            "extraction_result": []
+          }
+        ]
+      }
+    ],
+    "unclassified_pages": [
+      5
+    ]
+  }
+}
+```
+
+Provide exactly one of file_url/file_base64. PDF/PNG/JPEG up to 100 MB and 260 original pages. pages uses distinct original 1-based pages. Put three optional switches inside model_params beside pages; they affect all children/instances in this request. Omitted/null inherits each selected config, and true/false temporarily overrides it without saving an app/version.
+
+## Results and asynchronous calls
+
+extraction_result groups by app; each object_values entry is one instance and pages always refers to the original file. Results are not duplicated as tickets or instance_id. Failed instances include error without discarding successes; unmatched pages appear in unclassified_pages. States: success, partial_success or failed. All-unmatched input succeeds with empty results. The example omits invoice results and some fields to focus on structure.
+
+Async creation uses the same request, initially returning task_id/pending, followed by running/success/partial_success/failed on query. Accepted tasks keep their selected configuration and overrides. A sync task_id identifies the call and does not create a queryable async task.

@@ -1,0 +1,213 @@
+---
+title: 高速抽取配置指南
+description: 创建并管理1425高速自定义抽取应用，配置普通字段、表格列和输出格式。
+---
+
+创建并管理1425高速自定义抽取应用，配置普通字段、表格列和输出格式。
+
+## 创建：三个普通字段和两个表格
+
+调用创建应用接口；description可选且最多1500字符，用于分类。app_code可选、最长64字符，不限制字符组成，同租户同用户内区分大小写唯一；它不是API Key。应用名去除首尾空白后为1～50字符。
+```json
+{
+  "app_name": "采购合同",
+  "app_code": "purchase_contract",
+  "ai_function": 1425,
+  "description": "采购合同正文及签署页，不包含发票或付款凭证",
+  "extract_fields": [
+    {
+      "field_key": "contract_no",
+      "field_name": "合同编号",
+      "field_type": "string",
+      "field_prompt": "提取合同编号"
+    },
+    {
+      "field_key": "contract_amount",
+      "field_name": "合同金额",
+      "field_type": "number",
+      "field_prompt": "提取合同总金额",
+      "format": {
+        "mode": "preset",
+        "preset": "grouped_decimal",
+        "decimal_places": 2,
+        "rounding": "half_up"
+      }
+    },
+    {
+      "field_key": "signed_at",
+      "field_name": "签署日期",
+      "field_type": "date",
+      "field_prompt": "提取合同签署日期",
+      "format": {
+        "mode": "preset",
+        "preset": "date_iso"
+      }
+    },
+    {
+      "field_key": "purchase_items",
+      "field_name": "采购明细",
+      "field_type": "table",
+      "sub_fields": [
+        {
+          "field_key": "item_name",
+          "field_name": "商品名称",
+          "field_type": "string",
+          "field_prompt": "提取每一行的商品名称"
+        },
+        {
+          "field_key": "item_amount",
+          "field_name": "明细金额",
+          "field_type": "number",
+          "field_prompt": "提取每一行的金额",
+          "format": {
+            "mode": "preset",
+            "preset": "grouped_decimal",
+            "decimal_places": 2,
+            "rounding": "half_up"
+          }
+        },
+        {
+          "field_key": "delivery_date",
+          "field_name": "交付日期",
+          "field_type": "date",
+          "field_prompt": "提取每一行约定的交付日期",
+          "format": {
+            "mode": "preset",
+            "preset": "date_iso"
+          }
+        }
+      ]
+    },
+    {
+      "field_key": "payment_schedule",
+      "field_name": "付款计划",
+      "field_type": "table",
+      "sub_fields": [
+        {
+          "field_key": "payment_stage",
+          "field_name": "付款阶段",
+          "field_type": "string",
+          "field_prompt": "提取每一行的付款阶段"
+        },
+        {
+          "field_key": "payment_amount",
+          "field_name": "应付金额",
+          "field_type": "number",
+          "field_prompt": "提取每一行应付的金额",
+          "format": {
+            "mode": "preset",
+            "preset": "grouped_decimal",
+            "decimal_places": 2,
+            "rounding": "half_up"
+          }
+        },
+        {
+          "field_key": "payment_date",
+          "field_name": "付款日期",
+          "field_type": "date",
+          "field_prompt": "提取每一行约定的付款日期",
+          "format": {
+            "mode": "preset",
+            "preset": "date_iso"
+          }
+        }
+      ]
+    }
+  ],
+  "enable_highlight": true,
+  "enable_field_value_translation": false,
+  "enable_confidence": true
+}
+```
+
+field_key在整个应用内不区分大小写判重，包括普通字段、表格和所有列。不同表格可有同名列；列名也可与普通字段名相同。最多50个顶层字段，每张表最多30列；表格列field_type省略时默认string。普通字段和列的field_prompt最多3000字符。
+
+## 字段输出格式
+
+| 配置项 | 适用条件 | 说明 |
+| --- | --- | --- |
+| `format.mode` | 提供format时必填 | `preset`预置；`custom`自然语言要求 |
+| `format.preset` | preset必填 | 下表中的标识，必须与number/date类型匹配 |
+| `format.decimal_places` | decimal/grouped_decimal可选 | 非负整数，默认2；整数预置不填 |
+| `format.rounding` | 数值预置可选 | `half_up`四舍五入，`truncate`向零截断；默认half_up |
+| `format.instruction` | custom必填 | 非空自然语言要求；不与预置参数混用 |
+
+| 类型 | preset | 输出示例 |
+| --- | --- | --- |
+| number | integer | `12346` |
+| number | decimal | `12345.68` |
+| number | grouped_integer | `12,346` |
+| number | grouped_decimal | `12,345.68` |
+| date | date_iso | `2026-03-07` |
+| date | date_slash | `2026/03/07` |
+| date | date_cn | `2026年03月07日` |
+| date | datetime | `2026-03-07 15:04:05` |
+
+数值示例原值为12345.678，小数保留2位；日期示例使用完整时间。只为数值、日期字段及对应表格列设置format。未设置时保留原始抽取值；更新时省略format继承同key同类型设置，显式null清除。不能可靠转换时保留原值，并在顶层message中提示FORMAT_FALLBACK及具体field_key；不因格式转换失败判定整个实例失败。
+```json
+{
+  "field_key": "payment_date",
+  "field_name": "付款日期",
+  "field_type": "date",
+  "format": {
+    "mode": "custom",
+    "instruction": "月份和日不补零"
+  }
+}
+```
+
+## 配置开关与按次覆盖
+
+创建1425应用时enable_highlight、enable_field_value_translation、enable_confidence均默认false。修改时省略/null继承参考版本，显式false关闭。仅修改开关也生成新配置版本。单应用同步/异步调用时，三个临时开关位于请求顶层；自动路由时位于model_params，与pages同级，统一作用于所有子应用。调用时省略/null沿用各自应用配置，true/false仅覆盖本次，不保存应用、不生成版本。
+```json
+{
+  "app_id": "8f4b2c506df811f1a3d90242ac120002",
+  "file_url": "https://files.example.com/materials.pdf",
+  "enable_highlight": true,
+  "enable_field_value_translation": false,
+  "enable_confidence": true
+}
+```
+开启定位时，field_values[].references包含原文页码、search_text与points，未定位时可能只有原文。译文单独写入field_value_translation，不覆盖field_value；accept-language决定目标语言。启用评估时field_confidence为0～1，关闭时返回的默认值不能当作评估分数。
+```json
+{
+  "field_key": "item_name",
+  "field_values": [
+    {
+      "field_value": "办公用品",
+      "field_value_translation": "Office supplies",
+      "field_confidence": 0.96,
+      "references": [
+        {
+          "page_no": 1,
+          "search_text": "办公用品",
+          "points": [
+            {
+              "x": 100,
+              "y": 200
+            },
+            {
+              "x": 300,
+              "y": 200
+            },
+            {
+              "x": 300,
+              "y": 240
+            },
+            {
+              "x": 100,
+              "y": 240
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+## 更新、查询与发布
+
+仅修改app_name、description或app_code不新建版本。字段修改提交完整extract_fields；未传开关继承参考版本。每次成功update均返回config_version：基础信息更新返回最新保存版本，字段/开关更新返回新版本，无配置时为null；这不是已发布版本。配置查询表格列嵌套在sub_fields。发布为可选操作：存在已发布配置时使用已发布配置，从未发布时使用最新有效草稿。分类1426的类别更新立即生效，不调用抽取配置发布接口。
+
+1425缺失普通字段及已有表格行的空单元格返回field_value为空字符串；未抽取到表格返回table_values=[]，不制造空行。

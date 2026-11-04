@@ -368,7 +368,7 @@ paths:
       tags:
       - 应用管理
       summary: 创建应用
-      description: 支持1406经典自定义抽取、1425高速自定义抽取与1426独立分类应用。
+      description: 支持1406经典自定义抽取、1425高速自定义抽取、1423/1424海外发票与1426独立分类应用。
       operationId: createExtractionApp
       security:
       - ApiKeyAuth: []
@@ -403,7 +403,7 @@ paths:
       tags:
       - 应用管理
       summary: 修改应用
-      description: 支持1406经典自定义抽取、1425高速自定义抽取与1426独立分类应用。 基础信息更新不新建版本；1425字段或开关修改生成新版本并继承未传开关。成功时始终返回config_version，不代表已发布。
+      description: 支持1406经典自定义抽取、1425高速自定义抽取、1423/1424海外发票与1426独立分类应用。 基础信息更新不新建版本；1425字段或开关修改生成新版本并继承未传开关。成功时始终返回config_version，不代表已发布。
       operationId: updateExtractionApp
       security:
       - ApiKeyAuth: []
@@ -1204,12 +1204,11 @@ paths:
       - name: task_id
         in: path
         required: true
-        description: 创建自动路由抽取任务接口返回的任务 ID。
         schema:
           type: string
       responses:
         '200':
-          description: 查询结果；请检查 code 与 data.status。
+          description: 操作结果；同时检查code与任务status。
           content:
             application/json:
               schema:
@@ -1501,7 +1500,6 @@ paths:
       - name: task_id
         in: path
         required: true
-        description: 创建文档分类任务接口返回的任务 ID。
         schema:
           type: string
       responses:
@@ -1513,7 +1511,7 @@ paths:
                 $ref: '#/components/schemas/ClassificationTaskResult'
               examples:
                 example:
-                  summary: 分类结果示例
+                  summary: 返回结构示例，抽取字段已简写
                   value:
                     code: success
                     message: ''
@@ -1562,7 +1560,7 @@ paths:
                 $ref: '#/components/schemas/ClassificationTaskResult'
               examples:
                 example:
-                  summary: 分类结果示例
+                  summary: 返回结构示例，抽取字段已简写
                   value:
                     code: success
                     message: ''
@@ -1611,7 +1609,7 @@ paths:
                 $ref: '#/components/schemas/ClassificationTaskResult'
               examples:
                 example:
-                  summary: 分类结果示例
+                  summary: 返回结构示例，抽取字段已简写
                   value:
                     code: success
                     message: ''
@@ -1669,7 +1667,7 @@ paths:
       - $ref: '#/components/parameters/TenantName'
       responses:
         '200':
-          description: 发布结果；请检查 code、data.config_version 与 data.published。
+          description: 操作结果；同时检查code与任务status。
           content:
             application/json:
               schema:
@@ -1943,6 +1941,12 @@ components:
                   description: 采购合同正文及签署页
                 - category_key: invoice
                   type_name: 发票
+            invoiceApp:
+              summary: 海外发票高速应用
+              value:
+                ai_function: 1423
+                app_name: 海外发票及收据
+                description: 海外交易发票及收据
     ExtractionAppUpdateRequest:
       required: true
       content:
@@ -4143,6 +4147,7 @@ components:
       oneOf:
       - $ref: '#/components/schemas/HighSpeedExtractionAppCreateRequest'
       - $ref: '#/components/schemas/StandardExtractionAppCreateRequest'
+      - $ref: '#/components/schemas/InvoiceApplicationCreateRequest'
       - $ref: '#/components/schemas/ClassificationAppCreateRequest'
     StandardExtractionAppCreateRequest:
       type: object
@@ -4399,6 +4404,7 @@ components:
       anyOf:
       - $ref: '#/components/schemas/HighSpeedExtractionAppUpdateRequest'
       - $ref: '#/components/schemas/StandardExtractionAppUpdateRequest'
+      - $ref: '#/components/schemas/InvoiceApplicationUpdateRequest'
       - $ref: '#/components/schemas/ClassificationAppUpdateRequest'
       description: 行为取决于app_id对应的类型。分类应用建议显式传ai_function=1426。
     StandardExtractionAppUpdateRequest:
@@ -4597,7 +4603,6 @@ components:
     FieldConfigGenerateRequest:
       type: object
       additionalProperties: false
-      title: 根据样例文件生成字段配置
       description: 根据一个样例文件生成可直接用于 create/update 的高速抽取字段配置。
       properties:
         file_base64:
@@ -4613,20 +4618,15 @@ components:
           type: string
           maxLength: 3000
           description: 可选的字段生成要求，最多 3000 个字符。
-      if:
-        required: [file_url]
-      then:
-        not:
-          required: [file_base64]
-      else:
-        required: [file_base64]
+      oneOf:
+        - required: [file_url]
+        - required: [file_base64]
     ExtractionAppResponse:
       allOf:
       - $ref: '#/components/schemas/SimpleResponse'
       - type: object
         properties:
           data:
-            description: 已创建的抽取应用或独立分类应用数据。
             anyOf:
             - $ref: '#/components/schemas/ExtractionAppCreateData'
             - $ref: '#/components/schemas/ClassificationAppResponse'
@@ -4635,10 +4635,8 @@ components:
       properties:
         app_id:
           type: string
-          description: 已创建应用的 ID。
         app_name:
           type: string
-          description: 已创建应用的名称。
         app_label:
           type:
           - array
@@ -4686,7 +4684,6 @@ components:
       - type: object
         properties:
           data:
-            description: 修改后的抽取应用或独立分类应用数据。
             anyOf:
             - $ref: '#/components/schemas/ExtractionAppUpdateData'
             - $ref: '#/components/schemas/ClassificationAppResponse'
@@ -4712,10 +4709,8 @@ components:
           description: 可选业务编码，不限制字符组成；同租户同用户内区分大小写唯一。修改时省略保留，空字符串清空；未设置返回null。不是鉴权凭证。
         app_id:
           type: string
-          description: 已修改应用的 ID。
         app_name:
           type: string
-          description: 修改后的应用名称。
       required:
       - app_id
       - app_name
@@ -4830,7 +4825,6 @@ components:
       - type: object
         properties:
           data:
-            description: 抽取应用配置或独立分类应用配置。
             anyOf:
             - $ref: '#/components/schemas/AppConfigData'
             - $ref: '#/components/schemas/ClassificationAppResponse'
@@ -4840,20 +4834,16 @@ components:
       properties:
         app_id:
           type: string
-          description: 应用 ID。
         app_name:
           type: string
-          description: 应用名称。
         app_label:
           type:
           - array
           - 'null'
-          description: 应用标签列表；未设置时为 null。
           items:
             type: string
         config_version:
           type: string
-          description: 当前查询返回的配置版本。
         extract_fields:
           type: array
           items:
@@ -4895,12 +4885,10 @@ components:
           description: 字段值翻译
         enable_long_doc:
           type: boolean
-          description: 是否开启长文档处理；不适用的应用返回 false。
         long_doc_config:
           type:
           - array
           - 'null'
-          description: 长文档类型配置；不适用或未配置时为 null。
           items:
             $ref: '#/components/schemas/LongDocConfigResponse'
         description:
@@ -4956,7 +4944,6 @@ components:
           anyOf:
           - $ref: '#/components/schemas/FieldFormat'
           - type: 'null'
-          description: 数值或日期字段的输出格式；未配置或不适用时为 null。
       required:
       - field_name
       - field_type
@@ -4983,7 +4970,6 @@ components:
           anyOf:
           - $ref: '#/components/schemas/FieldFormat'
           - type: 'null'
-          description: 数值或日期子字段的输出格式；未配置或不适用时为 null。
       required:
       - field_name
       - field_type
@@ -5000,19 +4986,16 @@ components:
           description: 文档类型描述。
       required: [doc_type]
     FieldConfigGenerateResponse:
-      title: 字段配置生成响应
       allOf:
         - $ref: '#/components/schemas/SimpleResponse'
         - type: object
           properties:
             data:
-              description: 生成的字段配置数据。
               $ref: '#/components/schemas/FieldConfigGenerateData'
           required: [data]
     FieldConfigGenerateData:
       type: object
       additionalProperties: false
-      title: 生成的字段配置
       properties:
         extract_fields:
           type: array
@@ -5028,28 +5011,24 @@ components:
     GeneratedStringFieldConfig:
       type: object
       additionalProperties: false
-      title: 文本字段
       properties:
-        field_key: {type: string, minLength: 1, maxLength: 64, description: 字段唯一标识，可直接用于应用创建或修改。}
-        field_name: {type: string, minLength: 1, maxLength: 50, description: 字段显示名称。}
-        field_type: {type: string, const: string, description: 字段类型，文本字段固定为 string。}
+        field_key: {type: string, minLength: 1, maxLength: 64}
+        field_name: {type: string, minLength: 1, maxLength: 50}
+        field_type: {type: string, const: string}
         field_prompt:
           type: [string, 'null']
           maxLength: 3000
-          description: 字段抽取提示词；未生成时为 null。
       required: [field_key, field_name, field_type]
     GeneratedFormattedFieldConfig:
       type: object
       additionalProperties: false
-      title: 数值或日期字段
       properties:
-        field_key: {type: string, minLength: 1, maxLength: 64, description: 字段唯一标识，可直接用于应用创建或修改。}
-        field_name: {type: string, minLength: 1, maxLength: 50, description: 字段显示名称。}
-        field_type: {type: string, enum: [number, date], description: 字段类型，可能为 number 或 date。}
+        field_key: {type: string, minLength: 1, maxLength: 64}
+        field_name: {type: string, minLength: 1, maxLength: 50}
+        field_type: {type: string, enum: [number, date]}
         field_prompt:
           type: [string, 'null']
           maxLength: 3000
-          description: 字段抽取提示词；未生成时为 null。
         format:
           type: 'null'
           description: 固定为 null，表示保留模型原始输出值。
@@ -5057,16 +5036,14 @@ components:
     GeneratedTableFieldConfig:
       type: object
       additionalProperties: false
-      title: 表格字段
       properties:
-        field_key: {type: string, minLength: 1, maxLength: 64, description: 表格字段唯一标识，可直接用于应用创建或修改。}
-        field_name: {type: string, minLength: 1, maxLength: 50, description: 表格显示名称。}
-        field_type: {type: string, const: table, description: 字段类型，表格固定为 table。}
+        field_key: {type: string, minLength: 1, maxLength: 64}
+        field_name: {type: string, minLength: 1, maxLength: 50}
+        field_type: {type: string, const: table}
         sub_fields:
           type: array
           minItems: 1
           maxItems: 30
-          description: 表格列配置，最多 30 列。
           items:
             oneOf:
               - $ref: '#/components/schemas/GeneratedStringSubFieldConfig'
@@ -5075,28 +5052,24 @@ components:
     GeneratedStringSubFieldConfig:
       type: object
       additionalProperties: false
-      title: 文本列
       properties:
-        field_key: {type: string, minLength: 1, maxLength: 64, description: 表格列唯一标识。}
-        field_name: {type: string, minLength: 1, maxLength: 50, description: 表格列显示名称。}
-        field_type: {type: string, const: string, description: 列类型，文本列固定为 string。}
+        field_key: {type: string, minLength: 1, maxLength: 64}
+        field_name: {type: string, minLength: 1, maxLength: 50}
+        field_type: {type: string, const: string}
         field_prompt:
           type: [string, 'null']
           maxLength: 3000
-          description: 表格列抽取提示词；未生成时为 null。
       required: [field_key, field_name, field_type]
     GeneratedFormattedSubFieldConfig:
       type: object
       additionalProperties: false
-      title: 数值或日期列
       properties:
-        field_key: {type: string, minLength: 1, maxLength: 64, description: 表格列唯一标识。}
-        field_name: {type: string, minLength: 1, maxLength: 50, description: 表格列显示名称。}
-        field_type: {type: string, enum: [number, date], description: 列类型，可能为 number 或 date。}
+        field_key: {type: string, minLength: 1, maxLength: 64}
+        field_name: {type: string, minLength: 1, maxLength: 50}
+        field_type: {type: string, enum: [number, date]}
         field_prompt:
           type: [string, 'null']
           maxLength: 3000
-          description: 表格列抽取提示词；未生成时为 null。
         format:
           type: 'null'
           description: 固定为 null，表示保留模型原始输出值。
@@ -5722,7 +5695,6 @@ components:
       - type: object
         properties:
           data:
-            description: 已发布的应用配置版本信息。
             $ref: '#/components/schemas/AppManagePublishResponse'
     RoutedExtractionResult:
       allOf:
@@ -5730,7 +5702,6 @@ components:
       - type: object
         properties:
           data:
-            description: 自动分类路由抽取任务及结果数据。
             $ref: '#/components/schemas/AppDocRoutedResponse'
     ClassificationTaskResult:
       allOf:
@@ -5738,7 +5709,6 @@ components:
       - type: object
         properties:
           data:
-            description: 文档分类任务及结果数据。
             $ref: '#/components/schemas/AppDocClassifyResponse'
     ClassificationApplicationResult:
       allOf:
@@ -5746,7 +5716,6 @@ components:
       - type: object
         properties:
           data:
-            description: 独立分类应用数据。
             $ref: '#/components/schemas/ClassificationAppResponse'
     InvoiceApplicationUpdateRequest:
       type: object
@@ -5805,16 +5774,13 @@ components:
     AppManagePublishResponse:
       properties:
         app_id:
-          description: 已发布配置所属的应用 ID。
           title: App Id
           type: string
         config_version:
-          description: 本次发布或确认已发布的配置版本。
           title: Config Version
           type: string
         published:
           default: true
-          description: 是否已发布；成功响应固定为 true。
           title: Published
           type: boolean
       required:
@@ -5826,7 +5792,6 @@ components:
       additionalProperties: true
       properties:
         app_id:
-          description: 要发布配置版本的应用 ID；仅支持可发布配置版本的抽取应用。
           title: App Id
           type: string
         config_version:
@@ -5834,7 +5799,6 @@ components:
           - type: string
           - type: 'null'
           default: null
-          description: 要发布的配置版本。省略或传 null 时发布最新未发布版本；若不存在未发布版本则返回错误。显式传入已发布版本时幂等成功。
           title: Config Version
       required:
       - app_id
@@ -5843,11 +5807,9 @@ components:
     AppDocRoutedResponse:
       properties:
         task_id:
-          description: 任务 ID。异步创建接口返回的值可用于查询任务；同步接口返回本次执行 ID。
           title: Task Id
           type: string
         status:
-          description: 任务状态。partial_success 表示部分文档实例抽取成功。
           enum:
           - pending
           - running
@@ -5857,19 +5819,16 @@ components:
           title: Status
           type: string
         granularity:
-          description: 分类粒度，当前固定为 page（页）。
           const: page
           default: page
           title: Granularity
           type: string
         extraction_result:
-          description: 按候选应用分组的路由抽取结果。
           items:
             $ref: '#/components/schemas/RoutedAppResult'
           title: Extraction Result
           type: array
         unclassified_pages:
-          description: 未匹配任何候选应用的原始页码。
           items:
             type: integer
           title: Unclassified Pages
@@ -5882,11 +5841,9 @@ components:
     RoutedError:
       properties:
         code:
-          description: 当前文档实例的错误码。
           title: Code
           type: string
         message:
-          description: 当前文档实例的错误说明。
           title: Message
           type: string
       required:
@@ -5897,24 +5854,20 @@ components:
     RoutedDocument:
       properties:
         doc_type:
-          description: 匹配到的文档类型，通常为候选应用名称。
           title: Doc Type
           type: string
         pages:
-          description: 当前文档实例包含的原始页码。
           items:
             type: integer
           title: Pages
           type: array
         status:
-          description: 当前文档实例的抽取状态。
           enum:
           - success
           - failed
           title: Status
           type: string
         extraction_result:
-          description: 当前文档实例的抽取字段；失败时可为空。
           anyOf:
           - items:
               additionalProperties: true
@@ -5924,7 +5877,6 @@ components:
           default: null
           title: Extraction Result
         error:
-          description: 当前文档实例失败时的错误信息；成功时为空。
           anyOf:
           - $ref: '#/components/schemas/RoutedError'
           - type: 'null'
@@ -5938,26 +5890,21 @@ components:
     RoutedAppResult:
       properties:
         app_id:
-          description: 命中的候选应用 ID。
           title: App Id
           type: string
         app_name:
-          description: 命中的候选应用名称。
           title: App Name
           type: string
         app_code:
-          description: 候选应用的可选业务编码。
           anyOf:
           - type: string
           - type: 'null'
           default: null
           title: App Code
         config_version:
-          description: 本次抽取使用的应用配置版本。
           title: Config Version
           type: string
         object_values:
-          description: 该应用命中的文档实例及其抽取结果。
           items:
             $ref: '#/components/schemas/RoutedDocument'
           title: Object Values
@@ -5972,76 +5919,62 @@ components:
       additionalProperties: false
       properties:
         app_ids:
-          description: 1～10 个不重复的候选应用 ID，仅支持 1425、1423、1424 应用；应用名称去除首尾空格后也须不区分大小写唯一。
+          description: Candidate application IDs; their application names must also be unique, ignoring surrounding whitespace
+            and case.
           items:
             type: string
-            minLength: 1
-            pattern: \S
           maxItems: 10
           minItems: 1
-          uniqueItems: true
           title: App Ids
           type: array
         file_url:
-          description: 可下载的文件 URL，与 file_base64 必须且只能提供一个。
           anyOf:
           - type: string
-            minLength: 1
-            pattern: \S
           - type: 'null'
           default: null
           title: File Url
         file_base64:
-          description: 文件的 Base64 编码，与 file_url 必须且只能提供一个。
           anyOf:
           - type: string
-            minLength: 1
-            pattern: \S
           - type: 'null'
           default: null
           title: File Base64
         file_name:
-          description: 文件名。使用 file_base64 时建议提供并保留正确扩展名。
           anyOf:
           - type: string
           - type: 'null'
           default: null
           title: File Name
         model_params:
-          description: 页码范围及本次调用的临时开关。
           $ref: '#/components/schemas/RoutedExtractionModelParams'
       required:
       - app_ids
       title: AppDocRoutedRequest
       type: object
-      if:
-        required:
+      oneOf:
+      - required:
         - file_url
         properties:
           file_url:
             type: string
-      then:
-        properties:
-          file_base64:
-            type: 'null'
-      else:
-        required:
+            minLength: 1
+            pattern: \S
+      - required:
         - file_base64
         properties:
           file_base64:
             type: string
+            minLength: 1
+            pattern: \S
     RoutedExtractionModelParams:
       additionalProperties: false
       properties:
         pages:
-          description: 要处理的原始页码，页码从 1 开始且不得重复；省略表示处理全部页面。
           anyOf:
           - items:
               type: integer
-              minimum: 1
             maxItems: 260
             minItems: 1
-            uniqueItems: true
             type: array
           - type: 'null'
           default: null
@@ -6072,11 +6005,9 @@ components:
     AppDocClassifyResponse:
       properties:
         task_id:
-          description: 任务 ID。异步创建接口返回的值可用于查询任务；同步接口返回本次执行 ID。
           title: Task Id
           type: string
         status:
-          description: 任务状态。
           enum:
           - pending
           - running
@@ -6085,33 +6016,27 @@ components:
           title: Status
           type: string
         app_id:
-          description: 本次使用的独立分类应用 ID。
           title: App Id
           type: string
         config_version:
-          description: 本次分类使用的应用配置版本。
           title: Config Version
           type: string
         granularity:
-          description: 分类粒度，当前固定为 page（页）。
           const: page
           default: page
           title: Granularity
           type: string
         segments:
-          description: 按文档实例返回的分类结果；同一类别可出现多个不连续实例。
           items:
             $ref: '#/components/schemas/ClassificationSegment'
           title: Segments
           type: array
         unclassified_pages:
-          description: 未匹配任何类别的原始页码。
           items:
             type: integer
           title: Unclassified Pages
           type: array
         message:
-          description: 任务状态补充信息，成功时通常为空字符串。
           default: ''
           title: Message
           type: string
@@ -6125,15 +6050,12 @@ components:
     ClassificationSegment:
       properties:
         category_key:
-          description: 创建分类应用时配置的类别标识。
           title: Category Key
           type: string
         category_name:
-          description: 创建分类应用时配置的类别名称。
           title: Category Name
           type: string
         pages:
-          description: 当前文档实例包含的原始页码。
           items:
             type: integer
           title: Pages
@@ -6148,68 +6070,55 @@ components:
       additionalProperties: false
       properties:
         app_id:
-          description: 独立分类应用 ID，应用类型须为 1426。
           minLength: 1
           title: App Id
           type: string
         file_url:
-          description: 可下载的文件 URL，与 file_base64 必须且只能提供一个。
           anyOf:
           - type: string
-            minLength: 1
-            pattern: \S
           - type: 'null'
           default: null
           title: File Url
         file_base64:
-          description: 文件的 Base64 编码，与 file_url 必须且只能提供一个。
           anyOf:
           - type: string
-            minLength: 1
-            pattern: \S
           - type: 'null'
           default: null
           title: File Base64
         file_name:
-          description: 文件名。使用 file_base64 时建议提供并保留正确扩展名。
           default: ''
           title: File Name
           type: string
         model_params:
-          description: 文档分类参数，包括要处理的原始页码。
           $ref: '#/components/schemas/ClassificationModelParams'
       required:
       - app_id
       title: AppDocClassifyRequest
       type: object
-      if:
-        required:
+      oneOf:
+      - required:
         - file_url
         properties:
           file_url:
             type: string
-      then:
-        properties:
-          file_base64:
-            type: 'null'
-      else:
-        required:
+            minLength: 1
+            pattern: \S
+      - required:
         - file_base64
         properties:
           file_base64:
             type: string
+            minLength: 1
+            pattern: \S
     ClassificationModelParams:
       additionalProperties: false
       properties:
         pages:
-          description: 要分类的原始页码，页码从 1 开始且不得重复；省略表示分类全部页面。
           anyOf:
           - items:
               type: integer
-              minimum: 1
             maxItems: 260
             minItems: 1
-            uniqueItems: true
             type: array
           - type: 'null'
           default: null
@@ -6219,30 +6128,24 @@ components:
     ClassificationAppResponse:
       properties:
         app_id:
-          description: 独立分类应用 ID。
           title: App Id
           type: string
         ai_function:
-          description: 应用类型，独立分类应用固定为 1426。
           const: 1426
           default: 1426
           title: Ai Function
           type: integer
         app_name:
-          description: 应用名称。
           title: App Name
           type: string
         description:
-          description: 应用说明。
           default: ''
           title: Description
           type: string
         config_version:
-          description: 分类配置版本。
           title: Config Version
           type: string
         classify_types:
-          description: 应用配置的分类类别列表。
           items:
             $ref: '#/components/schemas/ClassificationCategory'
           title: Classify Types
@@ -6256,41 +6159,39 @@ components:
       type: object
     ClassificationAppUpdateRequest:
       additionalProperties: false
-      minProperties: 2
-      dependentSchemas:
-        ai_function:
-          minProperties: 3
-      title: 修改独立分类应用
       properties:
         app_id:
-          description: 要修改的独立分类应用 ID。
           minLength: 1
           title: App Id
           type: string
         ai_function:
-          description: 应用类型，独立分类应用固定为 1426。
           const: 1426
           default: 1426
           title: Ai Function
           type: integer
         app_name:
+          default: null
           description: 应用名称；不传则保留，传入时须为去除首尾空白后的1～50字符
           maxLength: 50
           minLength: 1
           title: App Name
           type: string
         description:
-          description: 应用说明；省略则保留原值，传空字符串则清空。
-          maxLength: 1500
-          type: string
+          anyOf:
+          - maxLength: 1500
+            type: string
+          - type: 'null'
+          default: null
           title: Description
         classify_types:
-          description: 完整替换的分类类别列表；省略则保留原配置。
-          items:
-            $ref: '#/components/schemas/ClassificationCategory'
-          maxItems: 10
-          minItems: 1
-          type: array
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/ClassificationCategory'
+            maxItems: 10
+            minItems: 1
+            type: array
+          - type: 'null'
+          default: null
           title: Classify Types
       required:
       - app_id
@@ -6298,10 +6199,8 @@ components:
       type: object
     ClassificationAppCreateRequest:
       additionalProperties: false
-      title: 创建独立分类应用
       properties:
         ai_function:
-          description: 应用类型，创建独立分类应用固定传 1426。
           const: 1426
           title: Ai Function
           type: integer
@@ -6312,13 +6211,11 @@ components:
           title: App Name
           type: string
         description:
-          description: 应用说明，最多 1500 个字符。
           default: ''
           maxLength: 1500
           title: Description
           type: string
         classify_types:
-          description: 分类类别列表，支持 1～10 个类别。
           items:
             $ref: '#/components/schemas/ClassificationCategory'
           maxItems: 10
@@ -6335,18 +6232,15 @@ components:
       additionalProperties: false
       properties:
         category_key:
-          description: 类别标识，须以字母开头，仅包含字母、数字和下划线；应用内唯一。
           pattern: ^[A-Za-z][A-Za-z0-9_]{0,63}$
           title: Category Key
           type: string
         type_name:
-          description: 类别名称，去除首尾空白后为 1～100 个字符；应用内不区分大小写唯一，且不能为 UNCLASSIFIED。
           maxLength: 100
           minLength: 1
           title: Type Name
           type: string
         description:
-          description: 类别说明，用于描述该类别对应的文档内容。
           anyOf:
           - maxLength: 1500
             type: string
@@ -6361,7 +6255,6 @@ components:
     CustomFieldFormat:
       type: object
       additionalProperties: false
-      title: 自定义格式要求
       required:
       - mode
       - instruction
@@ -6369,7 +6262,6 @@ components:
         mode:
           type: string
           const: custom
-          description: 格式模式，固定为 custom。
         instruction:
           type: string
           minLength: 1
@@ -6377,7 +6269,6 @@ components:
     DatePresetFormat:
       type: object
       additionalProperties: false
-      title: 日期时间预置格式
       required:
       - mode
       - preset
@@ -6385,7 +6276,6 @@ components:
         mode:
           type: string
           const: preset
-          description: 格式模式，固定为 preset。
         preset:
           type: string
           enum:
@@ -6397,7 +6287,6 @@ components:
     NumberPresetFormat:
       type: object
       additionalProperties: false
-      title: 数值预置格式
       required:
       - mode
       - preset
@@ -6405,7 +6294,6 @@ components:
         mode:
           type: string
           const: preset
-          description: 格式模式，固定为 preset。
         preset:
           type: string
           enum:
@@ -6413,7 +6301,6 @@ components:
           - decimal
           - grouped_integer
           - grouped_decimal
-          description: 数值输出格式：整数、小数、千分位整数或千分位小数。
         decimal_places:
           type: integer
           minimum: 0
@@ -6437,7 +6324,6 @@ components:
             required:
             - decimal_places
     FieldFormat:
-      title: 字段输出格式
       oneOf:
       - $ref: '#/components/schemas/NumberPresetFormat'
       - $ref: '#/components/schemas/DatePresetFormat'
