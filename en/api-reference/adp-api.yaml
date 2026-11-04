@@ -4695,7 +4695,7 @@ components:
       type: object
       additionalProperties: false
       title: Generate field configuration from a sample file
-      description: Generate a high-speed extraction field configuration from one sample file for direct use in create or update.
+      description: Generate a high-speed extraction field configuration from one sample file for direct use in create or update. Provide exactly one of file_url and file_base64.
       properties:
         file_base64:
           type: string
@@ -4710,13 +4710,6 @@ components:
           type: string
           maxLength: 3000
           description: Optional field-generation instruction, up to 3000 characters.
-      if:
-        required: [file_url]
-      then:
-        not:
-          required: [file_base64]
-      else:
-        required: [file_base64]
     ExtractionAppResponse:
       allOf:
       - $ref: '#/components/schemas/SimpleResponse'
@@ -6080,6 +6073,7 @@ components:
       type: object
     AppDocRoutedRequest:
       additionalProperties: false
+      description: Routed extraction request. Provide exactly one of file_url and file_base64.
       properties:
         app_ids:
           description: 1–10 distinct candidate application IDs. Only 1425, 1423, and 1424 applications are supported; their
@@ -6125,22 +6119,6 @@ components:
       - app_ids
       title: AppDocRoutedRequest
       type: object
-      if:
-        required:
-        - file_url
-        properties:
-          file_url:
-            type: string
-      then:
-        properties:
-          file_base64:
-            type: 'null'
-      else:
-        required:
-        - file_base64
-        properties:
-          file_base64:
-            type: string
     RoutedExtractionModelParams:
       additionalProperties: false
       properties:
@@ -6257,6 +6235,7 @@ components:
       type: object
     AppDocClassifyRequest:
       additionalProperties: false
+      description: Standalone document classification request. Provide exactly one of file_url and file_base64.
       properties:
         app_id:
           description: Standalone classification application ID. The application type must be 1426.
@@ -6293,22 +6272,6 @@ components:
       - app_id
       title: AppDocClassifyRequest
       type: object
-      if:
-        required:
-        - file_url
-        properties:
-          file_url:
-            type: string
-      then:
-        properties:
-          file_base64:
-            type: 'null'
-      else:
-        required:
-        - file_base64
-        properties:
-          file_base64:
-            type: string
     ClassificationModelParams:
       additionalProperties: false
       properties:
@@ -6367,10 +6330,7 @@ components:
       type: object
     ClassificationAppUpdateRequest:
       additionalProperties: false
-      minProperties: 2
-      dependentSchemas:
-        ai_function:
-          minProperties: 3
+      description: In addition to app_id (and optional ai_function), provide at least one of app_name, description, or classify_types.
       title: Update standalone classification application
       properties:
         app_id:
