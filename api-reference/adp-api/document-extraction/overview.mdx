@@ -1,0 +1,14 @@
+---
+title: "自定义抽取应用"
+description: "创建并调用自定义抽取应用，将文档内容转换为业务字段，也可在多个候选应用之间自动路由。"
+---
+
+自定义抽取应用按照字段配置返回结构化数据。已明确目标应用时使用单应用抽取；文档类型不确定时，可提供多个候选应用，让接口先选择匹配的应用再完成抽取。
+
+## 接入流程
+
+1. **准备字段配置。** 高速自定义抽取应用可以直接定义 `extract_fields`，也可以先调用[生成抽取字段配置](/api-reference/adp-api/application-management/generate-extraction-field-config)，从一个样例文件生成初始字段。
+2. **创建应用。** 调用[创建应用](/api-reference/adp-api/application-management/create-extraction-application)，选择应用类型并保存返回的 `app_id`。后续可通过[修改应用](/api-reference/adp-api/application-management/update-extraction-application)调整字段与开关。
+3. **按需发布配置。** 创建或修改高速自定义抽取应用后，可调用[发布抽取配置版本](/api-reference/adp-api/application-management/publish-application-version)发布指定版本；发布不是必需步骤。
+4. **提交文档。** 已知目标应用时，调用[文档抽取（同步接口）](/api-reference/adp-api/document-extraction/extract-document)或[创建文档抽取异步任务](/api-reference/adp-api/document-extraction/create-document-extract-task)。需要从多个候选应用中自动选择时，调用[自动路由抽取（同步）](/api-reference/adp-api/routed-extraction/extract-routed-document)或[创建路由抽取任务](/api-reference/adp-api/routed-extraction/create-routed-task)。
+5. **查询异步结果。** 单应用任务使用[查询文档抽取任务结果](/api-reference/adp-api/document-extraction/query-document-extract-task)，路由任务使用[查询路由抽取任务](/api-reference/adp-api/routed-extraction/query-routed-task)。

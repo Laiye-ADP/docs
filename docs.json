@@ -97,6 +97,7 @@
                   },
                   {
                     "group": "自定义抽取应用",
+                    "root": "api-reference/adp-api/document-extraction/overview",
                     "pages": [
                       "api-reference/adp-api/document-extraction/extract-document",
                       "api-reference/adp-api/document-extraction/create-document-extract-task",
@@ -109,6 +110,7 @@
                   },
                   {
                     "group": "文档分类",
+                    "root": "api-reference/adp-api/document-classification/overview",
                     "pages": [
                       "api-reference/adp-api/document-classification/classify-document",
                       "api-reference/adp-api/document-classification/create-classification-task",
@@ -297,7 +299,8 @@
                     "icon": "asterisk"
                   },
                   {
-                    "group": "Document extraction",
+                    "group": "Custom extraction applications",
+                    "root": "en/api-reference/adp-api/document-extraction/overview",
                     "pages": [
                       "en/api-reference/adp-api/document-extraction/extract-document",
                       "en/api-reference/adp-api/document-extraction/create-document-extract-task",
@@ -310,6 +313,7 @@
                   },
                   {
                     "group": "Document classification",
+                    "root": "en/api-reference/adp-api/document-classification/overview",
                     "pages": [
                       "en/api-reference/adp-api/document-classification/classify-document",
                       "en/api-reference/adp-api/document-classification/create-classification-task",

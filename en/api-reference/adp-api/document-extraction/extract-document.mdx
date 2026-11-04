@@ -2,11 +2,10 @@
 title: Extract document (sync)
 sidebarTitle: Extract document (sync)
 openapi: /en/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract
-description: Single-app synchronous and asynchronous extraction share the request
-  body below, including file input, compatibility and capability-specific options.
+description: Extract document fields synchronously with one specified application.
 ---
 
-Single-app synchronous and asynchronous extraction share the request body below, including file input, compatibility and capability-specific options.
+Provide an application identity and one file source. The endpoint completes extraction in the current request and returns the fields configured for that application; use it when the target application is known and an immediate result is required. Synchronous and asynchronous extraction share the same request structure, including the compatibility and capability-specific options below.
 
 ## App identity and file input compatibility
 

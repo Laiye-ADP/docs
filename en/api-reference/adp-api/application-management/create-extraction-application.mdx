@@ -2,8 +2,7 @@
 title: Create application
 sidebarTitle: Create application
 openapi: /en/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create
-description: Manage extraction/classification apps, field formats and configuration
-  versions.
+description: Create a classic extraction, high-speed custom extraction, or standalone classification application and return its application ID.
 ---
 
-Supports classic extraction, high-speed custom extraction, and standalone classification.
+Select the application type through `ai_function` and provide the corresponding `extract_fields` or `classify_types`. Field-value translation, source highlighting, and confidence evaluation are off by default for new high-speed custom extraction applications; publishing is optional.

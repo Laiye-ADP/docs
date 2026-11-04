@@ -2,10 +2,10 @@
 title: 查询文档抽取任务结果
 sidebarTitle: 查询文档抽取任务结果
 openapi: /api-reference/adp-api.yaml GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}
-description: 单应用异步抽取沿用同步请求的身份、文件与参数规则。1425异步同样禁用人机协同。
+description: 查询单应用文档抽取异步任务的状态与结果。
 ---
 
-单应用异步抽取沿用同步请求的身份、文件与参数规则。1425异步同样禁用人机协同。
+使用[创建文档抽取异步任务](/api-reference/adp-api/document-extraction/create-document-extract-task)返回的 `task_id` 查询。任务完成后，响应包含实际使用的配置版本和应用配置的抽取字段。
 
 [完整参数适用范围与原生文件示例](/api-reference/adp-api/document-extraction/extract-document)
 

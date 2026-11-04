@@ -1,7 +1,7 @@
 ---
 title: Query routed extraction task
-description: See the API definition below for parameters, response structure and examples.
+description: Query the status and result of a routed extraction task.
 openapi: /en/api-reference/adp-api.yaml GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/routed/query/task/{task_id}
 ---
 
-See the API definition below for parameters, response structure and examples.
+Use the `task_id` returned by [Create routed extraction task](/en/api-reference/adp-api/routed-extraction/create-routed-task). When processing completes, the response includes the matched applications and their grouped extraction results, with unclassified pages listed separately.

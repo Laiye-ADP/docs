@@ -1,7 +1,7 @@
 ---
 title: 创建路由抽取任务
-description: 参数、返回结构与示例见下方接口定义。
+description: 创建自动路由抽取异步任务。
 openapi: /api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/routed/create/task
 ---
 
-参数、返回结构与示例见下方接口定义。
+提交候选应用 ID 和一个文件来源，接口立即返回 `task_id`；随后调用[查询路由抽取任务](/api-reference/adp-api/routed-extraction/query-routed-task)获取任务状态及按应用分组的抽取结果。

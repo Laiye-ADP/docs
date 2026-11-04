@@ -1,7 +1,7 @@
 ---
 title: 文档分类（同步）
-description: 参数、返回结构与示例见下方接口定义。
+description: 使用独立分类应用同步识别文档各页所属类别。
 openapi: /api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/classify
 ---
 
-参数、返回结构与示例见下方接口定义。
+提交独立分类应用 `app_id` 和一个文件来源，接口会在当前请求中完成分类，返回各类别对应的页码及未分类页，适合需要立即获取结果的场景。

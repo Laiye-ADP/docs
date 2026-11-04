@@ -1,7 +1,7 @@
 ---
 title: 自动路由抽取（同步）
-description: 参数、返回结构与示例见下方接口定义。
+description: 在候选抽取应用之间自动匹配，并同步返回字段抽取结果。
 openapi: /api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/routed
 ---
 
-参数、返回结构与示例见下方接口定义。
+提交 1～10 个候选应用 ID 和一个文件来源，接口根据应用名称与描述为文档实例选择匹配应用，再使用对应应用完成抽取并返回分组结果，适合需要立即获取结果的场景。

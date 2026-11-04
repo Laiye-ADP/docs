@@ -1,7 +1,7 @@
 ---
 title: 查询路由抽取任务
-description: 参数、返回结构与示例见下方接口定义。
+description: 查询自动路由抽取任务的状态与结果。
 openapi: /api-reference/adp-api.yaml GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/routed/query/task/{task_id}
 ---
 
-参数、返回结构与示例见下方接口定义。
+使用[创建路由抽取任务](/api-reference/adp-api/routed-extraction/create-routed-task)返回的 `task_id` 查询。任务完成后，响应包含命中的应用及其分组抽取结果，并单独列出未分类页。

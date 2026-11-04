@@ -2,10 +2,10 @@
 title: 创建文档抽取异步任务
 sidebarTitle: 创建文档抽取异步任务
 openapi: /api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task
-description: 单应用异步抽取沿用同步请求的身份、文件与参数规则。1425异步同样禁用人机协同。
+description: 使用一个指定应用创建文档抽取异步任务。
 ---
 
-单应用异步抽取沿用同步请求的身份、文件与参数规则。1425异步同样禁用人机协同。
+提交应用身份和一个文件来源，接口立即返回 `task_id`；随后调用[查询文档抽取任务结果](/api-reference/adp-api/document-extraction/query-document-extract-task)获取状态和抽取结果。高速自定义抽取不进入人机协同。
 
 [完整参数适用范围与原生文件示例](/api-reference/adp-api/document-extraction/extract-document)
 

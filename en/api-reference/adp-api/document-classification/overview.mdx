@@ -1,0 +1,13 @@
+---
+title: "Document classification"
+description: "Create a standalone classification application that maps document pages to configured categories and returns their page numbers."
+---
+
+Document classification uses category definitions from a standalone classification application. Results contain the original page numbers for each category and list unclassified pages separately. A page can match more than one category.
+
+## Integration flow
+
+1. **Create a classification application.** Call [Create application](/en/api-reference/adp-api/application-management/create-extraction-application), set `ai_function=1426`, define categories through `classify_types`, and retain the returned `app_id`.
+2. **Maintain categories.** Use [Update application](/en/api-reference/adp-api/application-management/update-extraction-application) to change category definitions. To find classification applications later, call [List applications](/en/api-reference/adp-api/application-management/list-applications) with `ai_function=1426` explicitly.
+3. **Choose an invocation mode.** Use [Classify document (sync)](/en/api-reference/adp-api/document-classification/classify-document) when the result is needed immediately. For longer documents or non-blocking integration, use [Create classification task](/en/api-reference/adp-api/document-classification/create-classification-task).
+4. **Query asynchronous results.** Pass the returned `task_id` to [Query classification task](/en/api-reference/adp-api/document-classification/query-classification-task) until the task succeeds or fails.

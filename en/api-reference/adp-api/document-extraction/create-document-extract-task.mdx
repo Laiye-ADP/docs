@@ -2,11 +2,10 @@
 title: Create document extraction task
 sidebarTitle: Create document extraction task
 openapi: /en/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task
-description: Single-app asynchronous extraction uses the same identity, file and option
-  rules as sync extraction. 1425 async also disables human collaboration.
+description: Create an asynchronous document extraction task with one specified application.
 ---
 
-Single-app asynchronous extraction uses the same identity, file and option rules as sync extraction. 1425 async also disables human collaboration.
+Provide an application identity and one file source. The endpoint immediately returns a `task_id`; then use [Query document extraction result](/en/api-reference/adp-api/document-extraction/query-document-extract-task) to retrieve the status and extraction result. High-speed custom extraction does not enter human collaboration.
 
 [Parameter applicability and native-file examples](/en/api-reference/adp-api/document-extraction/extract-document)
 

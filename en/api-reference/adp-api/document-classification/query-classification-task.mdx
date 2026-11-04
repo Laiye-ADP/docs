@@ -1,7 +1,7 @@
 ---
 title: Query classification task
-description: See the API definition below for parameters, response structure and examples.
+description: Query the status and result of an asynchronous classification task.
 openapi: /en/api-reference/adp-api.yaml GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/classify/query/task/{task_id}
 ---
 
-See the API definition below for parameters, response structure and examples.
+Use the `task_id` returned by [Create classification task](/en/api-reference/adp-api/document-classification/create-classification-task). When processing completes, the response includes pages by category and any unclassified pages; a `task_id` returned by the synchronous endpoint is not queried here.

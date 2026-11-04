@@ -2,7 +2,7 @@
 title: 修改应用
 sidebarTitle: 修改应用
 openapi: /api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update
-description: 管理抽取和独立分类应用，支持高速字段格式与配置版本。
+description: 修改抽取或独立分类应用的基础信息与配置。
 ---
 
-支持经典抽取、高速自定义抽取与独立分类应用。
+根据应用类型更新字段或分类规则。高速自定义抽取应用的字段或开关变更会生成新配置版本；省略的开关沿用参考版本，返回 `config_version` 不表示已发布。

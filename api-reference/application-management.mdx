@@ -15,7 +15,7 @@ ADP 以应用为单位组织文档处理能力。你可以直接使用系统提�
 </Columns>
 
 <Note>
-  本分组中的“创建应用”接口支持自定义抽取、海外发票高速版及独立分类应用。业务工作流模板可通过本分组中的接口查询、创建并发布，再使用“工作流”分组中的共用接口运行。
+  本分组中的“创建应用”接口支持经典抽取、高速自定义抽取和独立分类应用。业务工作流模板可通过本分组中的接口查询、创建并发布，再使用“工作流”分组中的共用接口运行。
 </Note>
 
 ## 抽取类模板应用
@@ -68,8 +68,3 @@ ADP 以应用为单位组织文档处理能力。你可以直接使用系统提�
 | 从工作流模板创建并发布应用 | `POST /open/agentic_engine/laiye/v1/app/applications/create-from-template` |
 | 修改或删除应用 | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update`、`POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete` |
 | 查询或删除配置版本 | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config`、`POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete` |
-
-
-## v1.19 分类与路由接入
-
-应用创建接口现支持1426独立分类和1425高速自定义抽取。1425三个开关创建默认关闭；发布为可选操作。
