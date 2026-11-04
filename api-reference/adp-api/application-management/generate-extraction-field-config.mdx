@@ -1,8 +1,8 @@
 ---
 title: 根据样例文件生成抽取字段配置
 sidebarTitle: "生成抽取字段配置"
-description: "提交一个样例文件，生成可直接用于创建或修改高速版自定义抽取应用的字段配置。"
+description: "从一个样例文件生成高速自定义抽取字段配置。"
 openapi: "/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/field-config/generate"
 ---
 
-参数、返回结构与示例见下方接口定义。
+提供 `file_url` 或 `file_base64`，并可通过 `prompt` 补充字段要求。接口只返回可用于[创建应用](/api-reference/adp-api/application-management/create-extraction-application)或[修改应用](/api-reference/adp-api/application-management/update-extraction-application)的 `extract_fields`，不会创建应用或保存配置版本。

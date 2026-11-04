@@ -1,7 +1,7 @@
 ---
 title: 查询分类任务
-description: 参数、返回结构与示例见下方接口定义。
+description: 查询异步文档分类任务的状态与结果。
 openapi: /api-reference/adp-api.yaml GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/classify/query/task/{task_id}
 ---
 
-参数、返回结构与示例见下方接口定义。
+使用[创建分类任务](/api-reference/adp-api/document-classification/create-classification-task)返回的 `task_id` 查询。任务完成后，响应包含各类别对应的页码及未分类页；同步接口返回的 `task_id` 不用于此查询。

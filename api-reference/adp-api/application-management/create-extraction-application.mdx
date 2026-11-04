@@ -2,7 +2,7 @@
 title: 创建应用
 sidebarTitle: 创建应用
 openapi: /api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/create
-description: 管理抽取和独立分类应用，支持高速字段格式与配置版本。
+description: 创建经典抽取、高速自定义抽取或独立分类应用，并返回后续调用所需的应用 ID。
 ---
 
-支持经典抽取、高速自定义抽取与独立分类应用。
+通过 `ai_function` 选择应用类型，并提交对应的 `extract_fields` 或 `classify_types`。新建高速自定义抽取应用时，字段值翻译、原文定位和置信度评估默认关闭；配置发布是可选操作。

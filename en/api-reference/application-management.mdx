@@ -18,7 +18,7 @@ ADP organizes document processing capabilities as applications. You can use syst
 </Columns>
 
 <Note>
-  The Create extraction application API creates custom extraction applications. Use the APIs under Application Management to discover business workflow templates and create and publish an application, then run it with the shared APIs under Workflow.
+  The Create application API supports classic extraction, high-speed custom extraction, and standalone classification applications. Use the APIs under Application Management to discover business workflow templates and create and publish an application, then run it with the shared APIs under Workflow.
 </Note>
 
 ## Extraction templates
@@ -71,8 +71,3 @@ Workflow changes are currently available only through the [ADP website interface
 | Create and publish an application from a workflow template | `POST /open/agentic_engine/laiye/v1/app/applications/create-from-template` |
 | Update or delete an application | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update`, `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/delete` |
 | Query or delete a configuration version | `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/config`, `POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/delete` |
-
-
-## v1.19 classification and routing
-
-The create endpoint now supports 1426 standalone classification and 1425 high-speed custom extraction. New 1425 apps default all three switches to off; publishing is optional.

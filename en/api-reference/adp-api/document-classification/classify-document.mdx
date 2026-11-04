@@ -1,7 +1,7 @@
 ---
 title: Classify document (sync)
-description: See the API definition below for parameters, response structure and examples.
+description: Classify document pages synchronously with a standalone classification application.
 openapi: /en/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/classify
 ---
 
-See the API definition below for parameters, response structure and examples.
+Provide the standalone classification application `app_id` and one file source. The endpoint completes classification in the current request and returns pages by category, including unclassified pages; use it when an immediate result is required.

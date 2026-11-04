@@ -1,0 +1,14 @@
+---
+title: "Custom extraction applications"
+description: "Create and call custom extraction applications to turn documents into business fields, with optional routing across candidate applications."
+---
+
+Custom extraction applications return structured data according to configured fields. Use single-application extraction when the target application is known, or provide multiple candidates so routed extraction can select a matching application first.
+
+## Integration flow
+
+1. **Prepare field configuration.** Define `extract_fields` directly for a high-speed custom extraction application, or use [Generate field configuration](/en/api-reference/adp-api/application-management/generate-extraction-field-config) to create an initial configuration from one sample file.
+2. **Create the application.** Call [Create application](/en/api-reference/adp-api/application-management/create-extraction-application), select the application type, and retain the returned `app_id`. Use [Update application](/en/api-reference/adp-api/application-management/update-extraction-application) to change fields and options later.
+3. **Publish when needed.** After creating or updating a high-speed custom extraction application, you can use [Publish extraction configuration](/en/api-reference/adp-api/application-management/publish-application-version) to publish a selected version. Publishing is optional.
+4. **Submit a document.** When the target application is known, use [Extract document (sync)](/en/api-reference/adp-api/document-extraction/extract-document) or [Create document extraction task](/en/api-reference/adp-api/document-extraction/create-document-extract-task). To select automatically from multiple candidates, use [Routed extraction (sync)](/en/api-reference/adp-api/routed-extraction/extract-routed-document) or [Create routed extraction task](/en/api-reference/adp-api/routed-extraction/create-routed-task).
+5. **Query asynchronous results.** Use [Query document extraction result](/en/api-reference/adp-api/document-extraction/query-document-extract-task) for a single-application task, or [Query routed extraction task](/en/api-reference/adp-api/routed-extraction/query-routed-task) for a routed task.

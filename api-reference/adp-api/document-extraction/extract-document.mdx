@@ -2,10 +2,10 @@
 title: 文档抽取（同步接口）
 sidebarTitle: 文档抽取（同步接口）
 openapi: /api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract
-description: 单个应用的同步与异步抽取使用同一请求结构；以下说明文件、兼容输入和按能力生效的参数。
+description: 使用一个指定应用同步抽取文档字段。
 ---
 
-单个应用的同步与异步抽取使用同一请求结构；以下说明文件、兼容输入和按能力生效的参数。
+提交应用身份和一个文件来源，接口会在当前请求中完成抽取并返回应用配置的字段，适合已明确目标应用且需要立即获取结果的场景。同步与异步抽取使用相同的请求结构，下面说明兼容输入及按应用能力生效的参数。
 
 ## 身份与文件输入兼容
 

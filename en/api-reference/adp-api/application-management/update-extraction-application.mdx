@@ -2,8 +2,7 @@
 title: Update application
 sidebarTitle: Update application
 openapi: /en/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/update
-description: Manage extraction/classification apps, field formats and configuration
-  versions.
+description: Update the basic information and configuration of an extraction or standalone classification application.
 ---
 
-Supports classic extraction, high-speed custom extraction, and standalone classification.
+Update fields or classification rules according to the application type. Field or switch changes for a high-speed custom extraction application create a new configuration version; omitted switches inherit the reference version, and a returned `config_version` does not mean it is published.

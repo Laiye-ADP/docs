@@ -2,11 +2,10 @@
 title: Query document extraction result
 sidebarTitle: Query document extraction result
 openapi: /en/api-reference/adp-api.yaml GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}
-description: Single-app asynchronous extraction uses the same identity, file and option
-  rules as sync extraction. 1425 async also disables human collaboration.
+description: Query the status and result of a single-application extraction task.
 ---
 
-Single-app asynchronous extraction uses the same identity, file and option rules as sync extraction. 1425 async also disables human collaboration.
+Use the `task_id` returned by [Create document extraction task](/en/api-reference/adp-api/document-extraction/create-document-extract-task). When processing completes, the response includes the configuration version used and the fields configured for the application.
 
 [Parameter applicability and native-file examples](/en/api-reference/adp-api/document-extraction/extract-document)
 

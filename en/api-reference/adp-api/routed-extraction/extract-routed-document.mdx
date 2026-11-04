@@ -1,7 +1,7 @@
 ---
 title: Routed extraction (sync)
-description: See the API definition below for parameters, response structure and examples.
+description: Match documents to candidate extraction applications and return extraction results synchronously.
 openapi: /en/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/routed
 ---
 
-See the API definition below for parameters, response structure and examples.
+Provide 1–10 candidate application IDs and one file source. The endpoint uses application names and descriptions to select a matching application for each document instance, runs extraction with that application, and returns grouped results; use it when an immediate result is required.

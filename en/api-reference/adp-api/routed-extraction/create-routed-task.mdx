@@ -1,7 +1,7 @@
 ---
 title: Create routed extraction task
-description: See the API definition below for parameters, response structure and examples.
+description: Create an asynchronous routed extraction task.
 openapi: /en/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/routed/create/task
 ---
 
-See the API definition below for parameters, response structure and examples.
+Provide candidate application IDs and one file source. The endpoint immediately returns a `task_id`; then use [Query routed extraction task](/en/api-reference/adp-api/routed-extraction/query-routed-task) to retrieve the status and extraction results grouped by application.

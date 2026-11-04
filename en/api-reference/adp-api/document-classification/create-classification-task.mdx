@@ -1,7 +1,7 @@
 ---
 title: Create classification task
-description: See the API definition below for parameters, response structure and examples.
+description: Create an asynchronous standalone document classification task.
 openapi: /en/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/classify/create/task
 ---
 
-See the API definition below for parameters, response structure and examples.
+Provide the standalone classification application `app_id` and one file source. The endpoint immediately returns a `task_id`; then use [Query classification task](/en/api-reference/adp-api/document-classification/query-classification-task) to retrieve the task status and result.

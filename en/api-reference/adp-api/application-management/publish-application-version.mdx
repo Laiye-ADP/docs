@@ -1,9 +1,7 @@
 ---
 title: Publish extraction configuration
-description: See the API definition below for parameters, response structure and examples.
+description: Publish a configuration version for a high-speed custom extraction application.
 openapi: /en/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/version/publish
 ---
 
-See the API definition below for parameters, response structure and examples.
-
-Publishing is optional. Repeating an explicit published version returns the same config_version and published=true. Omit config_version for the latest unpublished version; no available target is an error.
+Provide `app_id` and optionally `config_version`. When the version is omitted, the latest unpublished version is published; publishing the same version again returns the same version information. Standalone classification applications do not use this endpoint.

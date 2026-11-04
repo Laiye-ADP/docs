@@ -1,8 +1,8 @@
 ---
 title: Generate extraction field configuration from a sample file
 sidebarTitle: "Generate field configuration"
-description: "Submit one sample file and generate field configuration for creating or updating a high-speed custom extraction application."
+description: "Generate high-speed custom extraction field configuration from one sample file."
 openapi: "/en/api-reference/adp-api.yaml POST /open/agentic_doc_processor/{tenant_name}/v1/app-manage/field-config/generate"
 ---
 
-See the API definition below for parameters, response structure, and examples.
+Provide `file_url` or `file_base64` and optionally add field requirements through `prompt`. The endpoint only returns `extract_fields` for [creating](/en/api-reference/adp-api/application-management/create-extraction-application) or [updating](/en/api-reference/adp-api/application-management/update-extraction-application) an application; it does not create an application or save a configuration version.
