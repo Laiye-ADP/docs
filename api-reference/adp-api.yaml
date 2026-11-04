@@ -4598,7 +4598,7 @@ components:
       type: object
       additionalProperties: false
       title: 根据样例文件生成字段配置
-      description: 根据一个样例文件生成可直接用于 create/update 的高速抽取字段配置。
+      description: 根据一个样例文件生成可直接用于 create/update 的高速抽取字段配置。file_url 与 file_base64 必须且只能提供一个。
       properties:
         file_base64:
           type: string
@@ -4613,13 +4613,6 @@ components:
           type: string
           maxLength: 3000
           description: 可选的字段生成要求，最多 3000 个字符。
-      if:
-        required: [file_url]
-      then:
-        not:
-          required: [file_base64]
-      else:
-        required: [file_base64]
     ExtractionAppResponse:
       allOf:
       - $ref: '#/components/schemas/SimpleResponse'
@@ -5970,6 +5963,7 @@ components:
       type: object
     AppDocRoutedRequest:
       additionalProperties: false
+      description: 自动分类路由抽取请求。file_url 与 file_base64 必须且只能提供一个。
       properties:
         app_ids:
           description: 1～10 个不重复的候选应用 ID，仅支持 1425、1423、1424 应用；应用名称去除首尾空格后也须不区分大小写唯一。
@@ -6014,22 +6008,6 @@ components:
       - app_ids
       title: AppDocRoutedRequest
       type: object
-      if:
-        required:
-        - file_url
-        properties:
-          file_url:
-            type: string
-      then:
-        properties:
-          file_base64:
-            type: 'null'
-      else:
-        required:
-        - file_base64
-        properties:
-          file_base64:
-            type: string
     RoutedExtractionModelParams:
       additionalProperties: false
       properties:
@@ -6146,6 +6124,7 @@ components:
       type: object
     AppDocClassifyRequest:
       additionalProperties: false
+      description: 独立文档分类请求。file_url 与 file_base64 必须且只能提供一个。
       properties:
         app_id:
           description: 独立分类应用 ID，应用类型须为 1426。
@@ -6182,22 +6161,6 @@ components:
       - app_id
       title: AppDocClassifyRequest
       type: object
-      if:
-        required:
-        - file_url
-        properties:
-          file_url:
-            type: string
-      then:
-        properties:
-          file_base64:
-            type: 'null'
-      else:
-        required:
-        - file_base64
-        properties:
-          file_base64:
-            type: string
     ClassificationModelParams:
       additionalProperties: false
       properties:
@@ -6256,10 +6219,7 @@ components:
       type: object
     ClassificationAppUpdateRequest:
       additionalProperties: false
-      minProperties: 2
-      dependentSchemas:
-        ai_function:
-          minProperties: 3
+      description: 除 app_id（以及可选的 ai_function）外，必须至少提交 app_name、description 或 classify_types 中的一项。
       title: 修改独立分类应用
       properties:
         app_id:
@@ -6294,7 +6254,6 @@ components:
           title: Classify Types
       required:
       - app_id
-      title: ClassificationAppUpdateRequest
       type: object
     ClassificationAppCreateRequest:
       additionalProperties: false
@@ -6329,7 +6288,6 @@ components:
       - ai_function
       - app_name
       - classify_types
-      title: ClassificationAppCreateRequest
       type: object
     ClassificationCategory:
       additionalProperties: false
