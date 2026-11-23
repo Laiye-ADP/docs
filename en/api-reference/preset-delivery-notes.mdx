@@ -1,0 +1,58 @@
+---
+title: "Delivery notes"
+description: "Use ADP preset applications to extract fields from delivery notes."
+---
+
+## Overview
+
+Get `app_id` from **View API** in the application or call [List applications](/en/api-reference/adp-api/application-management/list-applications) with `app_type=0` and `ai_function=1427`.
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract
+```
+
+Async task creation uses the same request body as synchronous extraction. Use the returned `data.task_id` to query the task. On success, the fields and line items are in `data.extraction_result`.
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task
+GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}
+```
+
+## Request parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `tenant_name` | string | Yes | Tenant name. Default: `laiye`. |
+| `app_id` | string | Yes | Unique ID of the preset application. View it in **View API**. |
+| `file_base64` | string | Optional | Base64 content of the file. Use either `file_base64` or `file_url`. |
+| `file_url` | string | Optional | Online file URL. Use either `file_url` or `file_base64`. Only HTTP URLs are supported. |
+| `file_name` | string | Optional | File name. Provide it for Base64 input or when the name cannot be determined from the URL. |
+| `enable_highlight` | boolean | No | Whether to show source locations for this extraction. |
+| `enable_confidence` | boolean | No | Whether to calculate field confidence for this extraction. |
+| `enable_field_value_translation` | boolean | No | Whether to translate field values for this extraction. Omit or pass `null` to use the saved application setting. |
+
+Set the three switches at the top level of the request body. Use `true` to enable or `false` to disable an option for this extraction only. Omit a switch or pass `null` to use its saved application setting.
+
+Extraction uses the fields saved in the application configuration. Source locations are shown by default. Confidence scores and field-value translation are off by default.
+
+## Preset fields
+
+| Field key | Field name | Type |
+| --- | --- | --- |
+| `delivery_note_number` | Delivery Note Number | Text |
+| `delivery_note_date` | Delivery Note Date | Date |
+| `delivery_date` | Delivery Date | Date |
+| `po_number` | PO Number | Text |
+| `supplier_name` | Supplier Name | Text |
+| `shipper_name` | Shipper Name | Text |
+| `receiver_name` | Recipient Name | Text |
+| `delivery_address` | Delivery Address | Text |
+| `line_items` | Delivery Line Items | Table |
+| `line_items_line_number` | Line Number | Table subfield |
+| `line_items_po_number` | Line PO Number | Table subfield |
+| `line_items_material_code` | Material Code | Table subfield |
+| `line_items_name` | Item Name | Table subfield |
+| `line_items_description` | Additional Description | Table subfield |
+| `line_items_batch_number` | Batch/Lot Number | Table subfield |
+| `line_items_delivered_quantity` | Delivered Quantity | Table subfield |
+| `line_items_unit` | Unit of Measure | Table subfield |

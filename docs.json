@@ -86,6 +86,16 @@
                     "icon": "asterisk"
                   },
                   {
+                    "group": "送货单",
+                    "root": "api-reference/preset-delivery-notes",
+                    "pages": [
+                      "api-reference/preset-delivery-notes/extract-delivery-note",
+                      "api-reference/preset-delivery-notes/create-delivery-note-extract-task",
+                      "api-reference/preset-delivery-notes/query-delivery-note-extract-task"
+                    ],
+                    "icon": "asterisk"
+                  },
+                  {
                     "group": "卡证",
                     "root": "api-reference/preset-cards",
                     "pages": [
@@ -285,6 +295,16 @@
                       "en/api-reference/preset-domestic-bills/create-domestic-bill-extract-task",
                       "en/api-reference/preset-domestic-bills/query-domestic-bill-extract-task",
                       "en/api-reference/preset-domestic-bills/verify-domestic-invoice"
+                    ],
+                    "icon": "asterisk"
+                  },
+                  {
+                    "group": "Delivery notes",
+                    "root": "en/api-reference/preset-delivery-notes",
+                    "pages": [
+                      "en/api-reference/preset-delivery-notes/extract-delivery-note",
+                      "en/api-reference/preset-delivery-notes/create-delivery-note-extract-task",
+                      "en/api-reference/preset-delivery-notes/query-delivery-note-extract-task"
                     ],
                     "icon": "asterisk"
                   },

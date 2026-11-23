@@ -1,0 +1,58 @@
+---
+title: "送货单"
+description: "使用 ADP 预置应用抽取送货单字段。"
+---
+
+## 概述
+
+使用应用的 **查看 API** 获取 `app_id`，或调用[查询应用列表](/api-reference/adp-api/application-management/list-applications)，设置 `app_type=0` 和 `ai_function=1427`。
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract
+```
+
+异步创建使用与同步抽取相同的请求体。使用创建接口返回的 `data.task_id` 查询任务，成功后在 `data.extraction_result` 中读取字段和明细。
+
+```http
+POST /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task
+GET /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}
+```
+
+## 请求参数
+
+| 名称 | 类型 | 是否必填 | 描述 |
+| --- | --- | --- | --- |
+| `tenant_name` | string | 是 | 租户名称，默认 `laiye`。 |
+| `app_id` | string | 是 | 预置应用的唯一标识，在应用的 **查看 API** 中查看。 |
+| `file_base64` | string | 可选 | 待抽取文件的 Base64，与 `file_url` 二选一。 |
+| `file_url` | string | 可选 | 待抽取文件 URL，与 `file_base64` 二选一。仅支持 HTTP 开头的线上地址。 |
+| `file_name` | string | 可选 | 文件名（含扩展名）。使用 Base64，或无法从 URL 判断文件名时传入。 |
+| `enable_highlight` | boolean | 否 | 是否为本次抽取显示来源位置。 |
+| `enable_confidence` | boolean | 否 | 是否为本次抽取计算字段置信度。 |
+| `enable_field_value_translation` | boolean | 否 | 是否为本次抽取开启字段值翻译。省略或传 `null` 沿用应用配置。 |
+
+三个开关均在请求体顶层传入。`true` 开启，`false` 关闭，仅对本次抽取生效。省略或传 `null` 沿用应用配置。
+
+抽取使用应用中保存的字段配置。默认显示来源位置，置信度计算和字段值翻译默认关闭。
+
+## 预置字段
+
+| 字段键 | 中文名 | 英文名 | 类型 |
+| --- | --- | --- | --- |
+| `delivery_note_number` | 送货单号 | Delivery Note Number | 文本 |
+| `delivery_note_date` | 送货单日期 | Delivery Note Date | 日期 |
+| `delivery_date` | 送货/交付日期 | Delivery Date | 日期 |
+| `po_number` | 采购订单号 | PO Number | 文本 |
+| `supplier_name` | 供应商名称 | Supplier Name | 文本 |
+| `shipper_name` | 发货/送货单位名称 | Shipper Name | 文本 |
+| `receiver_name` | 收货单位名称 | Recipient Name | 文本 |
+| `delivery_address` | 送达地址 | Delivery Address | 文本 |
+| `line_items` | 送货明细表格 | Delivery Line Items | 表格 |
+| `line_items_line_number` | 行号 | Line Number | 表格子字段 |
+| `line_items_po_number` | 行级采购订单号 | Line PO Number | 表格子字段 |
+| `line_items_material_code` | 物料编码 | Material Code | 表格子字段 |
+| `line_items_name` | 货物名称 | Item Name | 表格子字段 |
+| `line_items_description` | 货物补充描述 | Additional Description | 表格子字段 |
+| `line_items_batch_number` | 批号/批次号 | Batch/Lot Number | 表格子字段 |
+| `line_items_delivered_quantity` | 本次送货数量 | Delivered Quantity | 表格子字段 |
+| `line_items_unit` | 计量单位 | Unit of Measure | 表格子字段 |

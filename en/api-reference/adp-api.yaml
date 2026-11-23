@@ -77,7 +77,7 @@ paths:
       summary: Extract document (sync)
       description: For a user-uploaded document, call the specified document extraction application and extract content from
         the file based on the application configuration and rules. The same endpoint applies to custom extraction applications,
-        overseas invoices, receipts, purchase orders, domestic general bills, and cards. Synchronous extraction disables human
+        overseas invoices, receipts, purchase orders, domestic general bills, delivery notes, and cards. Synchronous extraction disables human
         collaboration by default; use the asynchronous create and query endpoints for human review. High-speed apps accept top-level
         enable_highlight, enable_field_value_translation, enable_confidence and enable_cross_page_enhancement for this call only. Omitted/null inherits app
         settings without creating a version. 1425 sync and async both bypass human collaboration. See the guide for legacy file-source
@@ -101,7 +101,7 @@ paths:
       - Document extraction
       summary: Create document extraction task
       description: "Create a document extraction task and return task_id immediately. Use this endpoint for large documents\
-        \ or long-running extraction tasks.\n\nWith human collaboration enabled, data.metadata.collaboration_task_id is the\
+        \ or long-running extraction tasks, including ready-to-use applications such as Delivery Note.\n\nWith human collaboration enabled, data.metadata.collaboration_task_id is the\
         \ collaboration task ID, while data.task_id is the asynchronous extraction task ID. They are not interchangeable. High-speed\
         \ custom extraction does not support human collaboration.\n High-speed apps accept top-level enable_highlight, enable_field_value_translation\
         \ and enable_confidence, plus enable_cross_page_enhancement for this call only. Omitted/null inherits app settings without creating a version. 1425 sync\
@@ -123,7 +123,7 @@ paths:
     get:
       tags: [Document extraction]
       summary: Query document extraction result
-      description: Query document extraction status and results by the task_id returned by the task creation endpoint. After human review, extraction_result retains the original extraction and output_result contains the corrected final values. Query the collaboration task separately to confirm its review state.
+      description: Query document extraction status and results by the task_id returned by the task creation endpoint, including tasks for ready-to-use applications such as Delivery Note. After human review, extraction_result retains the original extraction and output_result contains the corrected final values. Query the collaboration task separately to confirm its review state.
       operationId: queryDocumentExtractTask
       security:
         - ApiKeyAuth: []
@@ -493,7 +493,7 @@ paths:
       summary: List applications
       description: List apps within the authenticated account access scope. ai_function has no default 1425 filter; explicitly
         send 1426 for classification apps. Public sites generally scope by current user; private deployments additionally follow
-        data-permission policy. owner_only=true explicitly restricts the creator.
+        data-permission policy. owner_only=true explicitly restricts the creator. To list the preset Delivery Note application, set app_type=0 and ai_function=1427.
       operationId: listExtractionApps
       security:
       - ApiKeyAuth: []
@@ -518,6 +518,7 @@ paths:
           - 1424
           - 1425
           - 1426
+          - 1427
       - name: app_type
         in: query
         required: false
@@ -3774,19 +3775,19 @@ components:
           type:
           - boolean
           - 'null'
-          description: Source locations; must be false when cross-page enhancement is enabled. High-speed override for this request only. Omitted/null inherits the app; config is not
+          description: Source locations; must be false when cross-page enhancement is enabled. High-speed and Delivery Note override for this request only. Omitted/null inherits the app; config is not
             saved.
         enable_field_value_translation:
           type:
           - boolean
           - 'null'
-          description: Field-value translation; high-speed override for this request only. Omitted/null inherits the app; config
+          description: Field-value translation; high-speed and Delivery Note override for this request only. Omitted/null inherits the app; config
             is not saved.
         enable_confidence:
           type:
           - boolean
           - 'null'
-          description: Field confidence evaluation; must be false when cross-page enhancement is enabled. High-speed override for this request only. Omitted/null inherits the app;
+          description: Field confidence evaluation; must be false when cross-page enhancement is enabled. High-speed and Delivery Note override for this request only. Omitted/null inherits the app;
             config is not saved.
         file_base64:
           type:

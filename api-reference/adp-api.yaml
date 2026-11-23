@@ -75,7 +75,7 @@ paths:
       tags:
       - 文档抽取
       summary: 文档抽取（同步接口）
-      description: 针对用户上传的文档，调用指定的文档抽取应用，根据应用配置和规则从文件中提取指定内容。同一接口适用于自定义抽取应用、海外发票、收据、采购订单、国内通用票据和卡证等场景。 同步抽取默认禁用人机协同；需要人工审核时请使用异步创建与查询接口。
+      description: 针对用户上传的文档，调用指定的文档抽取应用，根据应用配置和规则从文件中提取指定内容。同一接口适用于自定义抽取应用、海外发票、收据、采购订单、国内通用票据、送货单和卡证等场景。 同步抽取默认禁用人机协同；需要人工审核时请使用异步创建与查询接口。
         高速版的临时开关enable_highlight、enable_field_value_translation、enable_confidence、enable_cross_page_enhancement均位于顶层；省略/null沿用应用配置，不生成版本。 1425同步和异步均不进入人机协同；文件与历史应用凭证的兼容规则见调用说明。
       operationId: extractDocument
       security:
@@ -95,7 +95,7 @@ paths:
       tags:
       - 文档抽取
       summary: 创建文档抽取异步任务
-      description: "创建文档抽取任务并立即返回 task_id。适用于大文档或长时间抽取任务。\n\n启用人机协同时，data.metadata.collaboration_task_id 是协同任务 ID，data.task_id\
+      description: "创建文档抽取任务并立即返回 task_id。适用于大文档或长时间抽取任务，也支持送货单等开箱即用应用。\n\n启用人机协同时，data.metadata.collaboration_task_id 是协同任务 ID，data.task_id\
         \ 是异步抽取任务 ID，二者不能互换。高速自定义抽取不支持人机协同。\n 高速版的临时开关enable_highlight、enable_field_value_translation、enable_confidence、enable_cross_page_enhancement均位于顶层；省略/null沿用应用配置，不生成版本。\
         \ 1425同步和异步均不进入人机协同；文件与历史应用凭证的兼容规则见调用说明。"
       operationId: createDocumentExtractTask
@@ -115,7 +115,7 @@ paths:
     get:
       tags: [文档抽取]
       summary: 查询文档抽取任务结果
-      description: 根据创建任务接口返回的 task_id 查询文档抽取状态和结果。 人机协同完成后，extraction_result 保留原始抽取值，output_result 返回最终修正值；协同状态请使用协同任务查询接口确认。
+      description: 根据创建任务接口返回的 task_id 查询文档抽取状态和结果，适用于送货单等开箱即用应用。 人机协同完成后，extraction_result 保留原始抽取值，output_result 返回最终修正值；协同状态请使用协同任务查询接口确认。
       operationId: queryDocumentExtractTask
       security:
         - ApiKeyAuth: []
@@ -481,7 +481,7 @@ paths:
       tags:
       - 应用管理
       summary: 查询应用列表
-      description: 查询当前账号权限范围内的应用。ai_function不传不默认1425；要列出1426分类应用须显式传1426。公有站点通常按当前用户限定，私有部署还受数据权限策略影响；owner_only=true进一步限定创建人。
+      description: 查询当前账号权限范围内的应用。ai_function不传不默认1425；要列出1426分类应用须显式传1426。公有站点通常按当前用户限定，私有部署还受数据权限策略影响；owner_only=true进一步限定创建人。查询送货单预置应用时，设置 app_type=0 和 ai_function=1427。
       operationId: listExtractionApps
       security:
       - ApiKeyAuth: []
@@ -505,6 +505,7 @@ paths:
           - 1424
           - 1425
           - 1426
+          - 1427
       - name: app_type
         in: query
         required: false
@@ -3731,17 +3732,17 @@ components:
           type:
           - boolean
           - 'null'
-          description: 原文定位；高速版仅本次调用覆盖，省略/null沿用应用，不保存配置。开启跨页增强时必须为 false。
+          description: 原文定位；高速版和送货单仅本次调用覆盖，省略/null沿用应用，不保存配置。开启跨页增强时必须为 false。
         enable_field_value_translation:
           type:
           - boolean
           - 'null'
-          description: 字段值翻译；高速版仅本次调用覆盖，省略/null沿用应用，不保存配置。
+          description: 字段值翻译；高速版和送货单仅本次调用覆盖，省略/null沿用应用，不保存配置。
         enable_confidence:
           type:
           - boolean
           - 'null'
-          description: 字段置信度评估；高速版仅本次调用覆盖，省略/null沿用应用，不保存配置。开启跨页增强时必须为 false。
+          description: 字段置信度评估；高速版和送货单仅本次调用覆盖，省略/null沿用应用，不保存配置。开启跨页增强时必须为 false。
         file_base64:
           type:
           - string

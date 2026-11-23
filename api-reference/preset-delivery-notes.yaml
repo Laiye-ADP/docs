@@ -1,0 +1,362 @@
+openapi: 3.1.0
+info:
+  title: 送货单
+  version: 1.0.0
+  description: ADP 预置应用接口，适用于送货单抽取场景。
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: https://adp.laiye.com
+    description: ADP 生产环境
+tags:
+  - name: 送货单抽取
+    description: 抽取送货单字段。
+paths:
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract:
+    post:
+      tags: [送货单抽取]
+      summary: 送货单抽取（同步接口）
+      description: 针对送货单文件进行字段抽取。返回字段由预置应用配置决定。
+      operationId: extractDeliveryNote
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentExtractRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentExtractResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task:
+    post:
+      tags: [送货单抽取]
+      summary: 创建送货单抽取异步任务
+      description: 创建送货单抽取任务，并立即返回 task_id。
+      operationId: createDeliveryNoteExtractTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentExtractRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TaskCreateResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}:
+    get:
+      tags: [送货单抽取]
+      summary: 查询送货单抽取任务结果
+      description: 根据 task_id 查询送货单抽取任务结果。
+      operationId: queryDeliveryNoteExtractTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentExtractResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+  parameters:
+    TenantName:
+      name: tenant_name
+      in: path
+      required: true
+      description: 租户名称，默认 laiye。
+      schema:
+        type: string
+        default: laiye
+    TaskId:
+      name: task_id
+      in: path
+      required: true
+      description: 任务 ID。
+      schema:
+        type: string
+    AcceptLanguage:
+      name: accept-language
+      in: header
+      required: false
+      description: 返回字段名称的语言。默认 zh 返回中文字段名；设置为 en 返回英文字段名。
+      schema:
+        type: string
+        enum: [zh, en]
+        default: zh
+  examples:
+    DeliveryNoteFileBase64:
+      summary: 使用文件 Base64
+      value:
+        file_base64: "<base64_encoded_file>"
+        file_name: delivery-note.pdf
+        app_id: "<delivery_note_app_id>"
+    DeliveryNoteFileUrl:
+      summary: 使用文件 URL
+      value:
+        file_url: https://example.com/delivery-note.pdf
+        app_id: "<delivery_note_app_id>"
+  requestBodies:
+    DocumentExtractRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentExtractRequest'
+          examples:
+            fileUrl:
+              $ref: '#/components/examples/DeliveryNoteFileUrl'
+            fileBase64:
+              $ref: '#/components/examples/DeliveryNoteFileBase64'
+  responses:
+    DocumentExtractResponse:
+      description: 送货单抽取结果。任务成功后，在 data.extraction_result 中读取字段和所有页的送货明细。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentExtractResponse'
+          example:
+            code: success
+            message: ''
+            data:
+              response_type: extract
+              task_id: 8c1db125fd63493ab3d4508e05ecd311
+              status: 4
+              extraction_result:
+              - field_key: delivery_note_number
+                field_name: 送货单号
+                field_values:
+                - field_value: DN-20261123-001
+              - field_key: delivery_note_date
+                field_name: 送货单日期
+                field_values:
+                - field_value: '2026-11-23'
+              - field_key: line_items
+                field_name: 送货明细表格
+                table_values:
+                - - field_key: line_items_material_code
+                    field_name: 物料编码
+                    field_values:
+                    - field_value: MAT-001
+                  - field_key: line_items_name
+                    field_name: 货物名称
+                    field_values:
+                    - field_value: 文件夹
+                  - field_key: line_items_delivered_quantity
+                    field_name: 本次送货数量
+                    field_values:
+                    - field_value: '24'
+                  - field_key: line_items_unit
+                    field_name: 计量单位
+                    field_values:
+                    - field_value: 盒
+    TaskCreateResponse:
+      description: 任务创建结果。使用返回的 task_id 查询任务状态及抽取结果。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TaskCreateResponse'
+          example:
+            code: success
+            message: ''
+            data:
+              response_type: extract
+              task_id: 8c1db125fd63493ab3d4508e05ecd311
+    ValidationError:
+      description: 参数校验错误。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPValidationError'
+  schemas:
+    DocumentExtractRequest:
+      oneOf:
+        - title: 使用文件 URL
+          type: object
+          additionalProperties: false
+          properties:
+            file_url:
+              type: string
+              format: uri
+              description: 待抽取文件 URL，与 file_base64 二选一。
+            file_name:
+              type: string
+              description: 文件名（含扩展名）。使用文件 Base64，或无法从 URL 判断文件名时传入。
+            app_id:
+              type: string
+              description: 送货单应用的 ID，可从应用的「查看 API」或查询应用列表接口获取。
+            enable_highlight:
+              type: [boolean, 'null']
+              description: 是否仅为本次抽取显示来源位置。省略或传 null 沿用应用配置。
+            enable_confidence:
+              type: [boolean, 'null']
+              description: 是否仅为本次抽取计算字段置信度。省略或传 null 沿用应用配置。
+            enable_field_value_translation:
+              type: [boolean, 'null']
+              description: 是否仅为本次抽取开启字段值翻译。省略或传 null 沿用应用配置。
+          required: [app_id, file_url]
+        - title: 使用文件 Base64
+          type: object
+          additionalProperties: false
+          properties:
+            file_base64:
+              type: string
+              description: 待抽取文件 Base64，与 file_url 二选一。
+            file_name:
+              type: string
+              description: 文件名（含扩展名）。使用文件 Base64，或无法从 URL 判断文件名时传入。
+            app_id:
+              type: string
+              description: 送货单应用的 ID，可从应用的「查看 API」或查询应用列表接口获取。
+            enable_highlight:
+              type: [boolean, 'null']
+              description: 是否仅为本次抽取显示来源位置。省略或传 null 沿用应用配置。
+            enable_confidence:
+              type: [boolean, 'null']
+              description: 是否仅为本次抽取计算字段置信度。省略或传 null 沿用应用配置。
+            enable_field_value_translation:
+              type: [boolean, 'null']
+              description: 是否仅为本次抽取开启字段值翻译。省略或传 null 沿用应用配置。
+          required: [app_id, file_base64]
+    SimpleResponse:
+      type: object
+      properties:
+        code:
+          description: 业务状态码，success 表示接口调用成功。查询任务时还需检查 data.status。
+          oneOf:
+            - type: string
+            - type: integer
+        message:
+          description: 接口消息。业务调用失败时可用于排查。
+          type: string
+        tips:
+          description: 可选的补充提示。
+          type:
+            - string
+            - 'null'
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationErrorItem'
+      required: [detail]
+    ValidationErrorItem:
+      type: object
+      properties:
+        loc:
+          type: array
+          items:
+            oneOf:
+              - type: string
+              - type: integer
+        msg:
+          type: string
+        type:
+          type: string
+      required: [loc, msg, type]
+    TaskCreateResponse:
+      allOf:
+      - $ref: '#/components/schemas/SimpleResponse'
+      - type: object
+        properties:
+          data:
+            type: object
+            description: 业务响应数据。
+            properties:
+              response_type: &id001
+                type: string
+                description: 处理类型，固定为 extract。
+                const: extract
+              task_id: &id002
+                type: string
+                description: 任务 ID。用于查询异步任务状态和结果。
+    DocumentExtractResponse:
+      allOf:
+      - $ref: '#/components/schemas/SimpleResponse'
+      - type: object
+        properties:
+          data:
+            type: object
+            description: 业务响应数据。
+            properties:
+              response_type: *id001
+              task_id: *id002
+              status:
+                type: integer
+                description: 任务状态。0 未知，1 就绪，2 运行中，4 成功，5 失败，6 取消或拒绝。
+                enum:
+                - 0
+                - 1
+                - 2
+                - 4
+                - 5
+                - 6
+              message:
+                type: string
+                description: 任务处理信息，失败时可用于排查。
+              extraction_result:
+                type: array
+                description: 任务成功后读取此数组。普通字段读取 field_values，送货明细读取 table_values。
+                items:
+                  $ref: '#/components/schemas/DeliveryNoteField'
+    DeliveryNoteField:
+      type: object
+      properties:
+        field_key: &id003
+          type: string
+          description: 字段键，用于标识预置字段或表格列。
+        field_name: &id004
+          type: string
+          description: 字段显示名称。
+        field_values: &id005
+          type: array
+          description: 普通字段或明细单元格的值列表。
+          items:
+            $ref: '#/components/schemas/DeliveryNoteFieldValue'
+        table_values:
+          type: array
+          description: 送货明细。外层为行，内层为单元格。续页明细按顺序合并到同一张表。
+          items:
+            type: array
+            items:
+              $ref: '#/components/schemas/DeliveryNoteCell'
+    DeliveryNoteCell:
+      type: object
+      properties:
+        field_key: *id003
+        field_name: *id004
+        field_values: *id005
+    DeliveryNoteFieldValue:
+      type: object
+      properties:
+        field_value:
+          type: string
+          description: 抽取到的值。未抽取到值时返回空字符串。
+        field_value_translation:
+          type: string
+          description: 开启翻译且有可用译文时返回。原值仍保存在 field_value。
+        field_confidence:
+          type: number
+          description: 开启置信度计算时可辅助复核，取值 0 至 1。关闭时的默认值不能作为置信度。
+          minimum: 0
+          maximum: 1
+        references:
+          type: array
+          description: 开启来源定位且有可用位置时，可用于回查原文。
+          items:
+            type: object
+            additionalProperties: true

@@ -1,0 +1,367 @@
+openapi: 3.1.0
+info:
+  title: Delivery notes
+  version: 1.0.0
+  description: ADP preset application APIs for extracting delivery notes.
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: https://adp-global.laiye.com
+    description: ADP global production endpoint
+tags:
+  - name: Delivery note extraction
+    description: Extract fields from delivery notes.
+paths:
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract:
+    post:
+      tags: [Delivery note extraction]
+      summary: Extract delivery note (sync)
+      description: Extract fields from delivery notes. Returned fields depend on the preset application configuration.
+      operationId: extractDeliveryNote
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentExtractRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentExtractResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/create/task:
+    post:
+      tags: [Delivery note extraction]
+      summary: Create delivery note extraction task
+      description: Create an async extraction task for a delivery note.
+      operationId: createDeliveryNoteExtractTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        $ref: '#/components/requestBodies/DocumentExtractRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TaskCreateResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /open/agentic_doc_processor/{tenant_name}/v1/app/doc/extract/query/task/{task_id}:
+    get:
+      tags: [Delivery note extraction]
+      summary: Query delivery note extraction result
+      description: Query async extraction results for a delivery note.
+      operationId: queryDeliveryNoteExtractTask
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantName'
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          $ref: '#/components/responses/DocumentExtractResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+  parameters:
+    TenantName:
+      name: tenant_name
+      in: path
+      required: true
+      description: "Tenant name. Default: laiye."
+      schema:
+        type: string
+        default: laiye
+    TaskId:
+      name: task_id
+      in: path
+      required: true
+      description: Task ID.
+      schema:
+        type: string
+    AcceptLanguage:
+      name: accept-language
+      in: header
+      required: false
+      description: Field name language. Use zh for Chinese or en for English.
+      schema:
+        type: string
+        enum: [zh, en]
+        default: en
+  examples:
+    DeliveryNoteFileBase64:
+      summary: Use file Base64
+      value:
+        file_base64: "<base64_encoded_file>"
+        file_name: delivery-note.pdf
+        app_id: "<delivery_note_app_id>"
+    DeliveryNoteFileUrl:
+      summary: Use file URL
+      value:
+        file_url: https://example.com/delivery-note.pdf
+        app_id: "<delivery_note_app_id>"
+  requestBodies:
+    DocumentExtractRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentExtractRequest'
+          examples:
+            fileUrl:
+              $ref: '#/components/examples/DeliveryNoteFileUrl'
+            fileBase64:
+              $ref: '#/components/examples/DeliveryNoteFileBase64'
+  responses:
+    DocumentExtractResponse:
+      description: Delivery note extraction result. On success, data.extraction_result contains the fields and line items from all pages.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentExtractResponse'
+          example:
+            code: success
+            message: ''
+            data:
+              response_type: extract
+              task_id: 8c1db125fd63493ab3d4508e05ecd311
+              status: 4
+              extraction_result:
+              - field_key: delivery_note_number
+                field_name: Delivery Note Number
+                field_values:
+                - field_value: DN-20261123-001
+              - field_key: delivery_note_date
+                field_name: Delivery Note Date
+                field_values:
+                - field_value: '2026-11-23'
+              - field_key: line_items
+                field_name: Delivery Line Items
+                table_values:
+                - - field_key: line_items_material_code
+                    field_name: Material Code
+                    field_values:
+                    - field_value: MAT-001
+                  - field_key: line_items_name
+                    field_name: Item Name
+                    field_values:
+                    - field_value: File folders
+                  - field_key: line_items_delivered_quantity
+                    field_name: Delivered Quantity
+                    field_values:
+                    - field_value: '24'
+                  - field_key: line_items_unit
+                    field_name: Unit of Measure
+                    field_values:
+                    - field_value: box
+    TaskCreateResponse:
+      description: Task creation result. Use the returned task_id to query the status and extraction result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TaskCreateResponse'
+          example:
+            code: success
+            message: ''
+            data:
+              response_type: extract
+              task_id: 8c1db125fd63493ab3d4508e05ecd311
+    ValidationError:
+      description: Validation error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPValidationError'
+  schemas:
+    DocumentExtractRequest:
+      oneOf:
+        - title: Use file URL
+          type: object
+          additionalProperties: false
+          properties:
+            file_url:
+              type: string
+              format: uri
+              description: File URL. Use either file_url or file_base64.
+            file_name:
+              type: string
+              description: File name. Provide it for Base64 input or when the name cannot be determined from the URL.
+            app_id:
+              type: string
+              description: Delivery Note application ID. Get it from View API in the application or from List applications.
+            enable_highlight:
+              type: [boolean, 'null']
+              description: Whether to show source locations for this extraction only. Omit or pass null to use the saved application setting.
+            enable_confidence:
+              type: [boolean, 'null']
+              description: Whether to calculate field confidence for this extraction only. Omit or pass null to use the saved application setting.
+            enable_field_value_translation:
+              type: [boolean, 'null']
+              description: Translate field values for this extraction only. Omit or pass null to use the saved application setting.
+          required: [app_id, file_url]
+        - title: Use file Base64
+          type: object
+          additionalProperties: false
+          properties:
+            file_base64:
+              type: string
+              description: Base64-encoded file. Use either file_base64 or file_url.
+            file_name:
+              type: string
+              description: File name. Provide it for Base64 input or when the name cannot be determined from the URL.
+            app_id:
+              type: string
+              description: Delivery Note application ID. Get it from View API in the application or from List applications.
+            enable_highlight:
+              type: [boolean, 'null']
+              description: Whether to show source locations for this extraction only. Omit or pass null to use the saved application setting.
+            enable_confidence:
+              type: [boolean, 'null']
+              description: Whether to calculate field confidence for this extraction only. Omit or pass null to use the saved application setting.
+            enable_field_value_translation:
+              type: [boolean, 'null']
+              description: Translate field values for this extraction only. Omit or pass null to use the saved application setting.
+          required: [app_id, file_base64]
+    SimpleResponse:
+      type: object
+      properties:
+        code:
+          description: Business status code. success indicates a successful API call. When polling a task, also check data.status.
+          oneOf:
+            - type: string
+            - type: integer
+        message:
+          description: API message. Check this field when the API call fails.
+          type: string
+        tips:
+          description: Optional additional guidance.
+          type:
+            - string
+            - 'null'
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationErrorItem'
+      required: [detail]
+    ValidationErrorItem:
+      type: object
+      additionalProperties: true
+      properties:
+        type:
+          type: string
+        loc:
+          type: array
+          items:
+            oneOf:
+              - type: string
+              - type: integer
+        msg:
+          type: string
+        input: {}
+        ctx:
+          type: object
+          additionalProperties: true
+      required: [type, loc, msg]
+    TaskCreateResponse:
+      allOf:
+      - $ref: '#/components/schemas/SimpleResponse'
+      - type: object
+        properties:
+          data:
+            type: object
+            description: Operation result.
+            properties:
+              response_type: &id001
+                type: string
+                description: Processing type, always extract.
+                const: extract
+              task_id: &id002
+                type: string
+                description: Task ID for querying asynchronous task status and results.
+    DocumentExtractResponse:
+      allOf:
+      - $ref: '#/components/schemas/SimpleResponse'
+      - type: object
+        properties:
+          data:
+            type: object
+            description: Operation result.
+            properties:
+              response_type: *id001
+              task_id: *id002
+              status:
+                type: integer
+                description: Task status. 0 unknown, 1 ready, 2 running, 4 succeeded, 5 failed, and 6 canceled or rejected.
+                enum:
+                - 0
+                - 1
+                - 2
+                - 4
+                - 5
+                - 6
+              message:
+                type: string
+                description: Task processing message. Check it for details when the task fails.
+              extraction_result:
+                type: array
+                description: Read this array after the task succeeds. Use field_values for scalar fields and table_values for line items.
+                items:
+                  $ref: '#/components/schemas/DeliveryNoteField'
+    DeliveryNoteField:
+      type: object
+      properties:
+        field_key: &id003
+          type: string
+          description: Key identifying a preset field or table column.
+        field_name: &id004
+          type: string
+          description: Display name of the field.
+        field_values: &id005
+          type: array
+          description: Values for a scalar field or a line-item cell.
+          items:
+            $ref: '#/components/schemas/DeliveryNoteFieldValue'
+        table_values:
+          type: array
+          description: Delivery line items. The outer array contains rows, and each row contains cells. Rows from continuation pages are appended in order.
+          items:
+            type: array
+            items:
+              $ref: '#/components/schemas/DeliveryNoteCell'
+    DeliveryNoteCell:
+      type: object
+      properties:
+        field_key: *id003
+        field_name: *id004
+        field_values: *id005
+    DeliveryNoteFieldValue:
+      type: object
+      properties:
+        field_value:
+          type: string
+          description: Extracted value. An empty string indicates that no value was found.
+        field_value_translation:
+          type: string
+          description: Translation when enabled and available. The original remains in field_value.
+        field_confidence:
+          type: number
+          description: Review score from 0 to 1 when confidence scoring is enabled. A default value when disabled is not a score.
+          minimum: 0
+          maximum: 1
+        references:
+          type: array
+          description: Source locations for checking the original document when enabled and available.
+          items:
+            type: object
+            additionalProperties: true
